@@ -1,0 +1,32 @@
+on:
+  push:
+  pull_request:
+    types:
+      - "opened"
+      - "reopened"
+      - "synchronize"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    name: "Check rust stable"
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      - name: setup latest rust stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+          override: true
+      - name: cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy

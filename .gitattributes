@@ -1,0 +1,2 @@
+*.html.tera linguist-language=html
+**/vendor/* linguist-vendored

@@ -1,0 +1,16 @@
+# Added by Cargo
+/target
+
+# testing
+.env
+scratch.*
+
+# configuration
+config.toml
+
+# editor
+.idea/
+.vscode/
+
+# volumns
+db_data/

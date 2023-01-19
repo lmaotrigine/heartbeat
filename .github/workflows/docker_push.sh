@@ -1,0 +1,12 @@
+#!/bin/bash
+
+NAME="${HB_PROJECT_NAME:-ghcr.io/lmaotrigine/heartbeat}"
+TAG="$(git rev-parse --short HEAD)"
+IMG="${NAME}:${TAG}"
+LATEST="${NAME}:latest"
+
+_dir="$(dirname "$(dirname "$(dirname "$0")")")"
+
+docker build -t "${IMG}" "${_dir}"
+docker tag "${IMG}" "${LATEST}"
+docker push "${NAME}"

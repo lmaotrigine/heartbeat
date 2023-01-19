@@ -1,0 +1,30 @@
+# this is used for <title> tags
+# and some headings
+server_name = "VJ's heartbeat"
+
+# the full url to the server
+live_url = "https://hb.5ht2.me"
+
+# a random URL-safe string.
+# if left blank, addition of devices is disabled.
+# this may be generated using `openssl rand -base64 45 | sed 's/[/+=]//g'`
+secret_key = ""
+
+# don't change this unless you're using a fork
+repo = "https://github.com/lmaotrigine/heartbeat"
+
+[database]
+# this is the default if you're using the docker-compose file
+# otherwise, the format is postgresql://username:password@host/database
+dsn = "postgresql://heartbeat@db/heartbeat"
+
+[webhook]
+# leave this blank to disable webhooks
+url = ""
+
+# one of:
+# - "all"             log each beat + the below
+# - "new_devices"     log new devices + the below
+# - "long_absences"   log absences longer than 1 hour
+# - "none"            don't log anything
+level = "none"

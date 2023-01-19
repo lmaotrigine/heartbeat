@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{% block title %}Default title{% endblock title %}</title>
+    {% block head %}{% endblock head %}
+    <meta property="og:image" content="/favicon.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/grids.min.css">
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    {% block body %}{% endblock body %}
+  </body>
+</html>

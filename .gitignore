@@ -1,0 +1,19 @@
+# Added by Cargo
+/target
+
+# testing
+.env
+scratch.*
+
+# configuration
+config.toml
+
+# editor
+.idea/
+.vscode/
+
+# volumes
+db_data/
+
+# soon:tm:
+contrib/

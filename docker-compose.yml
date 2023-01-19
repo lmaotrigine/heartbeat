@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  server:
+    image: ghcr.io/lmaotrigine/heartbeat
+    volumes:
+      - ./config.toml:/usr/local/share/heartbeat/config.toml
+    networks:
+      - heartbeat-net
+    ports:
+      - 127.0.0.1:6060:6060
+    build:
+      context: .
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_USER: heartbeat
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: heartbeat
+    networks:
+      - heartbeat-net
+    expose:
+      - 5432
+
+networks:
+  heartbeat-net:
+    driver: bridge

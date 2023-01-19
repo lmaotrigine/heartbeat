@@ -1,0 +1,33 @@
+[package]
+name = "heartbeat"
+version = "0.1.0"
+description = "A service to keep a live heartbeat on multiple devices"
+edition = "2021"
+license = "BSD-3-Clause"
+authors = ["VJ <root@5ht2.me>"]
+repository = "https://github.com/lmaotrigine/heartbeat"
+homepage = "https://hb.5ht2.me"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = { version = "0.4.23", features = ["serde", "std", "clock"], default-features = false }
+lazy_static = "1.4.0"
+tokio = { version = "1.24.2", features = ["parking_lot"] }
+rocket = { version = "0.5.0-rc.2", features = ["json"] }
+rocket_db_pools = { version = "0.1.0-rc.2", features = ["sqlx_postgres", "sqlx_macros"] }
+rocket_dyn_templates = { version = "0.1.0-rc.2", features = ["tera"] }
+serde = { version = "1.0.152", features = ["derive"] }
+sqlx = { version = "0.5", features = ["postgres", "runtime-tokio-rustls", "macros", "chrono", "offline"] }
+toml = "0.5.10"
+base64 = "0.21.0"
+rand = "0.8.5"
+
+regex  = { version = "1.7.1", optional = true }
+reqwest = { version = "0.11.13", features = ["json"], optional = true }
+
+[features]
+default = []
+badges = ["regex"]
+webhook = ["reqwest"]
