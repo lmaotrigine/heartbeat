@@ -8,7 +8,7 @@
     window.onload = function () {
       setInterval(updateInfo, 1000);
     };
-    
+
     const map = {
       Y: 'year',
       M: 'month',
@@ -18,7 +18,7 @@
       m: 'minute',
       s: 'second',
     };
-    
+
     function plural(n, s) {
       return `${n} ${s}${n === 1 ? '' : 's'}`;
     }

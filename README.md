@@ -9,14 +9,24 @@
 
 A service inspired by [5HT2B/heartbeat](https://github.com/5ht2b/heartbeat) implemented in Rust.
 
+## Improvements
+
+This implements a few additional features when compared to upstream. Some of these are still open issues, and may be
+implemented soon.
+
+- Token-per-device
+- Persistence improvements with a more robust database
+- Built-in support for SVG badge generation (using dynamic badges from shields.io leads to long and clunky URLs).
+- Simpler configuration without using environment variables, eliminating command-line parsing (I might add this back if
+  only to allow for custom config file location)
+
 ## Compatibility
 
-This service makes some opinionated design changes from upstream in relation to stats, and how devices are added.
-However, the `/api/beat` endpoint functions the same, so clients that handle pinging this endpoint will be compatible.
+This service makes some opinionated design changes from upstream in relation to stats, and how devices are added, and
+renames the `Auth` header to the more widely accepted `Authorization`, hence existing clients need a bit of tweaking to
+be compatible with this server.
 
+## Usage
 
-### TODO
-
-- [ ] Documentation
-- [x] Webhook support
-- [ ] Tests
+See [`docs/usage.md`](docs/usage.md) for compilation and usage instructions, and [`docs/client.md`](docs/client.md) for
+API reference and client information.
