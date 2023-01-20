@@ -4,9 +4,6 @@ hb.5ht2.me {
 		method GET
 	}
 
-	reverse_proxy @badges localhost:6060 {
-		header_down +Cache-Control "no-cache, max-age=0, must-revalidate"
-	}
-
+	header @badges +Cache-Control "no-cache, max-age=0, must-revalidate"
 	reverse_proxy localhost:6060
 }
