@@ -39,6 +39,10 @@ pub struct DbPool(pub sqlx::PgPool);
 
 #[rocket::launch]
 async fn launch() -> _ {
+    lazy_static::initialize(&GIT_HASH);
+    lazy_static::initialize(&CONFIG);
+    #[cfg(feature = "webhook")]
+    lazy_static::initialize(&WEBHOOK);
     let figment = Config::figment().merge(("databases.main.url", &CONFIG.database.dsn));
     rocket::custom(figment)
         .attach(DbPool::init())
