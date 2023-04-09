@@ -5,12 +5,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-use rocket::{get, response::Responder, serde::json::Value};
+use rocket::{get, response::Responder, serde::json::Value, State};
 use rocket_db_pools::Connection;
 use rocket_dyn_templates::Template;
 
 use super::query::{fetch_stats, incr_visits};
-use crate::{DbPool, CONFIG, GIT_HASH};
+use crate::{DbPool, WrappedStats, CONFIG, GIT_HASH};
 
 #[macro_export]
 macro_rules! context {
@@ -62,7 +62,8 @@ impl<'r, 'o: 'r> Responder<'r, 'o> for Page {
 }
 
 #[get("/")]
-pub async fn index_page(mut conn: Connection<DbPool>) -> Page {
+pub async fn index_page(mut conn: Connection<DbPool>, stats: &State<WrappedStats>) -> Page {
+    stats.write().await.num_visits += 1;
     incr_visits(&mut conn).await;
     let stats = fetch_stats(conn).await;
     Page {
@@ -73,7 +74,10 @@ pub async fn index_page(mut conn: Connection<DbPool>) -> Page {
                 Some(time) => time.timestamp(),
                 None => 0,
             },
-            "last_seen_relative" => stats.last_seen_relative.num_seconds(),
+            "last_seen_relative" => match stats.last_seen {
+                Some(t) => (chrono::Utc::now() - t).num_seconds(),
+                None => i64::MAX,
+            },
             "now" => chrono::Utc::now().timestamp(),
             "repo" => *CONFIG.repo,
             "git_hash" => *GIT_HASH,
@@ -84,7 +88,8 @@ pub async fn index_page(mut conn: Connection<DbPool>) -> Page {
 }
 
 #[get("/stats")]
-pub async fn stats_page(mut conn: Connection<DbPool>) -> Page {
+pub async fn stats_page(mut conn: Connection<DbPool>, stats: &State<WrappedStats>) -> Page {
+    stats.write().await.num_visits += 1;
     incr_visits(&mut conn).await;
     let stats = fetch_stats(conn).await;
     Page {
@@ -94,7 +99,7 @@ pub async fn stats_page(mut conn: Connection<DbPool>) -> Page {
             "visits" => stats.num_visits,
             "devices" => stats.devices.len(),
             "beats" => stats.total_beats,
-            "uptime" => stats.uptime.num_seconds()
+            "uptime" => (chrono::Utc::now() - *crate::SERVER_START_TIME.get().unwrap()).num_seconds()
         },
     }
 }

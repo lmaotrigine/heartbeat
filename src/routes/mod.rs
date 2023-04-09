@@ -10,7 +10,7 @@ mod api;
 #[cfg(feature = "badges")]
 mod badges;
 mod pages;
-mod query;
+pub mod query;
 
 use crate::{context, CONFIG};
 use api::*;

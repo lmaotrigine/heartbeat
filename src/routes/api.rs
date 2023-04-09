@@ -5,18 +5,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-use super::query::fetch_stats;
 use crate::config::WebhookLevel;
 use crate::guards::Authorized;
-use crate::models::*;
 use crate::util::{generate_token, SnowflakeGenerator};
 use crate::DbPool;
+use crate::{models::*, WrappedStats};
 #[cfg(feature = "webhook")]
 use crate::{util::WebhookColour, WEBHOOK};
 use chrono::Utc;
 use rocket::serde::json::Json;
 use rocket::serde::json::Value;
-use rocket::{get, post};
+use rocket::{get, post, State};
 use rocket_db_pools::Connection;
 
 #[cfg(feature = "webhook")]
@@ -37,7 +36,7 @@ async fn fire_webhook(title: String, message: String, level: WebhookLevel) {
 async fn fire_webhook(_title: String, _message: String, _level: WebhookLevel) {}
 
 #[post("/api/beat")]
-pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo) -> String {
+pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo, stats: &State<WrappedStats>) -> String {
     let now = Utc::now();
     let prev_beat = sqlx::query!(
         r#"
@@ -55,8 +54,19 @@ pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo) -> St
     .fetch_optional(&mut *conn)
     .await
     .unwrap();
+    let r = stats.read().await;
+    let mut w = stats.write().await;
+    w.last_seen = Some(now);
+    w.devices.iter_mut().find(|x| x.id == info.id).map(|x| {
+        x.last_beat = Some(now);
+        x.num_beats += 1;
+    });
+    w.total_beats += 1;
     if let Some(prev) = prev_beat {
         let diff = now - prev.time_stamp;
+        if diff > r.longest_absence {
+            w.longest_absence = diff;
+        }
         if diff.num_hours() >= 1 {
             fire_webhook(
                 "Absence longer than 1 hour".into(),
@@ -81,13 +91,25 @@ pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo) -> St
 }
 
 #[get("/api/stats")]
-pub async fn get_stats(conn: Connection<DbPool>) -> Value {
-    let stats = fetch_stats(conn).await;
-    rocket::serde::json::to_value(stats).unwrap()
+pub async fn get_stats(stats: &State<WrappedStats>) -> Value {
+    let r = stats.read().await;
+    rocket::serde::json::json!({
+        "last_seen": r.last_seen.map(|x| x.timestamp()),
+        "last_seen_relative": (Utc::now() - r.last_seen.unwrap_or(Utc::now())).num_seconds(),
+        "longest_absence": r.longest_absence.num_seconds(),
+        "total_beats": r.total_beats,
+        "devices": r.devices,
+        "uptime": (Utc::now() - *crate::SERVER_START_TIME.get().unwrap()).num_seconds(),
+    })
 }
 
 #[post("/api/devices", data = "<device>")]
-pub async fn post_device(mut conn: Connection<DbPool>, _auth: Authorized, device: Json<PostDevice>) -> Value {
+pub async fn post_device(
+    mut conn: Connection<DbPool>,
+    _auth: Authorized,
+    device: Json<PostDevice>,
+    stats: &State<WrappedStats>,
+) -> Value {
     let id = SnowflakeGenerator::default().generate();
     let res = sqlx::query!(
         r#"INSERT INTO devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;"#,
@@ -98,6 +120,13 @@ pub async fn post_device(mut conn: Connection<DbPool>, _auth: Authorized, device
     .fetch_one(&mut *conn)
     .await
     .unwrap();
+    let mut w = stats.write().await;
+    w.devices.push(Device {
+        id: res.id,
+        name: res.name.clone(),
+        last_beat: None,
+        num_beats: 0,
+    });
     fire_webhook(
         "New Device added".into(),
         format!(
@@ -110,8 +139,8 @@ pub async fn post_device(mut conn: Connection<DbPool>, _auth: Authorized, device
     )
     .await;
     rocket::serde::json::json!({
-        "id": res.id,
-        "name": res.name,
-        "token": res.token,
+        "id": &res.id,
+        "name": &res.name,
+        "token": &res.token,
     })
 }

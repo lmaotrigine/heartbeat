@@ -13,9 +13,9 @@ use chrono::Utc;
 use rocket::tokio::sync::OnceCell;
 use rocket_db_pools::Connection;
 
-static SERVER_START_TIME: OnceCell<chrono::DateTime<Utc>> = OnceCell::const_new();
+pub static SERVER_START_TIME: OnceCell<chrono::DateTime<Utc>> = OnceCell::const_new();
 
-async fn get_server_start_time(conn: &mut sqlx::PgConnection) -> chrono::DateTime<Utc> {
+pub async fn get_server_start_time(dsn: &str) -> chrono::DateTime<Utc> {
     let now = Utc::now();
     let rec = sqlx::query!(
         r#"
@@ -29,7 +29,7 @@ async fn get_server_start_time(conn: &mut sqlx::PgConnection) -> chrono::DateTim
             WHERE _id = 0;
             "#
     )
-    .fetch_optional(conn)
+    .fetch_optional(&mut sqlx::PgPool::connect(dsn).await.unwrap().acquire().await.unwrap())
     .await
     .unwrap();
     match rec {
@@ -105,15 +105,11 @@ pub async fn fetch_stats(mut conn: Connection<DbPool>) -> Stats {
         None => None,
     };
     let total_beats = devices.iter().map(|d| d.num_beats).sum::<u64>();
-    let server_start_time = SERVER_START_TIME.get_or_init(|| get_server_start_time(&mut conn)).await;
-    let uptime = Utc::now() - *server_start_time;
     Stats {
         last_seen: last_beat,
-        last_seen_relative: Utc::now() - last_beat.unwrap_or_else(Utc::now),
         devices,
         longest_absence: longest.max(Utc::now() - last_beat.unwrap_or_else(Utc::now)),
         num_visits: visits,
-        uptime,
         total_beats,
     }
 }

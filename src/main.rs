@@ -13,12 +13,17 @@ use rocket::{
 };
 use rocket_db_pools::{sqlx, Database};
 use rocket_dyn_templates::Template;
+use tokio::sync::RwLock;
 
 mod config;
 mod guards;
 mod models;
 mod routes;
 mod util;
+
+pub use routes::query::SERVER_START_TIME;
+
+pub type WrappedStats = RwLock<models::Stats>;
 
 lazy_static! {
     pub static ref GIT_HASH: &'static str = match option_env!("HB_GIT_COMMIT") {
@@ -58,4 +63,5 @@ async fn launch() -> _ {
                 .register_filter("format_relative", util::tera::format_relative);
             engine.tera.register_filter("format_num", util::tera::format_num);
         }))
+        .manage(RwLock::new(models::Stats::fetch(&CONFIG.database.dsn).await))
 }
