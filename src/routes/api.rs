@@ -93,10 +93,15 @@ pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo, stats
 #[get("/api/stats")]
 pub async fn get_stats(stats: &State<WrappedStats>) -> Value {
     let r = stats.read().await;
+    let last_seen_relative = (Utc::now() - r.last_seen.unwrap_or(Utc::now())).num_seconds();
     rocket::serde::json::json!({
         "last_seen": r.last_seen.map(|x| x.timestamp()),
-        "last_seen_relative": (Utc::now() - r.last_seen.unwrap_or(Utc::now())).num_seconds(),
-        "longest_absence": r.longest_absence.num_seconds(),
+        "last_seen_relative": last_seen_relative,
+        "longest_absence": (if last_seen_relative > r.longest_absence.num_seconds() {
+            last_seen_relative
+        } else {
+            r.longest_absence.num_seconds()
+        }),
         "total_beats": r.total_beats,
         "devices": r.devices,
         "uptime": (Utc::now() - *crate::SERVER_START_TIME.get().unwrap()).num_seconds(),
