@@ -91,7 +91,7 @@ pub async fn index_page(mut conn: Connection<DbPool>, stats: &State<WrappedStats
 pub async fn stats_page(mut conn: Connection<DbPool>, stats: &State<WrappedStats>) -> Page {
     stats.write().await.num_visits += 1;
     incr_visits(&mut conn).await;
-    let stats = fetch_stats(conn).await;
+    let stats = stats.read().await;
     Page {
         kind: PageKind::Stats,
         context: context! {

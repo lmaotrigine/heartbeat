@@ -54,7 +54,6 @@ pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo, stats
     .fetch_optional(&mut *conn)
     .await
     .unwrap();
-    let r = stats.read().await;
     let mut w = stats.write().await;
     w.last_seen = Some(now);
     w.devices.iter_mut().find(|x| x.id == info.id).map(|x| {
@@ -64,7 +63,7 @@ pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo, stats
     w.total_beats += 1;
     if let Some(prev) = prev_beat {
         let diff = now - prev.time_stamp;
-        if diff > r.longest_absence {
+        if diff > w.longest_absence {
             w.longest_absence = diff;
         }
         if diff.num_hours() >= 1 {
@@ -102,6 +101,7 @@ pub async fn get_stats(stats: &State<WrappedStats>) -> Value {
         } else {
             r.longest_absence.num_seconds()
         }),
+        "num_visits": r.num_visits,
         "total_beats": r.total_beats,
         "devices": r.devices,
         "uptime": (Utc::now() - *crate::SERVER_START_TIME.get().unwrap()).num_seconds(),
