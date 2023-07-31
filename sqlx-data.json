@@ -42,6 +42,18 @@
     },
     "query": "\n        WITH a AS (\n            SELECT\n                b.time_stamp - LAG(b.time_stamp) OVER (ORDER BY b.time_stamp) AS diff\n            FROM beats b\n        )\n        SELECT\n            COUNT(DISTINCT (b.device, b.time_stamp)) AS num_beats,\n            EXTRACT('epoch' FROM MAX(a.diff))::BIGINT AS longest_absence,\n            MAX(b.time_stamp) AS last_beat,\n            d.id,\n            d.name\n        FROM a, beats b JOIN devices d ON b.device = d.id\n        GROUP BY d.id\n        "
   },
+  "03abac1c89995987d2821cc242e6d26c23f289ff60e6088397524b894f794d85": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Interval"
+        ]
+      }
+    },
+    "query": "\n                UPDATE stats SET longest_absence = $1 WHERE _id = 0;\n                "
+  },
   "1b45a0b819bdd1e8d39b9e94de9efc8f296d2b46bb854fffea40df537c23b008": {
     "describe": {
       "columns": [
@@ -60,7 +72,25 @@
     },
     "query": "\n            WITH dummy AS (\n                INSERT INTO stats (_id)\n                VALUES (0)\n                ON CONFLICT (_id) DO NOTHING\n            )\n            SELECT server_start_time\n            FROM stats\n            WHERE _id = 0;\n            "
   },
-  "563994798fb75320bd2b62651ebd840504a3716383d2055069340d1080ed5093": {
+  "377f61071d2ca8c0927d9958301fe80ae1f7a22b3f3169648d8ff78c8317e53e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "total_beats",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "\n        WITH indiv AS (\n            SELECT num_beats FROM devices\n        )\n        SELECT SUM(indiv.num_beats)::BIGINT AS total_beats FROM indiv;\n        "
+  },
+  "50d4216bfb092f9db51fa07059dc08cc351da3884e3cf3f6c4d7388045f5c6dc": {
     "describe": {
       "columns": [
         {
@@ -69,29 +99,23 @@
           "type_info": "Int8"
         },
         {
-          "name": "longest_absence",
-          "ordinal": 1,
-          "type_info": "Int8"
-        },
-        {
           "name": "last_beat",
-          "ordinal": 2,
+          "ordinal": 1,
           "type_info": "Timestamptz"
         },
         {
           "name": "id",
-          "ordinal": 3,
+          "ordinal": 2,
           "type_info": "Int8"
         },
         {
           "name": "name",
-          "ordinal": 4,
+          "ordinal": 3,
           "type_info": "Text"
         }
       ],
       "nullable": [
-        null,
-        null,
+        false,
         null,
         false,
         true
@@ -100,7 +124,7 @@
         "Left": []
       }
     },
-    "query": "\n    WITH a AS (\n        SELECT\n            b.time_stamp - LAG(b.time_stamp) OVER (ORDER BY b.time_stamp) AS diff\n        FROM beats b\n    )\n    SELECT\n        COUNT(DISTINCT (b.device, b.time_stamp)) AS num_beats,\n        EXTRACT('epoch' FROM MAX(a.diff))::BIGINT AS longest_absence,\n        MAX(b.time_stamp) AS last_beat,\n        d.id,\n        d.name\n    FROM a, beats b JOIN devices d ON b.device = d.id\n    GROUP BY d.id\n    "
+    "query": "\n    WITH b AS (\n        SELECT device, time_stamp FROM beats ORDER BY time_stamp DESC LIMIT 1\n    )\n    SELECT\n        d.num_beats,\n        MAX(b.time_stamp) AS last_beat,\n        d.id,\n        d.name\n    FROM b, beats JOIN devices d ON beats.device = d.id\n    GROUP BY d.id\n    "
   },
   "5671c60a006bda6529f94b40842431fb8daa66c4eb390b278e1377145f168d2f": {
     "describe": {
@@ -119,24 +143,6 @@
       }
     },
     "query": "SELECT total_visits FROM stats;"
-  },
-  "7087ea53ccbc90e26623134281acc35e9f2724c0996a26a84c83b86fd9c2188f": {
-    "describe": {
-      "columns": [
-        {
-          "name": "total_beats",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "\n        SELECT\n            COUNT(*) AS total_beats\n        FROM beats;\n        "
   },
   "9bfb8c9ba6021935e3f316243358baaa4690a0979ccdbafe5655cfae365512cf": {
     "describe": {
@@ -166,6 +172,33 @@
     },
     "query": "\n        INSERT INTO STATS (_id, total_visits)\n        VALUES (0, 1)\n        ON CONFLICT (_id) DO UPDATE\n        SET total_visits = stats.total_visits + 1;\n        "
   },
+  "a5847c47b796444696919370dca85bf1947c961d936b7236a867aeeffd88c02a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "time_stamp",
+          "ordinal": 0,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "longest_absence",
+          "ordinal": 1,
+          "type_info": "Interval"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Timestamptz",
+          "Int8"
+        ]
+      }
+    },
+    "query": "\n    WITH dummy1 AS (\n        INSERT INTO beats (time_stamp, device) VALUES ($1, $2)\n    ),\n    dummy2 AS (\n        UPDATE devices SET num_beats = num_beats + 1 WHERE id = $2\n    ),\n    dummy3 AS (\n        SELECT longest_absence FROM stats\n    )\n    SELECT beats.time_stamp, dummy3.longest_absence\n    FROM beats, dummy3\n    ORDER BY time_stamp DESC\n    LIMIT 1;\n    "
+  },
   "b391443664741aabbdb2121ae4f0b1e7e4327e6a5f004287bc9bb55bdfebe638": {
     "describe": {
       "columns": [
@@ -183,11 +216,17 @@
           "name": "token",
           "ordinal": 2,
           "type_info": "Text"
+        },
+        {
+          "name": "num_beats",
+          "ordinal": 3,
+          "type_info": "Int8"
         }
       ],
       "nullable": [
         false,
         true,
+        false,
         false
       ],
       "parameters": {
@@ -199,27 +238,6 @@
       }
     },
     "query": "INSERT INTO devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;"
-  },
-  "bb345b1dc8cf752501674ec91d01737a88141b640d9ea4f732b9083620ebfc2e": {
-    "describe": {
-      "columns": [
-        {
-          "name": "time_stamp",
-          "ordinal": 0,
-          "type_info": "Timestamptz"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Timestamptz",
-          "Int8"
-        ]
-      }
-    },
-    "query": "\n    WITH dummy AS (\n        INSERT INTO beats (time_stamp, device) VALUES ($1, $2)\n    )\n    SELECT time_stamp\n    FROM beats\n    ORDER BY time_stamp DESC\n    LIMIT 1;\n    "
   },
   "bdc2fae028ae62504f3ef216f38ecfc1337f5412931776efc8cc78683fad5b8b": {
     "describe": {
@@ -246,5 +264,29 @@
       }
     },
     "query": "SELECT id, name FROM devices WHERE token = $1;"
+  },
+  "d56ae0c625da59ac6d7931f9c4e109c7b28e9e07025a0367c4e0850964569472": {
+    "describe": {
+      "columns": [
+        {
+          "name": "longest_absence",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "total_visits",
+          "ordinal": 1,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT EXTRACT(epoch FROM longest_absence)::BIGINT as longest_absence, total_visits FROM stats;"
   }
 }
