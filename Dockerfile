@@ -1,4 +1,4 @@
-FROM rust:1.66.1 AS base
+FROM rust:1.71.0 AS base
 RUN cargo install cargo-chef
 WORKDIR /usr/src/app
 
