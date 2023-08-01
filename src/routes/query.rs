@@ -56,18 +56,15 @@ pub async fn incr_visits(conn: &mut sqlx::PgConnection) {
 pub async fn fetch_stats(mut conn: Connection<DbPool>) -> Stats {
     let devs = sqlx::query!(
         r#"
-    WITH a AS (
-        SELECT
-            b.time_stamp - LAG(b.time_stamp) OVER (ORDER BY b.time_stamp) AS diff
-        FROM beats b
+    WITH b AS (
+        SELECT device, time_stamp FROM beats ORDER BY time_stamp DESC LIMIT 1
     )
     SELECT
-        COUNT(DISTINCT (b.device, b.time_stamp)) AS num_beats,
-        EXTRACT('epoch' FROM MAX(a.diff))::BIGINT AS longest_absence,
+        d.num_beats,
         MAX(b.time_stamp) AS last_beat,
         d.id,
         d.name
-    FROM a, beats b JOIN devices d ON b.device = d.id
+    FROM b, beats JOIN devices d ON beats.device = d.id
     GROUP BY d.id
     "#
     )
@@ -75,29 +72,24 @@ pub async fn fetch_stats(mut conn: Connection<DbPool>) -> Stats {
     .await
     .unwrap();
     // can't find a way to not make this a second query
-    let visits = match sqlx::query!("SELECT total_visits FROM stats;")
-        .fetch_optional(&mut *conn)
-        .await
-        .unwrap()
+    let (visits, longest_absence) = match sqlx::query!(
+        "SELECT EXTRACT(epoch FROM longest_absence)::BIGINT as longest_absence, total_visits FROM stats;"
+    )
+    .fetch_optional(&mut *conn)
+    .await
+    .unwrap()
     {
-        Some(v) => v.total_visits,
-        None => 0,
-    } as u64;
-    let longest = if devs.is_empty() {
-        chrono::Duration::zero()
-    } else {
-        match devs[0].longest_absence {
-            Some(d) => chrono::Duration::seconds(d),
-            None => chrono::Duration::zero(),
-        }
+        Some(v) => (v.total_visits, v.longest_absence),
+        None => (0, Some(0)),
     };
+    let longest = chrono::Duration::seconds(longest_absence.unwrap_or_default());
     let mut devices = vec![];
     for dev in devs {
         devices.push(Device {
             id: dev.id,
             name: dev.name,
             last_beat: dev.last_beat,
-            num_beats: dev.num_beats.unwrap_or_default() as u64,
+            num_beats: dev.num_beats as u64,
         });
     }
     let last_beat = match devices.iter().max_by_key(|d| d.last_beat) {
@@ -109,7 +101,7 @@ pub async fn fetch_stats(mut conn: Connection<DbPool>) -> Stats {
         last_seen: last_beat,
         devices,
         longest_absence: longest.max(Utc::now() - last_beat.unwrap_or_else(Utc::now)),
-        num_visits: visits,
+        num_visits: visits as _,
         total_beats,
     }
 }

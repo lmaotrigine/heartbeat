@@ -17,6 +17,7 @@ use rocket::serde::json::Json;
 use rocket::serde::json::Value;
 use rocket::{get, post, State};
 use rocket_db_pools::Connection;
+use sqlx::postgres::types::PgInterval;
 
 #[cfg(feature = "webhook")]
 async fn fire_webhook(title: String, message: String, level: WebhookLevel) {
@@ -40,11 +41,17 @@ pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo, stats
     let now = Utc::now();
     let prev_beat = sqlx::query!(
         r#"
-    WITH dummy AS (
+    WITH dummy1 AS (
         INSERT INTO beats (time_stamp, device) VALUES ($1, $2)
+    ),
+    dummy2 AS (
+        UPDATE devices SET num_beats = num_beats + 1 WHERE id = $2
+    ),
+    dummy3 AS (
+        SELECT longest_absence FROM stats
     )
-    SELECT time_stamp
-    FROM beats
+    SELECT beats.time_stamp, dummy3.longest_absence
+    FROM beats, dummy3
     ORDER BY time_stamp DESC
     LIMIT 1;
     "#,
@@ -56,15 +63,31 @@ pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo, stats
     .unwrap();
     let mut w = stats.write().await;
     w.last_seen = Some(now);
-    w.devices.iter_mut().find(|x| x.id == info.id).map(|x| {
+    if let Some(x) = w.devices.iter_mut().find(|x| x.id == info.id) {
         x.last_beat = Some(now);
         x.num_beats += 1;
-    });
+    }
     w.total_beats += 1;
     if let Some(prev) = prev_beat {
         let diff = now - prev.time_stamp;
         if diff > w.longest_absence {
             w.longest_absence = diff;
+            drop(w);
+            let pg_diff = PgInterval::try_from(chrono::Duration::microseconds(
+                diff.num_microseconds().unwrap_or(i64::MAX - 1),
+            ))
+            .unwrap();
+            sqlx::query!(
+                r#"
+                UPDATE stats SET longest_absence = $1 WHERE _id = 0;
+                "#,
+                pg_diff
+            )
+            .execute(&mut *conn)
+            .await
+            .unwrap();
+        } else {
+            drop(w);
         }
         if diff.num_hours() >= 1 {
             fire_webhook(

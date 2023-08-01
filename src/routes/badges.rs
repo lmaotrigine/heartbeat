@@ -61,9 +61,10 @@ pub async fn last_seen_badge(mut conn: Connection<DbPool>) -> BadgeResponse {
 pub async fn total_beats_badge(mut conn: Connection<DbPool>) -> BadgeResponse {
     let total_beats = sqlx::query!(
         r#"
-        SELECT
-            COUNT(*) AS total_beats
-        FROM beats;
+        WITH indiv AS (
+            SELECT num_beats FROM devices
+        )
+        SELECT SUM(indiv.num_beats)::BIGINT AS total_beats FROM indiv;
         "#
     )
     .fetch_one(&mut *conn)
