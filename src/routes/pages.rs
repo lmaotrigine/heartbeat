@@ -76,7 +76,7 @@ pub async fn index_page(mut conn: Connection<DbPool>, stats: &State<WrappedStats
             },
             "last_seen_relative" => match stats.last_seen {
                 Some(t) => (chrono::Utc::now() - t).num_seconds(),
-                None => i64::MAX,
+                None => i64::MAX - 1,
             },
             "now" => chrono::Utc::now().timestamp(),
             "repo" => *CONFIG.repo,

@@ -17,6 +17,7 @@ use rocket::serde::json::Json;
 use rocket::serde::json::Value;
 use rocket::{get, post, State};
 use rocket_db_pools::Connection;
+use sqlx::postgres::types::PgInterval;
 
 #[cfg(feature = "webhook")]
 async fn fire_webhook(title: String, message: String, level: WebhookLevel) {
@@ -72,7 +73,10 @@ pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo, stats
         if diff > w.longest_absence {
             w.longest_absence = diff;
             drop(w);
-            let pg_diff = sqlx::postgres::types::PgInterval::try_from(diff.to_std().unwrap()).unwrap();
+            let pg_diff = PgInterval::try_from(chrono::Duration::microseconds(
+                diff.num_microseconds().unwrap_or(i64::MAX - 1),
+            ))
+            .unwrap();
             sqlx::query!(
                 r#"
                 UPDATE stats SET longest_absence = $1 WHERE _id = 0;
