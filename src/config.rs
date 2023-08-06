@@ -1,11 +1,10 @@
-/**
- * Copyright (c) 2023 VJ <root@5ht2.me>
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
-use rocket::serde::{Deserialize, Serialize};
+// Copyright (c) 2023 VJ <root@5ht2.me>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+use serde::{Deserialize, Serialize};
 use std::{fs::read_to_string, io::Error as IoError, path::Path};
 use toml::{self, de::Error as TomlDeError};
 
@@ -17,6 +16,7 @@ pub struct Config {
     pub repo: String,
     pub server_name: String,
     pub live_url: String,
+    pub bind: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -44,12 +44,11 @@ impl std::str::FromStr for WebhookLevel {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "all" => Ok(WebhookLevel::All),
-            "new_devices" => Ok(WebhookLevel::NewDevices),
-            "long_absences" => Ok(WebhookLevel::LongAbsences),
-            "none" => Ok(WebhookLevel::None),
-            "" => Ok(WebhookLevel::None),
-            _ => Err(format!("Invalid webhook level: {}", s)),
+            "all" => Ok(Self::All),
+            "new_devices" => Ok(Self::NewDevices),
+            "long_absences" => Ok(Self::LongAbsences),
+            "none" | "" => Ok(Self::None),
+            _ => Err(format!("Invalid webhook level: {s}")),
         }
     }
 }
@@ -63,8 +62,8 @@ pub enum Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::Io(error) => write!(f, "IO error: {}", error),
-            Error::Invalid(error) => write!(f, "TOML error: {}", error),
+            Self::Io(error) => write!(f, "IO error: {error}"),
+            Self::Invalid(error) => write!(f, "TOML error: {error}"),
         }
     }
 }
@@ -73,20 +72,20 @@ impl std::error::Error for Error {}
 
 impl From<IoError> for Error {
     fn from(error: IoError) -> Self {
-        Error::Io(error)
+        Self::Io(error)
     }
 }
 
 impl From<TomlDeError> for Error {
     fn from(error: TomlDeError) -> Self {
-        Error::Invalid(error)
+        Self::Invalid(error)
     }
 }
 
 impl Config {
     pub fn try_new() -> Result<Self, Error> {
         let page_config = read_to_string(Path::new("config.toml")).map_err(Into::<Error>::into)?;
-        let config: Config = toml::from_str(&page_config)?;
+        let config: Self = toml::from_str(&page_config)?;
         Ok(config)
     }
 }

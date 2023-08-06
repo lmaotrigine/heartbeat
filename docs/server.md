@@ -7,10 +7,6 @@ Configuration for the server is read from a `config.toml` file in the working di
 
 All fields in the file have comments explaining what they are for, and how to fill them out.
 
-Configuration specific to the webserver (such as listen address and port) are specified instead in
-[`Rocket.toml`](/Rocket.toml). See the [documentation](https://rocket.rs/v0.5-rc/guide/configuration/)
-for more information.
-
 ## Running
 
 ### Docker

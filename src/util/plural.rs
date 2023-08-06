@@ -1,10 +1,8 @@
-/**
- * Copyright (c) 2023 VJ <root@5ht2.me>
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
+// Copyright (c) 2023 VJ <root@5ht2.me>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 // overengineering reeee
 
@@ -17,7 +15,7 @@ impl<'a> Plural<'a> {
     pub fn from(singular: &'a str) -> Self {
         Self {
             singular,
-            plural: format!("{}s", singular),
+            plural: format!("{singular}s"),
         }
     }
 
@@ -47,11 +45,11 @@ impl<'a> RoughPlural<'a> {
         Self {
             article: "a",
             singular,
-            plural: format!("{}s", singular),
+            plural: format!("{singular}s"),
         }
     }
 
-    pub fn article(mut self, article: &'a str) -> Self {
+    pub const fn article(mut self, article: &'a str) -> Self {
         self.article = article;
         self
     }

@@ -1,17 +1,13 @@
-/**
- * Copyright (c) 2023 VJ <root@5ht2.me>
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
-use crate::{
-    models::{Device, Stats},
-    DbPool,
-};
+// Copyright (c) 2023 VJ <root@5ht2.me>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+use crate::models::{Device, Stats};
 use chrono::Utc;
-use rocket::tokio::sync::OnceCell;
-use rocket_db_pools::Connection;
+use sqlx::{pool::PoolConnection, PgConnection, Postgres};
+use tokio::sync::OnceCell;
 
 pub static SERVER_START_TIME: OnceCell<chrono::DateTime<Utc>> = OnceCell::const_new();
 
@@ -29,16 +25,13 @@ pub async fn get_server_start_time(dsn: &str) -> chrono::DateTime<Utc> {
             WHERE _id = 0;
             "#
     )
-    .fetch_optional(&mut sqlx::PgPool::connect(dsn).await.unwrap().acquire().await.unwrap())
+    .fetch_optional(&mut *sqlx::PgPool::connect(dsn).await.unwrap().acquire().await.unwrap())
     .await
     .unwrap();
-    match rec {
-        Some(rec) => rec.server_start_time,
-        None => now,
-    }
+    rec.map_or(now, |rec| rec.server_start_time)
 }
 
-pub async fn incr_visits(conn: &mut sqlx::PgConnection) {
+pub async fn incr_visits(conn: &mut PgConnection) {
     // ignore errors because they shouldn't happen
     sqlx::query!(
         r#"
@@ -53,7 +46,8 @@ pub async fn incr_visits(conn: &mut sqlx::PgConnection) {
     .unwrap_or_default();
 }
 
-pub async fn fetch_stats(mut conn: Connection<DbPool>) -> Stats {
+#[allow(clippy::cast_sign_loss)]
+pub async fn fetch_stats(mut conn: PoolConnection<Postgres>) -> Stats {
     let devs = sqlx::query!(
         r#"
     WITH b AS (
@@ -72,16 +66,12 @@ pub async fn fetch_stats(mut conn: Connection<DbPool>) -> Stats {
     .await
     .unwrap();
     // can't find a way to not make this a second query
-    let (visits, longest_absence) = match sqlx::query!(
-        "SELECT EXTRACT(epoch FROM longest_absence)::BIGINT as longest_absence, total_visits FROM stats;"
-    )
-    .fetch_optional(&mut *conn)
-    .await
-    .unwrap()
-    {
-        Some(v) => (v.total_visits, v.longest_absence),
-        None => (0, Some(0)),
-    };
+    let (visits, longest_absence) =
+        sqlx::query!("SELECT EXTRACT(epoch FROM longest_absence)::BIGINT as longest_absence, total_visits FROM stats;")
+            .fetch_optional(&mut *conn)
+            .await
+            .unwrap()
+            .map_or((0, Some(0)), |v| (v.total_visits, v.longest_absence));
     let longest = chrono::Duration::seconds(longest_absence.unwrap_or_default());
     let mut devices = vec![];
     for dev in devs {
@@ -92,10 +82,7 @@ pub async fn fetch_stats(mut conn: Connection<DbPool>) -> Stats {
             num_beats: dev.num_beats as u64,
         });
     }
-    let last_beat = match devices.iter().max_by_key(|d| d.last_beat) {
-        Some(d) => d.last_beat,
-        None => None,
-    };
+    let last_beat = devices.iter().max_by_key(|d| d.last_beat).and_then(|d| d.last_beat);
     let total_beats = devices.iter().map(|d| d.num_beats).sum::<u64>();
     Stats {
         last_seen: last_beat,

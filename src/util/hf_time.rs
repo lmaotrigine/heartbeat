@@ -1,11 +1,10 @@
-/**
- * Copyright (c) 2023 VJ <root@5ht2.me>
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
-use super::plural::*;
+// Copyright (c) 2023 VJ <root@5ht2.me>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+use super::plural::{plural, rough_plural, Plural, RoughPlural};
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use std::borrow::Cow;
 
@@ -13,14 +12,14 @@ pub trait HumanFriendly {
     fn human_friendly(&self) -> String;
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd)]
 pub enum Tense {
     Past,
     Present,
     Future,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd)]
 pub enum Accuracy {
     Rough,
     Precise,
@@ -89,7 +88,7 @@ impl TimePeriod {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd)]
 pub struct HumanTime(Duration);
 
 impl HumanTime {
@@ -107,12 +106,12 @@ impl HumanTime {
             .into_iter()
             .fold(first, |acc, p| format!("{}, {}", acc, p.to_text(accuracy)).into());
         if let Some(last) = last {
-            text = format!("{}, and {}", text, last).into();
+            text = format!("{text} and {last}").into();
         }
         match tense {
-            Tense::Past => format!("{} ago", text),
+            Tense::Past => format!("{text} ago"),
             Tense::Present => text.into_owned(),
-            Tense::Future => format!("in {}", text),
+            Tense::Future => format!("in {text}"),
         }
     }
 

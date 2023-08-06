@@ -1,115 +1,40 @@
-/**
- * Copyright (c) 2023 VJ <root@5ht2.me>
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
-use rocket::{get, response::Responder, serde::json::Value, State};
-use rocket_db_pools::Connection;
-use rocket_dyn_templates::Template;
+// Copyright (c) 2023 VJ <root@5ht2.me>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use super::query::{fetch_stats, incr_visits};
-use crate::{DbPool, WrappedStats, CONFIG, GIT_HASH};
+use crate::{
+    templates::{index, privacy, stats as stats_template},
+    AppState,
+};
+use axum::{extract::State, response::IntoResponse};
+use html::Markup;
 
-#[macro_export]
-macro_rules! context {
-    ($(key:expr => $value:expr,)+) => {
-        context! {$($key => $value),*}
-    };
-    ($($key:expr => $value:expr),*) => {{
-        let mut map: ::rocket::serde::json::serde_json::Map<::std::string::String, ::rocket::serde::json::Value> = ::rocket::serde::json::serde_json::Map::new();
-        $(map.insert($key.into(), $value.into());)*
-        let as_value: ::rocket::serde::json::Value = map.into();
-        as_value
-    }};
-}
-
-pub enum PageKind {
-    Index,
-    Stats,
-    Privacy,
-    Error,
-}
-
-impl PageKind {
-    fn template_name(&self) -> &'static str {
-        match self {
-            PageKind::Index => "index",
-            PageKind::Stats => "stats",
-            PageKind::Privacy => "privacy",
-            PageKind::Error => "error",
-        }
+#[axum::debug_handler]
+pub async fn index_page(State(AppState { stats, pool }): State<AppState>) -> impl IntoResponse {
+    let mut conn = pool.acquire().await.unwrap();
+    {
+        stats.lock().unwrap().num_visits += 1;
     }
-}
-
-pub struct Page {
-    kind: PageKind,
-    context: Value,
-}
-
-impl Page {
-    pub fn new(kind: PageKind, context: Value) -> Self {
-        Self { kind, context }
-    }
-}
-
-impl<'r, 'o: 'r> Responder<'r, 'o> for Page {
-    fn respond_to(self, request: &'r rocket::Request<'_>) -> rocket::response::Result<'o> {
-        //println!("{:#?}", self.context);
-        Template::render(self.kind.template_name(), self.context).respond_to(request)
-    }
-}
-
-#[get("/")]
-pub async fn index_page(mut conn: Connection<DbPool>, stats: &State<WrappedStats>) -> Page {
-    stats.write().await.num_visits += 1;
     incr_visits(&mut conn).await;
     let stats = fetch_stats(conn).await;
-    Page {
-        kind: PageKind::Index,
-        context: context! {
-            "server_name" => *CONFIG.server_name,
-            "last_seen" => match stats.last_seen {
-                Some(time) => time.timestamp(),
-                None => 0,
-            },
-            "last_seen_relative" => match stats.last_seen {
-                Some(t) => (chrono::Utc::now() - t).num_seconds(),
-                None => i64::MAX - 1,
-            },
-            "now" => chrono::Utc::now().timestamp(),
-            "repo" => *CONFIG.repo,
-            "git_hash" => *GIT_HASH,
-            "total_beats" => stats.total_beats,
-            "longest_absence" => stats.longest_absence.num_seconds()
-        },
-    }
+    index(&stats)
 }
 
-#[get("/stats")]
-pub async fn stats_page(mut conn: Connection<DbPool>, stats: &State<WrappedStats>) -> Page {
-    stats.write().await.num_visits += 1;
+#[axum::debug_handler]
+pub async fn stats_page(State(AppState { stats, pool }): State<AppState>) -> Markup {
+    {
+        stats.lock().unwrap().num_visits += 1;
+    }
+    let mut conn = pool.acquire().await.unwrap();
     incr_visits(&mut conn).await;
-    let stats = stats.read().await;
-    Page {
-        kind: PageKind::Stats,
-        context: context! {
-            "server_name" => *CONFIG.server_name,
-            "visits" => stats.num_visits,
-            "devices" => stats.devices.len(),
-            "beats" => stats.total_beats,
-            "uptime" => (chrono::Utc::now() - *crate::SERVER_START_TIME.get().unwrap()).num_seconds()
-        },
-    }
+    let stats = fetch_stats(conn).await;
+    stats_template(&stats).await
 }
 
-#[get("/privacy")]
-pub async fn privacy_page() -> Page {
-    Page {
-        kind: PageKind::Privacy,
-        context: context! {
-            "server_name" => *CONFIG.server_name
-        },
-    }
+#[axum::debug_handler]
+pub async fn privacy_page() -> Markup {
+    privacy()
 }

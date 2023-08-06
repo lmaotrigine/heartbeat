@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n    WITH dummy1 AS (\n        INSERT INTO beats (time_stamp, device) VALUES ($1, $2)\n    ),\n    dummy2 AS (\n        UPDATE devices SET num_beats = num_beats + 1 WHERE id = $2\n    ),\n    dummy3 AS (\n        SELECT longest_absence FROM stats\n    )\n    SELECT beats.time_stamp, dummy3.longest_absence\n    FROM beats, dummy3\n    ORDER BY time_stamp DESC\n    LIMIT 1;\n    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "time_stamp",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 1,
+        "name": "longest_absence",
+        "type_info": "Interval"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "a5847c47b796444696919370dca85bf1947c961d936b7236a867aeeffd88c02a"
+}

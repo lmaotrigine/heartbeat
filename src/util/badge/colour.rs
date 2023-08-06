@@ -1,17 +1,18 @@
-/**
- * Copyright (c) 2023 VJ <root@5ht2.me>
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
+// Copyright (c) 2023 VJ <root@5ht2.me>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 use super::Regex;
 
+#[allow(clippy::cast_lossless)]
+#[inline]
 pub fn brightness(colour: &str) -> f32 {
-    if colour.len() > 0 {
+    if !colour.is_empty() {
         if let Some(css_colour) = css_from_str(colour) {
             let (r, g, b) = css_colour.to_rgb();
-            return (r as f32 * 299.0 + g as f32 * 587.0 + b as f32 * 114.0) / 255000.0;
+            return (r as f32).mul_add(299.0, (g as f32).mul_add(587.0, b as f32 * 114.0)) / 255_000.0;
         }
     }
     0.0
@@ -32,7 +33,7 @@ impl Colour {
         }
     }
 
-    fn to_rgb(&self) -> (u8, u8, u8) {
+    const fn to_rgb(&self) -> (u8, u8, u8) {
         (self.r, self.g, self.b)
     }
 }
@@ -57,11 +58,7 @@ fn css_from_str(s: &str) -> Option<Colour> {
         let r = caps.get(1).unwrap().as_str();
         let g = caps.get(2).unwrap().as_str();
         let b = caps.get(3).unwrap().as_str();
-        return Some(Colour::new(
-            &format!("{}{}", r, r),
-            &format!("{}{}", g, g),
-            &format!("{}{}", b, b),
-        ));
+        return Some(Colour::new(&format!("{r}{r}"), &format!("{g}{g}"), &format!("{b}{b}")));
     }
     None
 }
@@ -70,10 +67,6 @@ impl std::str::FromStr for Colour {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some(colour) = css_from_str(s) {
-            Ok(colour)
-        } else {
-            Err(format!("{} is not a valid CSS colour", s))
-        }
+        css_from_str(s).map_or_else(|| Err(format!("{s} is not a valid CSS colour")), Ok)
     }
 }

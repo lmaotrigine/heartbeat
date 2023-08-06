@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH dummy AS (\n                INSERT INTO stats (_id)\n                VALUES (0)\n                ON CONFLICT (_id) DO NOTHING\n            )\n            SELECT server_start_time\n            FROM stats\n            WHERE _id = 0;\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "server_start_time",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1b45a0b819bdd1e8d39b9e94de9efc8f296d2b46bb854fffea40df537c23b008"
+}

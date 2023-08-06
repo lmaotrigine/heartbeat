@@ -1,35 +1,46 @@
-/**
- * Copyright (c) 2023 VJ <root@5ht2.me>
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
+// Copyright (c) 2023 VJ <root@5ht2.me>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+#![forbid(unsafe_code)] // I am not a C programmer.
+#![deny(warnings, clippy::pedantic, clippy::nursery)]
+#![allow(
+    clippy::module_name_repetitions, // why?
+    clippy::items_after_statements, // emitted by `axum::debug_handler`
+    clippy::unused_async  // obscured by `axum::debug_handler`
+)]
+
+use axum::{extract::FromRef, middleware, Server};
+use error::handle_errors;
 use lazy_static::lazy_static;
-use rocket::{
-    self, catchers,
-    fs::{FileServer, Options as FsOptions},
-    Config,
+use std::{
+    net::SocketAddr,
+    sync::{Arc, Mutex},
 };
-use rocket_db_pools::{sqlx, Database};
-use rocket_dyn_templates::Template;
-use tokio::sync::RwLock;
+use tower_http::services::ServeDir;
 
 mod config;
+mod error;
 mod guards;
 mod models;
 mod routes;
+mod templates;
 mod util;
 
 pub use routes::query::SERVER_START_TIME;
+use routes::{get_routes, query::fetch_stats};
+use sqlx::{postgres::PgPoolOptions, PgPool};
 
-pub type WrappedStats = RwLock<models::Stats>;
+#[derive(Debug, Clone, FromRef)]
+pub struct AppState {
+    stats: Arc<Mutex<models::Stats>>,
+    pool: PgPool,
+}
 
 lazy_static! {
-    pub static ref GIT_HASH: &'static str = match option_env!("HB_GIT_COMMIT") {
-        Some(hash) => hash,
-        None => "",
-    };
+    pub static ref GIT_HASH: &'static str = option_env!("HB_GIT_COMMIT").map_or("", |s| s);
     pub static ref CONFIG: config::Config = config::Config::try_new().expect("failed to load config file");
 }
 
@@ -38,30 +49,33 @@ lazy_static! {
     pub static ref WEBHOOK: util::Webhook = util::Webhook::new(&CONFIG.webhook);
 }
 
-#[derive(Database)]
-#[database("main")]
 pub struct DbPool(pub sqlx::PgPool);
 
-#[rocket::launch]
-async fn launch() -> _ {
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
     lazy_static::initialize(&GIT_HASH);
     lazy_static::initialize(&CONFIG);
+    SERVER_START_TIME
+        .get_or_init(|| routes::query::get_server_start_time(&CONFIG.database.dsn))
+        .await;
     #[cfg(feature = "webhook")]
     lazy_static::initialize(&WEBHOOK);
-    let figment = Config::figment().merge(("databases.main.url", &CONFIG.database.dsn));
-    rocket::custom(figment)
-        .attach(DbPool::init())
-        .register("/", catchers![routes::default_catcher])
-        .mount("/", routes::get_routes())
-        .mount(
-            "/",
-            FileServer::new("static/", FsOptions::NormalizeDirs | FsOptions::default()),
-        )
-        .attach(Template::custom(|engine| {
-            engine
-                .tera
-                .register_filter("format_relative", util::tera::format_relative);
-            engine.tera.register_filter("format_num", util::tera::format_num);
-        }))
-        .manage(RwLock::new(models::Stats::fetch(&CONFIG.database.dsn).await))
+    let pool = PgPoolOptions::default()
+        .max_connections(10)
+        .connect(&CONFIG.database.dsn)
+        .await
+        .unwrap();
+    let stats = {
+        let conn = pool.acquire().await.unwrap();
+        Arc::new(Mutex::new(fetch_stats(conn).await))
+    };
+    let router = get_routes()
+        .with_state(AppState { stats, pool })
+        .fallback_service(ServeDir::new("static/"))
+        .layer(middleware::from_fn(handle_errors));
+    Server::bind(&CONFIG.bind.parse().unwrap())
+        .serve(router.into_make_service_with_connect_info::<SocketAddr>())
+        .await
+        .unwrap();
 }

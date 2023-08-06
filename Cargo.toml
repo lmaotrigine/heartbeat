@@ -14,18 +14,21 @@ publish = false
 [dependencies]
 chrono = { version = "0.4.23", features = ["serde", "std", "clock"], default-features = false }
 lazy_static = "1.4.0"
-tokio = { version = "1.24.2", features = ["parking_lot"] }
-rocket = { version = "0.5.0-rc.2", features = ["json"] }
-rocket_db_pools = { version = "0.1.0-rc.3", features = ["sqlx_postgres", "sqlx_macros"] }
-rocket_dyn_templates = { version = "0.1.0-rc.2", features = ["tera"] }
+tokio = { version = "1.24.2", features = ["full"] }
 serde = { version = "1.0.152", features = ["derive"] }
-sqlx = { version = "0.6", features = ["postgres", "runtime-tokio-rustls", "macros", "chrono", "offline"] }
-toml = "0.5.10"
+sqlx = { version = "0.7", features = ["postgres", "runtime-tokio-rustls", "macros", "chrono"] }
+toml = "0.7.6"
 base64 = "0.21.0"
 rand = "0.8.5"
 
 regex  = { version = "1.7.1", optional = true }
 reqwest = { version = "0.11.13", features = ["json"], optional = true }
+axum = { version = "0.6.19", features = ["macros", "ws", "tokio"] }
+html = { git = "https://git.5ht2.me/lmaotrigine/html-rs", version = "0.1.0", features = ["axum"] }
+serde_json = "1.0.104"
+tower-http = { version = "0.4.3", features = ["fs"] }
+tracing-subscriber = "0.3.17"
+tracing = "0.1.37"
 
 [features]
 default = []

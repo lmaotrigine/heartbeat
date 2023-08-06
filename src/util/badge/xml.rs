@@ -1,13 +1,11 @@
-/**
- * Copyright (c) 2023 VJ <root@5ht2.me>
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
-use std::collections::HashMap;
+// Copyright (c) 2023 VJ <root@5ht2.me>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use super::Regex;
+use std::collections::HashMap;
 
 pub trait Render {
     fn render(&self) -> String;
@@ -16,18 +14,18 @@ pub trait Render {
 #[inline]
 fn strip_xml_whitespace(xml: &str) -> String {
     let init = Regex::new(r">\s+").unwrap();
-    let _final = Regex::new(r"<\s+").unwrap();
+    let final_ = Regex::new(r"<\s+").unwrap();
     let s = init.replace_all(xml, ">");
-    _final.replace_all(&s, "<").to_string()
+    final_.replace_all(&s, "<").to_string()
 }
 
 #[inline]
 fn escape_xml(s: &str) -> String {
-    s.replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace("\"", "&quot;")
-        .replace("'", "&apos;")
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&apos;")
 }
 
 #[derive(Debug, Clone)]
@@ -59,11 +57,8 @@ impl<'a> XmlElement<'a> {
     }
 
     pub fn attr(mut self, key: &'a str, value: impl std::fmt::Display) -> Self {
-        let r = format!("{}", value);
-        let ins = match r.parse::<f32>() {
-            Ok(f) => format!("{:.2}", f),
-            Err(_) => r,
-        };
+        let r = format!("{value}");
+        let ins = r.parse::<f32>().map_or(r, |f| format!("{f:.2}"));
         self.attrs.insert(key, ins);
         self
     }
@@ -76,11 +71,11 @@ impl<'a> Render for XmlElement<'a> {
             .iter()
             .map(|(k, v)| format!(" {}=\"{}\"", k, escape_xml(v)))
             .collect::<String>();
-        if self.content.len() > 0 {
-            let content = self.content.iter().map(|x| x.render()).collect::<String>();
-            strip_xml_whitespace(&format!("<{}{}>{}</{}>", self.name, attrs_str, content, self.name))
-        } else {
+        if self.content.is_empty() {
             strip_xml_whitespace(&format!("<{}{}/>", self.name, attrs_str))
+        } else {
+            let content = self.content.iter().map(Render::render).collect::<String>();
+            strip_xml_whitespace(&format!("<{}{}>{}</{}>", self.name, attrs_str, content, self.name))
         }
     }
 }
@@ -108,6 +103,6 @@ impl<'a> ElementList<'a> {
 
 impl Render for ElementList<'_> {
     fn render(&self) -> String {
-        self.content.iter().map(|x| x.render()).collect::<String>()
+        self.content.iter().map(Render::render).collect::<String>()
     }
 }

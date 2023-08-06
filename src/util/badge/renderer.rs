@@ -1,10 +1,9 @@
-/**
- * Copyright (c) 2023 VJ <root@5ht2.me>
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
+// Copyright (c) 2023 VJ <root@5ht2.me>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 use super::colour::brightness;
 use super::font::measure;
 use super::xml::{ElementList, Render, XmlContent, XmlElement};
@@ -28,36 +27,32 @@ fn round_up_to_odd(val: f32) -> f32 {
 }
 
 fn preferred_width(text: &str) -> f32 {
-    if text.len() == 0 {
+    if text.is_empty() {
         return 0.0;
     }
     round_up_to_odd(measure(text))
 }
 
 fn get_accessible_text(label: Option<&str>, message: &str) -> String {
-    match label {
-        Some(label) => format!("{}: {}", label, message),
-        None => message.to_string(),
-    }
+    label.map_or_else(|| message.to_string(), |label| format!("{label}: {message}"))
 }
-fn get_logo_element<'a>(
+fn get_logo_element(
     logo: Option<&str>,
     horiz_padding: impl std::fmt::Display,
     badge_height: f32,
     logo_width: impl std::fmt::Display,
 ) -> XmlContent {
     let logo_height = 14.0;
-    match logo {
-        Some(logo) => XmlContent::Element(
+    logo.map_or(XmlContent::Text(""), |logo| {
+        XmlContent::Element(
             XmlElement::new("image")
                 .attr("x", horiz_padding)
                 .attr("y", 0.5 * (badge_height - logo_height))
                 .attr("width", logo_width)
                 .attr("height", logo_height)
                 .attr("xlink:href", logo),
-        ),
-        None => XmlContent::Text(""),
-    }
+        )
+    })
 }
 
 fn render_badge(
@@ -115,10 +110,10 @@ impl<'a> Badge<'a> {
     ) -> Self {
         let colour = colour.unwrap_or("#4c1");
         let horiz_padding = 5.0;
-        let has_logo = logo.unwrap_or_default().len() > 0;
+        let has_logo = !logo.unwrap_or_default().is_empty();
         let total_logo_width = logo_width + logo_padding;
         let accessible_text = get_accessible_text(label, message);
-        let has_label = label.unwrap_or_default().len() > 0;
+        let has_label = !label.unwrap_or_default().is_empty();
         let label_colour = if has_label || has_logo {
             label_colour.unwrap_or("#555")
         } else {
@@ -127,11 +122,12 @@ impl<'a> Badge<'a> {
         let label_margin = total_logo_width + 1.0;
         let label_width = preferred_width(label.unwrap_or(""));
         let left_width = if has_label {
-            label_width + 2.0 * horiz_padding + total_logo_width
+            2.0f32.mul_add(horiz_padding, label_width) + total_logo_width
         } else {
             0.0
         };
         let message_width = preferred_width(message);
+        #[allow(clippy::cast_precision_loss)]
         let mut message_margin = left_width - message.len().min(1) as f32;
         if !has_label {
             if has_logo {
@@ -140,7 +136,7 @@ impl<'a> Badge<'a> {
                 message_margin += 1.0;
             }
         }
-        let mut right_width = message_width + 2.0 * horiz_padding;
+        let mut right_width = 2.0f32.mul_add(horiz_padding, message_width);
         if has_logo && !has_label {
             right_width += total_logo_width + horiz_padding - 1.0;
         }
@@ -164,11 +160,11 @@ impl<'a> Badge<'a> {
     }
 
     fn get_text_element(&'a self, left_margin: f32, content: &'a str, colour: &str, text_width: f32) -> XmlContent {
-        if content.len() == 0 {
+        if content.is_empty() {
             return XmlContent::Text("");
         }
         let (text_colour, shadow_colour) = colours_for_background(colour);
-        let x = FONT_SCALE_UP_FACTOR * (left_margin + 0.5 * text_width + self.horiz_padding);
+        let x = FONT_SCALE_UP_FACTOR * (0.5f32.mul_add(text_width, left_margin) + self.horiz_padding);
         let text = XmlElement::new("text")
             .content(vec![XmlContent::Text(content)])
             .attr("x", x)

@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT EXTRACT(epoch FROM longest_absence)::BIGINT as longest_absence, total_visits FROM stats;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "longest_absence",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "total_visits",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null,
+      false
+    ]
+  },
+  "hash": "d56ae0c625da59ac6d7931f9c4e109c7b28e9e07025a0367c4e0850964569472"
+}

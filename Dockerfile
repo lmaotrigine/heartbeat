@@ -1,4 +1,4 @@
-FROM rust:1.66.1 AS base
+FROM rust:1.71.0 AS base
 RUN cargo install cargo-chef
 WORKDIR /usr/src/app
 
@@ -21,9 +21,8 @@ RUN cargo build --release --features badges,webhook
 FROM gcr.io/distroless/cc-debian11
 
 COPY --from=build /usr/src/app/target/release/heartbeat /usr/local/bin/heartbeat
-COPY --from=build /usr/src/app/Rocket.toml /usr/local/share/heartbeat/Rocket.toml
 COPY --from=build /usr/src/app/static /usr/local/share/heartbeat/static
-COPY --from=build /usr/src/app/templates /usr/local/share/heartbeat/templates
 
 WORKDIR /usr/local/share/heartbeat
+ENV RUST_LOG=info
 CMD [ "/usr/local/bin/heartbeat" ]

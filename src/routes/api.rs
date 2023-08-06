@@ -1,23 +1,30 @@
-/**
- * Copyright (c) 2023 VJ <root@5ht2.me>
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
-use crate::config::WebhookLevel;
-use crate::guards::Authorized;
-use crate::util::{generate_token, SnowflakeGenerator};
-use crate::DbPool;
-use crate::{models::*, WrappedStats};
+// Copyright (c) 2023 VJ <root@5ht2.me>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+use crate::{
+    config::WebhookLevel,
+    guards::Authorized,
+    models::{AuthInfo, Device, PostDevice},
+    util::{generate_token, SnowflakeGenerator},
+    AppState,
+};
 #[cfg(feature = "webhook")]
 use crate::{util::WebhookColour, WEBHOOK};
+use axum::{
+    extract::{
+        ws::{Message, WebSocket},
+        State, WebSocketUpgrade,
+    },
+    response::IntoResponse,
+    Json,
+};
 use chrono::Utc;
-use rocket::serde::json::Json;
-use rocket::serde::json::Value;
-use rocket::{get, post, State};
-use rocket_db_pools::Connection;
+use serde::Serialize;
 use sqlx::postgres::types::PgInterval;
+use std::time::UNIX_EPOCH;
 
 #[cfg(feature = "webhook")]
 async fn fire_webhook(title: String, message: String, level: WebhookLevel) {
@@ -29,15 +36,16 @@ async fn fire_webhook(title: String, message: String, level: WebhookLevel) {
     };
     match WEBHOOK.execute(title, message, level, colour).await {
         Ok(()) => (),
-        Err(e) => eprintln!("{}", e),
+        Err(e) => eprintln!("{e}"),
     }
 }
 
 #[cfg(not(feature = "webhook"))]
 async fn fire_webhook(_title: String, _message: String, _level: WebhookLevel) {}
 
-#[post("/api/beat")]
-pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo, stats: &State<WrappedStats>) -> String {
+#[axum::debug_handler]
+pub async fn handle_beat_req(State(AppState { stats, pool }): State<AppState>, info: AuthInfo) -> String {
+    let mut conn = pool.acquire().await.unwrap();
     let now = Utc::now();
     let prev_beat = sqlx::query!(
         r#"
@@ -61,41 +69,41 @@ pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo, stats
     .fetch_optional(&mut *conn)
     .await
     .unwrap();
-    let mut w = stats.write().await;
-    w.last_seen = Some(now);
-    if let Some(x) = w.devices.iter_mut().find(|x| x.id == info.id) {
-        x.last_beat = Some(now);
-        x.num_beats += 1;
-    }
-    w.total_beats += 1;
-    if let Some(prev) = prev_beat {
-        let diff = now - prev.time_stamp;
-        if diff > w.longest_absence {
-            w.longest_absence = diff;
-            drop(w);
+    if let Some(record) = prev_beat {
+        let diff = now - record.time_stamp;
+        #[allow(clippy::significant_drop_tightening)] // drop at the end of scope is intentional.
+        let update_longest_absence = {
+            let mut w = stats.lock().unwrap();
+            w.last_seen = Some(now);
+            if let Some(x) = w.devices.iter_mut().find(|x| x.id == info.id) {
+                x.last_beat = Some(now);
+                x.num_beats += 1;
+            }
+            w.total_beats += 1;
+            if diff > w.longest_absence {
+                w.longest_absence = diff;
+                true
+            } else {
+                false
+            }
+        };
+        if update_longest_absence {
             let pg_diff = PgInterval::try_from(chrono::Duration::microseconds(
                 diff.num_microseconds().unwrap_or(i64::MAX - 1),
             ))
             .unwrap();
-            sqlx::query!(
-                r#"
-                UPDATE stats SET longest_absence = $1 WHERE _id = 0;
-                "#,
-                pg_diff
-            )
-            .execute(&mut *conn)
-            .await
-            .unwrap();
-        } else {
-            drop(w);
+            sqlx::query!(r#"UPDATE stats SET longest_absence = $1 WHERE _id = 0;"#, pg_diff)
+                .execute(&mut *conn)
+                .await
+                .unwrap();
         }
         if diff.num_hours() >= 1 {
             fire_webhook(
                 "Absence longer than 1 hour".into(),
-                format!("From <t:{}> to <t:{}>", prev.time_stamp.timestamp(), now.timestamp()),
+                format!("From <t:{}> to <t:{}>", record.time_stamp.timestamp(), now.timestamp()),
                 WebhookLevel::LongAbsences,
             )
-            .await
+            .await;
         }
     }
     fire_webhook(
@@ -112,33 +120,61 @@ pub async fn handle_beat_req(mut conn: Connection<DbPool>, info: AuthInfo, stats
     format!("{}", now.timestamp())
 }
 
-#[get("/api/stats")]
-pub async fn get_stats(stats: &State<WrappedStats>) -> Value {
-    let r = stats.read().await;
-    let last_seen_relative = (Utc::now() - r.last_seen.unwrap_or(Utc::now())).num_seconds();
-    rocket::serde::json::json!({
-        "last_seen": r.last_seen.map(|x| x.timestamp()),
-        "last_seen_relative": last_seen_relative,
-        "longest_absence": (if last_seen_relative > r.longest_absence.num_seconds() {
+fn _get_stats(state: &AppState) -> impl Serialize {
+    #[derive(Serialize)]
+    struct StatsResp {
+        last_seen: Option<i64>,
+        last_seen_relative: i64,
+        longest_absence: i64,
+        num_visits: u64,
+        total_beats: u64,
+        devices: Vec<Device>,
+        uptime: i64,
+    }
+    let r = { state.stats.lock().unwrap().clone() };
+    let last_seen_relative = (Utc::now() - r.last_seen.unwrap_or_else(|| UNIX_EPOCH.into())).num_seconds();
+    StatsResp {
+        last_seen: r.last_seen.map(|x| x.timestamp()),
+        last_seen_relative,
+        longest_absence: (if last_seen_relative > r.longest_absence.num_seconds() {
             last_seen_relative
         } else {
             r.longest_absence.num_seconds()
         }),
-        "num_visits": r.num_visits,
-        "total_beats": r.total_beats,
-        "devices": r.devices,
-        "uptime": (Utc::now() - *crate::SERVER_START_TIME.get().unwrap()).num_seconds(),
-    })
+        num_visits: r.num_visits,
+        total_beats: r.total_beats,
+        devices: r.devices.as_slice().to_vec(),
+        uptime: (Utc::now() - *crate::SERVER_START_TIME.get().unwrap()).num_seconds(),
+    }
 }
 
-#[post("/api/devices", data = "<device>")]
+#[axum::debug_handler]
+pub async fn get_stats(State(stats): State<AppState>) -> impl IntoResponse {
+    Json(_get_stats(&stats))
+}
+
+#[axum::debug_handler]
+pub async fn realtime_stats(ws: WebSocketUpgrade, State(state): State<AppState>) -> impl IntoResponse {
+    ws.on_upgrade(|ws| async { stream_stats(state, ws).await })
+}
+
+async fn stream_stats(app_state: AppState, mut ws: WebSocket) {
+    loop {
+        let stats = _get_stats(&app_state);
+        let _ = ws.send(Message::Text(serde_json::to_string(&stats).unwrap())).await;
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    }
+}
+
+#[axum::debug_handler]
 pub async fn post_device(
-    mut conn: Connection<DbPool>,
     _auth: Authorized,
-    device: Json<PostDevice>,
-    stats: &State<WrappedStats>,
-) -> Value {
+    State(AppState { stats, pool }): State<AppState>,
+    Json(device): Json<PostDevice>,
+) -> impl IntoResponse {
+    let mut conn = pool.acquire().await.unwrap();
     let id = SnowflakeGenerator::default().generate();
+    #[allow(clippy::cast_possible_wrap)]
     let res = sqlx::query!(
         r#"INSERT INTO devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;"#,
         id.clone().id() as i64,
@@ -148,13 +184,15 @@ pub async fn post_device(
     .fetch_one(&mut *conn)
     .await
     .unwrap();
-    let mut w = stats.write().await;
-    w.devices.push(Device {
-        id: res.id,
-        name: res.name.clone(),
-        last_beat: None,
-        num_beats: 0,
-    });
+    {
+        let mut w = stats.lock().unwrap();
+        w.devices.push(Device {
+            id: res.id,
+            name: res.name.clone(),
+            last_beat: None,
+            num_beats: 0,
+        });
+    }
     fire_webhook(
         "New Device added".into(),
         format!(
@@ -166,9 +204,16 @@ pub async fn post_device(
         WebhookLevel::NewDevices,
     )
     .await;
-    rocket::serde::json::json!({
-        "id": &res.id,
-        "name": &res.name,
-        "token": &res.token,
+    #[derive(Serialize)]
+    struct DeviceAddResp {
+        id: u64,
+        name: Option<String>,
+        token: String,
+    }
+    #[allow(clippy::cast_sign_loss)]
+    Json(DeviceAddResp {
+        id: res.id as u64,
+        name: res.name,
+        token: res.token,
     })
 }

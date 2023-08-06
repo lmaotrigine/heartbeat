@@ -1,18 +1,16 @@
-/**
- * Copyright (c) 2023 VJ <root@5ht2.me>
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
+// Copyright (c) 2023 VJ <root@5ht2.me>
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 use super::query::incr_visits;
 use crate::{
-    util::{badge::make_badge, hf_time::*},
-    DbPool,
+    util::{badge::make_badge, hf_time::HumanTime},
+    AppState,
 };
+use axum::{extract::State, http::Response, http::StatusCode, response::IntoResponse};
 use base64::prelude::*;
-use rocket::{get, response::Responder};
-use rocket_db_pools::Connection;
 
 lazy_static::lazy_static! {
     static ref B64_IMG: String = {
@@ -22,12 +20,21 @@ lazy_static::lazy_static! {
     };
 }
 
-#[derive(Responder)]
-#[response(status = 200, content_type = "image/svg+xml;charset=utf-8")]
 pub struct BadgeResponse(String);
 
-#[get("/badge/last-seen")]
-pub async fn last_seen_badge(mut conn: Connection<DbPool>) -> BadgeResponse {
+impl IntoResponse for BadgeResponse {
+    fn into_response(self) -> axum::response::Response {
+        let res = self.0.into_response();
+        Response::builder()
+            .status(StatusCode::OK)
+            .header("Content-Type", "image/svg+xml")
+            .body(res.into_body())
+            .unwrap()
+    }
+}
+
+pub async fn last_seen_badge(State(AppState { pool, .. }): State<AppState>) -> BadgeResponse {
+    let mut conn = pool.acquire().await.unwrap();
     let last_seen = sqlx::query!(
         r#"
         SELECT
@@ -39,14 +46,14 @@ pub async fn last_seen_badge(mut conn: Connection<DbPool>) -> BadgeResponse {
     .await
     .unwrap()
     .last_seen;
-    let message = match last_seen {
-        Some(last_seen) => {
+    let message = last_seen.map_or_else(
+        || "never".to_string(),
+        |last_seen| {
             let diff = last_seen - chrono::Utc::now();
             format!("{:#}", HumanTime::from(diff))
-        }
-        None => "never".to_string(),
-    };
-    incr_visits(&mut *conn).await;
+        },
+    );
+    incr_visits(&mut conn).await;
     BadgeResponse(make_badge(
         Some("Last Online"),
         message.as_str(),
@@ -57,8 +64,8 @@ pub async fn last_seen_badge(mut conn: Connection<DbPool>) -> BadgeResponse {
     ))
 }
 
-#[get("/badge/total-beats")]
-pub async fn total_beats_badge(mut conn: Connection<DbPool>) -> BadgeResponse {
+pub async fn total_beats_badge(State(AppState { pool, .. }): State<AppState>) -> BadgeResponse {
+    let mut conn = pool.acquire().await.unwrap();
     let total_beats = sqlx::query!(
         r#"
         WITH indiv AS (
@@ -80,7 +87,7 @@ pub async fn total_beats_badge(mut conn: Connection<DbPool>) -> BadgeResponse {
     .collect::<Result<Vec<&str>, _>>()
     .unwrap()
     .join(",");
-    incr_visits(&mut *conn).await;
+    incr_visits(&mut conn).await;
     BadgeResponse(make_badge(
         Some("Total Beats"),
         total_beats.as_str(),

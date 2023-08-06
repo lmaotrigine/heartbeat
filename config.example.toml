@@ -1,3 +1,7 @@
+# the address to bind to
+# this will be parsed as a `std::net::SocketAddr`
+bind = "0.0.0.0:6060"
+
 # this is used for <title> tags
 # and some headings
 server_name = "VJ's heartbeat"

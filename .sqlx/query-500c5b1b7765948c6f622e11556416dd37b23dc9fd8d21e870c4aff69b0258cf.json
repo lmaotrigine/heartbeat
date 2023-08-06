@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE stats SET longest_absence = $1 WHERE _id = 0;",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Interval"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "500c5b1b7765948c6f622e11556416dd37b23dc9fd8d21e870c4aff69b0258cf"
+}
