@@ -37,7 +37,7 @@ function formatRelativeTime(secs, ago = false) {
   [M, S] = [Math.floor(rem / 60), Math.round(rem % 60)];
   const fmt = { Y, m, w, d, H, M, S };
   const arr = [];
-  Object.entries(fmt).filter(([_, v]) => v > 0).forEach(([k, v]) => arr.push(plural(v, map[k])));
+  Object.entries(fmt).filter(([, v]) => v > 0).forEach(([k, v]) => arr.push(plural(v, map[k])));
   if (arr.length === 0) {
     return '0 seconds' + (ago ? ' ago' : '');
   }
