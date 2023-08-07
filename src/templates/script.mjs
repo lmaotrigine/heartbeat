@@ -27,7 +27,7 @@ function formatDate(secs) {
   return `${d} ${m} ${Y} ${H}:${M}:${S} UTC`;
 }
 
-function formatRelativeTime(secs, ago = false) {
+function formatRelativeTime(secs) {
   let Y, m, w, d, H, M, S, rem;
   [Y, rem] = [Math.floor(secs / 31536000), secs % 31536000];
   [m, rem] = [Math.floor(rem / 2592000), rem % 2592000];
@@ -39,15 +39,15 @@ function formatRelativeTime(secs, ago = false) {
   const arr = [];
   Object.entries(fmt).filter(([, v]) => v > 0).forEach(([k, v]) => arr.push(plural(v, map[k])));
   if (arr.length === 0) {
-    return '0 seconds' + (ago ? ' ago' : '');
+    return '0 seconds';
   }
   if (arr.length === 1) {
-    return arr[0] + (ago ? ' ago' : '');
+    return arr[0];
   }
   if (arr.length === 2) {
-    return `${arr[0]} and ${arr[1]}` + (ago ? ' ago' : '');
+    return `${arr[0]} and ${arr[1]}`;
   }
-  return arr.slice(0, -1).join(', ') + ', and ' + arr.slice(-1) + (ago ? ' ago' : '');
+  return arr.slice(0, -1).join(', ') + ', and ' + arr.slice(-1);
 }
 
 function Stats(stats) {
