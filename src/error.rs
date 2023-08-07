@@ -66,7 +66,7 @@ pub async fn handle_errors<B: Send + 'static>(mut req: Request<B>, next: Next<B>
     let resp = next.run(req).await;
     let status = resp.status();
     match status {
-        StatusCode::METHOD_NOT_ALLOWED | StatusCode::NOT_FOUND => {
+        StatusCode::METHOD_NOT_ALLOWED | StatusCode::NOT_FOUND | StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => {
             let code = status.as_u16();
             warn!("returned {code} to {ip} - tried to {method} {path} with Authorization {auth}");
             Err(Error::new(&path, &method, status))
