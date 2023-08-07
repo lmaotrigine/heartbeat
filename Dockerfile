@@ -20,6 +20,12 @@ RUN cargo build --release --features badges,webhook
 
 FROM gcr.io/distroless/cc-debian11
 
+LABEL org.opencontainers.image.source "https://github.com/lmaotrigine/heartbeat"
+LABEL org.opencontainers.image.authors "lmaotrigine <root@5ht2.me>"
+LABEL org.opencontainers.image.title "heartbeat"
+LABEL org.opencontainers.image.licenses "MPL-2.0"
+LABEL org.opencontainers.image.base.name "gcr.io/distroless/cc-debian11"
+
 COPY --from=build /usr/src/app/target/release/heartbeat /usr/local/bin/heartbeat
 COPY --from=build /usr/src/app/static /usr/local/share/heartbeat/static
 
