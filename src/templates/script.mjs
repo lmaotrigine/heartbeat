@@ -51,11 +51,7 @@ function formatRelativeTime(secs) {
 }
 
 function Stats(stats) {
-<<<<<<< HEAD
   $('#visits').innerText = stats.num_visits.toLocaleString('en-GB');
-=======
-  $('#total-visits').innerText = stats.num_visits.toLocaleString('en-GB');
->>>>>>> 8adf014 (Rewrite (#1))
   $('#devices').innerText = stats.devices.length.toLocaleString('en-GB');
   $('#total-beats').innerText = stats.total_beats.toLocaleString('en-GB');
   $('#uptime').innerText = formatRelativeTime(stats.uptime);
