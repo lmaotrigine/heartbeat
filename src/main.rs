@@ -20,6 +20,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 use tower_http::services::ServeDir;
+use tracing::warn;
 
 mod config;
 mod error;
@@ -74,8 +75,13 @@ async fn main() {
         .with_state(AppState { stats, pool })
         .fallback_service(ServeDir::new("static/"))
         .layer(middleware::from_fn(handle_errors));
+    let graceful_shutdown = async {
+        _ = tokio::signal::ctrl_c().await;
+        warn!("Initiating graceful shutdown");
+    };
     Server::bind(&CONFIG.bind.parse().unwrap())
         .serve(router.into_make_service_with_connect_info::<SocketAddr>())
+        .with_graceful_shutdown(graceful_shutdown)
         .await
         .unwrap();
 }
