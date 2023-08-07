@@ -51,7 +51,7 @@ function formatRelativeTime(secs) {
 }
 
 function Stats(stats) {
-  $('#total-visits').innerText = stats.num_visits.toLocaleString('en-GB');
+  $('#visits').innerText = stats.num_visits.toLocaleString('en-GB');
   $('#devices').innerText = stats.devices.length.toLocaleString('en-GB');
   $('#total-beats').innerText = stats.total_beats.toLocaleString('en-GB');
   $('#uptime').innerText = formatRelativeTime(stats.uptime);
