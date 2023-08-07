@@ -5,14 +5,13 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use axum::{
-    extract::ConnectInfo,
     http::{Method, Request, Response, StatusCode},
     middleware::Next,
     response::IntoResponse,
     RequestExt,
 };
+use axum_realip::RealIp;
 use core::fmt;
-use std::net::SocketAddr;
 use tracing::warn;
 
 use crate::templates::error;
@@ -59,7 +58,7 @@ impl IntoResponse for Error {
 pub async fn handle_errors<B: Send + 'static>(mut req: Request<B>, next: Next<B>) -> impl IntoResponse {
     let path = req.uri().path().to_owned();
     let method = req.method().clone();
-    let conn_info = req.extract_parts::<ConnectInfo<SocketAddr>>().await.unwrap();
+    let RealIp(ip) = req.extract_parts::<RealIp>().await.unwrap();
     let headers = req.headers().clone();
     let auth = headers
         .get("Authorization")
@@ -69,7 +68,6 @@ pub async fn handle_errors<B: Send + 'static>(mut req: Request<B>, next: Next<B>
     match status {
         StatusCode::METHOD_NOT_ALLOWED | StatusCode::NOT_FOUND => {
             let code = status.as_u16();
-            let ip = conn_info.ip();
             warn!("returned {code} to {ip} - tried to {method} {path} with Authorization {auth}");
             Err(Error::new(&path, &method, status))
         }
