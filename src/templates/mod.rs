@@ -123,7 +123,7 @@ Due to caching, you will have to check the website if the embed generation time 
                                 (*GIT_HASH)
                             }
                         }
-                        "of "
+                        " of "
                         a href=(CONFIG.repo) {
                             "Heartbeat"
                         }
