@@ -4,6 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+// these are all because of [`axum::debug_handler`]
+#![allow(
+    clippy::diverging_sub_expression,
+    clippy::unused_async,
+    clippy::items_after_statements
+)]
+
 mod api;
 #[cfg(feature = "badges")]
 mod badges;
@@ -20,7 +27,7 @@ use axum::{
 use badges::{last_seen_badge, total_beats_badge};
 use pages::{index_page, privacy_page, stats_page};
 
-pub fn get_routes() -> Router<AppState> {
+pub fn get_all() -> Router<AppState> {
     let r = Router::new()
         .route("/", get(index_page))
         .route("/stats", get(stats_page))

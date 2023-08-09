@@ -8,7 +8,7 @@ use super::Snowflake;
 use base64::prelude::*;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 
-pub fn generate_token(id: Snowflake) -> String {
+pub fn generate(id: Snowflake) -> String {
     let engine = BASE64_STANDARD_NO_PAD;
     let now = chrono::Utc::now();
     let enc_now = engine.encode(now.timestamp().to_be_bytes());

@@ -10,8 +10,8 @@ use toml::{self, de::Error as TomlDeError};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    pub database: DatabaseConfig,
-    pub webhook: WebhookConfig,
+    pub database: Database,
+    pub webhook: Webhook,
     pub secret_key: Option<String>,
     pub repo: String,
     pub server_name: String,
@@ -20,12 +20,12 @@ pub struct Config {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct DatabaseConfig {
+pub struct Database {
     pub dsn: String,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct WebhookConfig {
+pub struct Webhook {
     pub url: String,
     pub level: WebhookLevel,
 }

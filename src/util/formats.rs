@@ -10,7 +10,7 @@ pub fn format_relative(dur: chrono::Duration) -> String {
     HumanTime::from(dur).to_text(Accuracy::Precise, Tense::Present)
 }
 
-pub fn format_num(input: u64) -> String {
+pub fn format_num(input: i64) -> String {
     input
         .to_string()
         .as_bytes()

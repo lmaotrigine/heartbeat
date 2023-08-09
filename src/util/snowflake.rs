@@ -21,7 +21,7 @@ const fn max(shift: u8) -> u64 {
 }
 
 #[derive(Debug, Default)]
-pub struct SnowflakeGenerator {
+pub struct Generator {
     last_timestamp: u64,
     seq: u64,
 }
@@ -34,11 +34,11 @@ impl Snowflake {
         self.0
     }
 
-    #[allow(clippy::cast_possible_wrap)]
-    #[allow(dead_code)] // unused as of now
     pub fn created_at(self) -> chrono::DateTime<chrono::Utc> {
         let ts = self.0 >> 22 & max(42);
-        chrono::Utc.timestamp_opt((ts + EPOCH) as i64 / 1000, 0).unwrap()
+        chrono::Utc
+            .timestamp_opt(i64::try_from(ts + EPOCH).unwrap() / 1000, 0)
+            .unwrap()
     }
 }
 
@@ -54,13 +54,12 @@ impl std::fmt::Display for Snowflake {
     }
 }
 
-#[allow(clippy::cast_lossless)]
 pub fn ts() -> u64 {
     let t = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-    t.as_secs() * 1000 + (t.subsec_nanos() as u64) / 1_000_000
+    t.as_secs() * 1000 + (u64::from(t.subsec_nanos())) / 1_000_000
 }
 
-impl SnowflakeGenerator {
+impl Generator {
     pub fn generate(&mut self) -> Snowflake {
         let now = ts();
         assert!(
@@ -84,7 +83,7 @@ mod tests {
 
     #[test]
     fn test_stuff() {
-        let mut gen = SnowflakeGenerator {
+        let mut gen = Generator {
             last_timestamp: 0,
             seq: 0,
         };

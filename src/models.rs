@@ -24,12 +24,11 @@ pub struct Stats {
     #[serde(serialize_with = "serialize_duration")]
     #[serde(deserialize_with = "deserialize_duration")]
     pub longest_absence: chrono::Duration,
-    pub num_visits: u64,
-    pub total_beats: u64,
+    pub num_visits: i64,
+    pub total_beats: i64,
 }
 
 impl Stats {
-    #[allow(clippy::cast_sign_loss)]
     pub async fn fetch(dsn: &str) -> Self {
         crate::SERVER_START_TIME
             .get_or_init(|| crate::routes::query::get_server_start_time(dsn))
@@ -60,7 +59,7 @@ impl Stats {
             .fetch_optional(&conn)
             .await
             .unwrap()
-            .map_or(0, |v| v.total_visits) as u64;
+            .map_or(0, |v| v.total_visits);
         let longest = if devs.is_empty() {
             chrono::Duration::zero()
         } else {
@@ -74,11 +73,11 @@ impl Stats {
                 id: dev.id,
                 name: dev.name,
                 last_beat: dev.last_beat,
-                num_beats: dev.num_beats.unwrap_or_default() as u64,
+                num_beats: dev.num_beats.unwrap_or_default(),
             });
         }
         let last_beat = devices.iter().max_by_key(|d| d.last_beat).and_then(|d| d.last_beat);
-        let total_beats = devices.iter().map(|d| d.num_beats).sum::<u64>();
+        let total_beats = devices.iter().map(|d| d.num_beats).sum();
         Self {
             last_seen: last_beat,
             devices,
@@ -95,7 +94,7 @@ pub struct Device {
     pub name: Option<String>,
     #[serde(serialize_with = "serialize_ts")]
     pub last_beat: Option<chrono::DateTime<chrono::Utc>>,
-    pub num_beats: u64,
+    pub num_beats: i64,
 }
 
 #[derive(Deserialize)]

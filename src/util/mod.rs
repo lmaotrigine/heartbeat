@@ -7,16 +7,16 @@
 pub mod hf_time;
 mod plural;
 mod snowflake;
-pub use snowflake::{Snowflake, SnowflakeGenerator};
+pub use snowflake::{Generator as SnowflakeGenerator, Snowflake};
 mod serializers;
 pub use serializers::*;
 pub mod formats;
 mod token;
-pub use token::generate_token;
+pub use token::generate as generate_token;
 
 #[cfg(feature = "badges")]
 pub mod badge;
 #[cfg(feature = "webhook")]
 mod webhook;
 #[cfg(feature = "webhook")]
-pub use webhook::{Webhook, WebhookColour};
+pub use webhook::{Colour as WebhookColour, Webhook};

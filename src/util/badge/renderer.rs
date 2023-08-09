@@ -6,7 +6,7 @@
 
 use super::colour::brightness;
 use super::font::measure;
-use super::xml::{ElementList, Render, XmlContent, XmlElement};
+use super::xml::{Content, Element, ElementList, Render};
 use super::{FONT_FAMILY, FONT_SCALE_DOWN_VALUE, FONT_SCALE_UP_FACTOR};
 
 fn colours_for_background(colour: &str) -> (&str, &str) {
@@ -41,11 +41,11 @@ fn get_logo_element(
     horiz_padding: impl std::fmt::Display,
     badge_height: f32,
     logo_width: impl std::fmt::Display,
-) -> XmlContent {
+) -> Content {
     let logo_height = 14.0;
-    logo.map_or(XmlContent::Text(""), |logo| {
-        XmlContent::Element(
-            XmlElement::new("image")
+    logo.map_or(Content::Text(""), |logo| {
+        Content::Element(
+            Element::new("image")
                 .attr("x", horiz_padding)
                 .attr("y", 0.5 * (badge_height - logo_height))
                 .attr("width", logo_width)
@@ -56,17 +56,17 @@ fn get_logo_element(
 }
 
 fn render_badge(
-    content: Vec<XmlContent>,
+    content: Vec<Content>,
     left_width: f32,
     right_width: f32,
     height: f32,
     accessible_text: &str,
 ) -> String {
     let width = left_width + right_width;
-    let title = XmlElement::new("title").content(vec![XmlContent::Text(accessible_text)]);
+    let title = Element::new("title").content(vec![Content::Text(accessible_text)]);
     let body = ElementList::new(content);
-    let svg = XmlElement::new("svg")
-        .content(vec![XmlContent::Element(title), XmlContent::List(body)])
+    let svg = Element::new("svg")
+        .content(vec![Content::Element(title), Content::List(body)])
         .attr("xmlns", "http://www.w3.org/2000/svg")
         .attr("xmlns:xlink", "http://www.w3.org/1999/xlink")
         .attr("width", width)
@@ -91,7 +91,7 @@ pub struct Badge<'a> {
     label: &'a str,
     message: &'a str,
     accessible_text: String,
-    logo_element: XmlContent<'a>,
+    logo_element: Content<'a>,
 }
 
 static HEIGHT: f32 = 20.0;
@@ -127,7 +127,6 @@ impl<'a> Badge<'a> {
             0.0
         };
         let message_width = preferred_width(message);
-        #[allow(clippy::cast_precision_loss)]
         let mut message_margin = left_width - message.len().min(1) as f32;
         if !has_label {
             if has_logo {
@@ -159,21 +158,21 @@ impl<'a> Badge<'a> {
         }
     }
 
-    fn get_text_element(&'a self, left_margin: f32, content: &'a str, colour: &str, text_width: f32) -> XmlContent {
+    fn get_text_element(&'a self, left_margin: f32, content: &'a str, colour: &str, text_width: f32) -> Content {
         if content.is_empty() {
-            return XmlContent::Text("");
+            return Content::Text("");
         }
         let (text_colour, shadow_colour) = colours_for_background(colour);
         let x = FONT_SCALE_UP_FACTOR * (0.5f32.mul_add(text_width, left_margin) + self.horiz_padding);
-        let text = XmlElement::new("text")
-            .content(vec![XmlContent::Text(content)])
+        let text = Element::new("text")
+            .content(vec![Content::Text(content)])
             .attr("x", x)
             .attr("y", 140.0 + VERTICAL_MARGIN)
             .attr("transform", FONT_SCALE_DOWN_VALUE)
             .attr("fill", text_colour)
             .attr("textLength", FONT_SCALE_UP_FACTOR * text_width);
-        let shadow_text = XmlElement::new("text")
-            .content(vec![XmlContent::Text(content)])
+        let shadow_text = Element::new("text")
+            .content(vec![Content::Text(content)])
             .attr("aria-hidden", true)
             .attr("x", x)
             .attr("y", 150.0 + VERTICAL_MARGIN)
@@ -182,26 +181,26 @@ impl<'a> Badge<'a> {
             .attr("fill-opacity", ".3")
             .attr("textLength", FONT_SCALE_UP_FACTOR * text_width);
         let shadow = if SHADOW {
-            XmlContent::Element(shadow_text)
+            Content::Element(shadow_text)
         } else {
-            XmlContent::Text("")
+            Content::Text("")
         };
-        XmlContent::List(ElementList::new(vec![shadow, XmlContent::Element(text)]))
+        Content::List(ElementList::new(vec![shadow, Content::Element(text)]))
     }
 
-    fn get_label_element(&self) -> XmlContent {
+    fn get_label_element(&self) -> Content {
         self.get_text_element(self.label_margin, self.label, self.label_colour, self.label_width)
     }
 
-    fn get_message_element(&self) -> XmlContent {
+    fn get_message_element(&self) -> Content {
         self.get_text_element(self.message_margin, self.message, self.colour, self.message_width)
     }
 
-    fn get_clip_path(&self, rx: f32) -> XmlContent {
-        XmlContent::Element(
-            XmlElement::new("clipPath")
-                .content(vec![XmlContent::Element(
-                    XmlElement::new("rect")
+    fn get_clip_path(&self, rx: f32) -> Content {
+        Content::Element(
+            Element::new("clipPath")
+                .content(vec![Content::Element(
+                    Element::new("rect")
                         .attr("width", self.width)
                         .attr("height", HEIGHT)
                         .attr("rx", rx)
@@ -211,36 +210,36 @@ impl<'a> Badge<'a> {
         )
     }
 
-    fn get_background_group_element(&self, with_gradient: bool) -> XmlElement {
-        let left_rect = XmlElement::new("rect")
+    fn get_background_group_element(&self, with_gradient: bool) -> Element {
+        let left_rect = Element::new("rect")
             .attr("width", self.left_width)
             .attr("height", HEIGHT)
             .attr("fill", self.label_colour);
-        let right_rect = XmlElement::new("rect")
+        let right_rect = Element::new("rect")
             .attr("x", self.left_width)
             .attr("width", self.right_width)
             .attr("height", HEIGHT)
             .attr("fill", self.colour);
-        let gradient = XmlElement::new("rect")
+        let gradient = Element::new("rect")
             .attr("width", self.width)
             .attr("height", HEIGHT)
             .attr("fill", "url(#s)");
         let content = if with_gradient {
             vec![
-                XmlContent::Element(left_rect),
-                XmlContent::Element(right_rect),
-                XmlContent::Element(gradient),
+                Content::Element(left_rect),
+                Content::Element(right_rect),
+                Content::Element(gradient),
             ]
         } else {
-            vec![XmlContent::Element(left_rect), XmlContent::Element(right_rect)]
+            vec![Content::Element(left_rect), Content::Element(right_rect)]
         };
-        XmlElement::new("g").content(content)
+        Element::new("g").content(content)
     }
 
     #[inline]
-    fn get_foreground_group_element(&'a self) -> XmlContent<'a> {
-        XmlContent::Element(
-            XmlElement::new("g")
+    fn get_foreground_group_element(&'a self) -> Content<'a> {
+        Content::Element(
+            Element::new("g")
                 .content(vec![
                     self.logo_element.clone(),
                     self.get_label_element(),
@@ -257,15 +256,15 @@ impl<'a> Badge<'a> {
 
 impl<'a> Render for Badge<'a> {
     fn render(&self) -> String {
-        let gradient = XmlElement::new("linearGradient")
+        let gradient = Element::new("linearGradient")
             .content(vec![
-                XmlContent::Element(
-                    XmlElement::new("stop")
+                Content::Element(
+                    Element::new("stop")
                         .attr("offset", 0)
                         .attr("stop-color", "#bbb")
                         .attr("stop-opacity", ".1"),
                 ),
-                XmlContent::Element(XmlElement::new("stop").attr("offset", 1).attr("stop-opacity", ".1")),
+                Content::Element(Element::new("stop").attr("offset", 1).attr("stop-opacity", ".1")),
             ])
             .attr("id", "s")
             .attr("x2", 0)
@@ -274,9 +273,9 @@ impl<'a> Render for Badge<'a> {
         let background_group = self.get_background_group_element(true).attr("clip-path", "url(#r)");
         render_badge(
             vec![
-                XmlContent::Element(gradient),
+                Content::Element(gradient),
                 clip_path,
-                XmlContent::Element(background_group),
+                Content::Element(background_group),
                 self.get_foreground_group_element(),
             ],
             self.left_width,

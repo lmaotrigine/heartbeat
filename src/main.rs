@@ -5,11 +5,10 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #![forbid(unsafe_code)] // I am not a C programmer.
-#![deny(warnings, clippy::pedantic, clippy::nursery)]
+#![deny(clippy::all, clippy::cargo, clippy::pedantic, clippy::nursery)]
 #![allow(
-    clippy::module_name_repetitions, // why?
-    clippy::items_after_statements, // emitted by `axum::debug_handler`
-    clippy::unused_async  // obscured by `axum::debug_handler`
+    clippy::cast_precision_loss, // quote from the docs: "this isn't bad at all"
+    clippy::multiple_crate_versions, // dependency hell. idk.
 )]
 
 use axum::{extract::FromRef, middleware, Server};
@@ -30,8 +29,8 @@ mod routes;
 mod templates;
 mod util;
 
+use routes::query::fetch_stats;
 pub use routes::query::SERVER_START_TIME;
-use routes::{get_routes, query::fetch_stats};
 use sqlx::{postgres::PgPoolOptions, PgPool};
 
 #[derive(Debug, Clone, FromRef)]
@@ -49,8 +48,6 @@ lazy_static! {
 lazy_static! {
     pub static ref WEBHOOK: util::Webhook = util::Webhook::new(&CONFIG.webhook);
 }
-
-pub struct DbPool(pub sqlx::PgPool);
 
 #[tokio::main]
 async fn main() {
@@ -71,7 +68,7 @@ async fn main() {
         let conn = pool.acquire().await.unwrap();
         Arc::new(Mutex::new(fetch_stats(conn).await))
     };
-    let router = get_routes()
+    let router = routes::get_all()
         .with_state(AppState { stats, pool })
         .fallback_service(ServeDir::new("static/"))
         .layer(middleware::from_fn(handle_errors));

@@ -6,13 +6,12 @@
 
 use super::Regex;
 
-#[allow(clippy::cast_lossless)]
 #[inline]
 pub fn brightness(colour: &str) -> f32 {
     if !colour.is_empty() {
         if let Some(css_colour) = css_from_str(colour) {
             let (r, g, b) = css_colour.to_rgb();
-            return (r as f32).mul_add(299.0, (g as f32).mul_add(587.0, b as f32 * 114.0)) / 255_000.0;
+            return f32::from(r).mul_add(299.0, f32::from(g).mul_add(587.0, f32::from(b) * 114.0)) / 255_000.0;
         }
     }
     0.0

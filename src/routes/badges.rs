@@ -6,7 +6,7 @@
 
 use super::query::incr_visits;
 use crate::{
-    util::{badge::make_badge, hf_time::HumanTime},
+    util::{badge, hf_time::HumanTime},
     AppState,
 };
 use axum::{extract::State, http::Response, http::StatusCode, response::IntoResponse};
@@ -33,6 +33,7 @@ impl IntoResponse for BadgeResponse {
     }
 }
 
+#[axum::debug_handler]
 pub async fn last_seen_badge(State(AppState { pool, .. }): State<AppState>) -> BadgeResponse {
     let mut conn = pool.acquire().await.unwrap();
     let last_seen = sqlx::query!(
@@ -54,7 +55,7 @@ pub async fn last_seen_badge(State(AppState { pool, .. }): State<AppState>) -> B
         },
     );
     incr_visits(&mut conn).await;
-    BadgeResponse(make_badge(
+    BadgeResponse(badge::make(
         Some("Last Online"),
         message.as_str(),
         Some("#887ee0"),
@@ -64,6 +65,7 @@ pub async fn last_seen_badge(State(AppState { pool, .. }): State<AppState>) -> B
     ))
 }
 
+#[axum::debug_handler]
 pub async fn total_beats_badge(State(AppState { pool, .. }): State<AppState>) -> BadgeResponse {
     let mut conn = pool.acquire().await.unwrap();
     let total_beats = sqlx::query!(
@@ -88,7 +90,7 @@ pub async fn total_beats_badge(State(AppState { pool, .. }): State<AppState>) ->
     .unwrap()
     .join(",");
     incr_visits(&mut conn).await;
-    BadgeResponse(make_badge(
+    BadgeResponse(badge::make(
         Some("Total Beats"),
         total_beats.as_str(),
         Some("#6495ed"),

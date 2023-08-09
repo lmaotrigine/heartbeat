@@ -19,7 +19,7 @@ mod xml;
 use renderer::Badge;
 use xml::Render;
 
-pub fn make_badge(
+pub fn make(
     label: Option<&str>,
     message: &str,
     colour: Option<&str>,

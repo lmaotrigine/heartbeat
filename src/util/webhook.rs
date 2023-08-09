@@ -8,7 +8,7 @@ use reqwest::Client;
 use serde::Serialize;
 
 use crate::{
-    config::{WebhookConfig, WebhookLevel},
+    config::{Webhook as WebhookConfig, WebhookLevel},
     CONFIG,
 };
 
@@ -17,7 +17,7 @@ pub struct Webhook {
     client: Client,
 }
 
-pub enum WebhookColour {
+pub enum Colour {
     Green = 0x42_f5_98,
     Orange = 0xde_95_3c,
     Blue = 0x64_95_ed,
@@ -58,7 +58,7 @@ impl Webhook {
         title: String,
         message: String,
         level: WebhookLevel,
-        colour: WebhookColour,
+        colour: Colour,
     ) -> Result<(), String> {
         if self.config.level > level {
             return Ok(());

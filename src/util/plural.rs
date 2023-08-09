@@ -34,13 +34,13 @@ impl<'a> Plural<'a> {
     }
 }
 
-pub struct RoughPlural<'a> {
+pub struct Rough<'a> {
     article: &'a str,
     singular: &'a str,
     plural: String,
 }
 
-impl<'a> RoughPlural<'a> {
+impl<'a> Rough<'a> {
     pub fn from(singular: &'a str) -> Self {
         Self {
             article: "a",
@@ -72,19 +72,21 @@ impl<'a> RoughPlural<'a> {
 #[macro_export]
 macro_rules! plural {
     ($n:expr, $singular:expr) => {
-        Plural::from($singular).compute($n)
+        $crate::util::plural::Plural::from($singular).compute($n)
     };
 }
 
 #[macro_export]
-macro_rules! rough_plural {
+macro_rules! rough {
     ($n:expr, $singular:expr, $article:expr) => {
-        RoughPlural::from($singular).article($article).compute($n)
+        $crate::util::plural::Rough::from($singular)
+            .article($article)
+            .compute($n)
     };
     ($n:expr, $singular:expr) => {
-        RoughPlural::from($singular).compute($n)
+        $crate::util::plural::Rough::from($singular).compute($n)
     };
 }
 
 pub use plural;
-pub use rough_plural;
+pub use rough;

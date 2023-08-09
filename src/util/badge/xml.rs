@@ -29,20 +29,20 @@ fn escape_xml(s: &str) -> String {
 }
 
 #[derive(Debug, Clone)]
-pub enum XmlContent<'a> {
+pub enum Content<'a> {
     Text(&'a str),
-    Element(XmlElement<'a>),
+    Element(Element<'a>),
     List(ElementList<'a>),
 }
 
 #[derive(Debug, Clone)]
-pub struct XmlElement<'a> {
+pub struct Element<'a> {
     name: &'a str,
-    content: Vec<XmlContent<'a>>,
+    content: Vec<Content<'a>>,
     attrs: HashMap<&'a str, String>,
 }
 
-impl<'a> XmlElement<'a> {
+impl<'a> Element<'a> {
     pub fn new(name: &'a str) -> Self {
         Self {
             name,
@@ -51,7 +51,7 @@ impl<'a> XmlElement<'a> {
         }
     }
 
-    pub fn content(mut self, content: Vec<XmlContent<'a>>) -> Self {
+    pub fn content(mut self, content: Vec<Content<'a>>) -> Self {
         self.content = content;
         self
     }
@@ -64,7 +64,7 @@ impl<'a> XmlElement<'a> {
     }
 }
 
-impl<'a> Render for XmlElement<'a> {
+impl<'a> Render for Element<'a> {
     fn render(&self) -> String {
         let attrs_str = self
             .attrs
@@ -80,23 +80,23 @@ impl<'a> Render for XmlElement<'a> {
     }
 }
 
-impl Render for XmlContent<'_> {
+impl Render for Content<'_> {
     fn render(&self) -> String {
         match self {
-            XmlContent::Text(s) => escape_xml(s),
-            XmlContent::Element(e) => e.render(),
-            XmlContent::List(l) => l.render(),
+            Content::Text(s) => escape_xml(s),
+            Content::Element(e) => e.render(),
+            Content::List(l) => l.render(),
         }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct ElementList<'a> {
-    content: Vec<XmlContent<'a>>,
+    content: Vec<Content<'a>>,
 }
 
 impl<'a> ElementList<'a> {
-    pub fn new(content: Vec<XmlContent<'a>>) -> Self {
+    pub fn new(content: Vec<Content<'a>>) -> Self {
         Self { content }
     }
 }

@@ -46,7 +46,6 @@ pub async fn incr_visits(conn: &mut PgConnection) {
     .unwrap_or_default();
 }
 
-#[allow(clippy::cast_sign_loss)]
 pub async fn fetch_stats(mut conn: PoolConnection<Postgres>) -> Stats {
     let devs = sqlx::query!(
         r#"
@@ -79,11 +78,11 @@ pub async fn fetch_stats(mut conn: PoolConnection<Postgres>) -> Stats {
             id: dev.id,
             name: dev.name,
             last_beat: dev.last_beat,
-            num_beats: dev.num_beats as u64,
+            num_beats: dev.num_beats,
         });
     }
     let last_beat = devices.iter().max_by_key(|d| d.last_beat).and_then(|d| d.last_beat);
-    let total_beats = devices.iter().map(|d| d.num_beats).sum::<u64>();
+    let total_beats = devices.iter().map(|d| d.num_beats).sum();
     Stats {
         last_seen: last_beat,
         devices,

@@ -71,21 +71,20 @@ pub async fn handle_beat_req(State(AppState { stats, pool }): State<AppState>, i
     .unwrap();
     if let Some(record) = prev_beat {
         let diff = now - record.time_stamp;
-        #[allow(clippy::significant_drop_tightening)] // drop at the end of scope is intentional.
         let update_longest_absence = {
+            let mut ret = false;
             let mut w = stats.lock().unwrap();
+            if diff > w.longest_absence {
+                w.longest_absence = diff;
+                ret = true;
+            }
             w.last_seen = Some(now);
             if let Some(x) = w.devices.iter_mut().find(|x| x.id == info.id) {
                 x.last_beat = Some(now);
                 x.num_beats += 1;
             }
             w.total_beats += 1;
-            if diff > w.longest_absence {
-                w.longest_absence = diff;
-                true
-            } else {
-                false
-            }
+            ret
         };
         if update_longest_absence {
             let pg_diff = PgInterval::try_from(chrono::Duration::microseconds(
@@ -126,8 +125,8 @@ fn _get_stats(state: &AppState) -> impl Serialize {
         last_seen: Option<i64>,
         last_seen_relative: i64,
         longest_absence: i64,
-        num_visits: u64,
-        total_beats: u64,
+        num_visits: i64,
+        total_beats: i64,
         devices: Vec<Device>,
         uptime: i64,
     }
@@ -174,10 +173,9 @@ pub async fn post_device(
 ) -> impl IntoResponse {
     let mut conn = pool.acquire().await.unwrap();
     let id = SnowflakeGenerator::default().generate();
-    #[allow(clippy::cast_possible_wrap)]
     let res = sqlx::query!(
         r#"INSERT INTO devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;"#,
-        id.clone().id() as i64,
+        i64::try_from(id.id()).unwrap(),
         device.name,
         generate_token(id),
     )
@@ -210,9 +208,8 @@ pub async fn post_device(
         name: Option<String>,
         token: String,
     }
-    #[allow(clippy::cast_sign_loss)]
     Json(DeviceAddResp {
-        id: res.id as u64,
+        id: u64::try_from(res.id).unwrap(),
         name: res.name,
         token: res.token,
     })

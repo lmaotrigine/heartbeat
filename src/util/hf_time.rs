@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use super::plural::{plural, rough_plural, Plural, RoughPlural};
+use super::plural::{plural, rough as rough_plural};
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use std::borrow::Cow;
 

@@ -6,7 +6,7 @@
 
 fn main() {
     if let Some(rev) = git_revision_hash() {
-        println!("cargo:rustc-env=HB_GIT_COMMIT={}", rev);
+        println!("cargo:rustc-env=HB_GIT_COMMIT={rev}");
     }
 }
 

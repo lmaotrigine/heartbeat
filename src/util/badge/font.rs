@@ -19,9 +19,8 @@ impl CharWidthTable {
         c <= 31 || c == 127
     }
 
-    #[allow(clippy::cast_possible_truncation)]
     fn width_of_char_code(&self, char_code: u32) -> Option<f32> {
-        if Self::is_control_char(char_code as u8) {
+        if Self::is_control_char(u8::try_from(char_code).unwrap()) {
             return Some(0.0);
         }
         let index = self.data.binary_search_by(|(a, _, _)| a.cmp(&char_code));
