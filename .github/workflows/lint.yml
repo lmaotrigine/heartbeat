@@ -26,6 +26,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           owner: nextest-rs
           name: nextest
+          bin: cargo-nextest
       - name: setup just
         uses: lmaotrigine/fetch-crate-action@mistress
         with:
