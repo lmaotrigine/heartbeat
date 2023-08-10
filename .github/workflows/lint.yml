@@ -20,14 +20,18 @@ jobs:
           toolchain: stable
           components: clippy, rustfmt
           override: true
-      - name: cargo fmt
-        uses: actions-rs/cargo@v1
+      - name: setup nextest
+        uses: lmaotrigine/fetch-crate-action@mistress
         with:
-          command: fmt
-          args: --all -- --check
-
-      - name: cargo clippy
-        uses: actions-rs/cargo@v1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          owner: nextest-rs
+          name: nextest
+      - name: setup just
+        uses: lmaotrigine/fetch-crate-action@mistress
         with:
-          command: clippy
-          args: --all-features -- -D warnings
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          owner: casey
+          name: just
+      - name: check
+        run: |
+          just check

@@ -10,13 +10,13 @@ build *args:
 
 check:
   cargo fmt --all -- --check
-  cargo clippy --all-features -- -D warnings
+  SQLX_OFFLINE=1 cargo clippy --all-features -- -D warnings
 
 clean:
   cargo clean
 
 test *args:
-  RUST_BACKTRACE=1 cargo nextest run {{args}}
+  RUST_BACKTRACE=1 SQLX_OFFLINE=1 cargo nextest run {{args}}
 
 docker:
   TAG={{tag}} docker buildx bake
