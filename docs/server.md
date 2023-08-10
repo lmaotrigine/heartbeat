@@ -20,24 +20,8 @@ docker compose up
 
 If you know what you're doing, you can edit the compose file to use, say, a database on a different host/network.
 
-### Binary
-
-> :warning: This section deals with release binaries. I am not sure if I will be tagging releases anytime soon, so
-> if you don't want to use Docker, skip ahead to [building from source](#build-from-source).
-
-Binaries are built on every tag pushed. You can grab the one suited to your platform and architecture from the
-[releases](https://github.com/lmaotrigine/heartbeat/releases) page. If a binary is not available for the commit you
-need, you will have to [build from source](#build-from-source).
-
-In addition, you will need access to a [PostgreSQL](https://www.postgresql.org) (of a supported server version).
-The schema for the database is located in the [`migrations`](/migrations/20230103063306_initial_migration.sql) directory.
-
-If you want to change the default address/port, edit the corresponding settings in the `[release]` section of
-[`Rocket.toml`](/Rocket.toml).
 
 ### Build from source
-
-Minimum Supported Rust Version: 1.66.1
 
 See the [optional features](./usage.md#optional-features) section for feature flags.
 
@@ -46,6 +30,10 @@ cargo build --release # add --feature flags here
 ln -s target/release/heartbeat ./heartbeat
 ./heartbeat
 ```
+
+In addition, you will need access to a [PostgreSQL](https://www.postgresql.org) (of a supported server version).
+The schemas for the database are located in the [`migrations`](/migrations) directory.
+
 
 ## Running in production
 
