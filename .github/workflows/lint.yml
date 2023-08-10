@@ -32,6 +32,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           owner: casey
           name: just
-      - name: check
+      - name: check and test
         run: |
-          just check
+          just check test
