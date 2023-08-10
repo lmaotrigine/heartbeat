@@ -2,6 +2,7 @@ _default:
   just --list
 
 tag := `git rev-parse --short HEAD`
+image := "ghcr.io/lmaotrigine/heartbeat"
 
 all: clean build
 
@@ -23,3 +24,9 @@ docker:
 
 push:
   TAG={{tag}} docker buildx bake --push
+
+run *args:
+  docker compose up -d {{args}}
+
+pull:
+  docker pull {{image}}:latest
