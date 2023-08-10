@@ -21,6 +21,7 @@ jobs:
         with:
           owner: casey
           name: just
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Docker build and push
         run: |
           just push
