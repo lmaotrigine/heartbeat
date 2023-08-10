@@ -1,3 +1,5 @@
+#!/usr/bin/env -S just --justfile
+
 _default:
   just --list
 
@@ -6,24 +8,32 @@ image := "ghcr.io/lmaotrigine/heartbeat"
 
 all: clean build
 
+ci-lint: check test
+
 build *args:
-  cargo build {{args}}
+  @just _cargo build {{args}}
+
+_cargo *args:
+  SQLX_OFFLINE=1 cargo {{args}}
 
 check:
   cargo fmt --all -- --check
-  SQLX_OFFLINE=1 cargo clippy --all-features -- -D warnings
+  @just _cargo clippy --all-features -- -D warnings
 
 clean:
   cargo clean
 
 test *args:
-  RUST_BACKTRACE=1 SQLX_OFFLINE=1 cargo nextest run {{args}}
+  RUST_BACKTRACE=1 just _cargo nextest run {{args}}
 
-docker:
-  TAG={{tag}} docker buildx bake
+_docker *args:
+  TAG={{tag}} docker buildx {{args}}
+
+bake:
+  @just _docker bake
 
 push:
-  TAG={{tag}} docker buildx bake --push
+  @just _docker bake --push
 
 run *args:
   docker compose up -d {{args}}

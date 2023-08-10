@@ -35,4 +35,4 @@ jobs:
           name: just
       - name: check and test
         run: |
-          just check test
+          just ci-lint
