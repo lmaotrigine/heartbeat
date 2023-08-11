@@ -20,6 +20,10 @@ docker compose up
 
 If you know what you're doing, you can edit the compose file to use, say, a database on a different host/network.
 
+### Pre-built binaries
+
+Pre-built, statically linked binaries are available as compressed archives on the
+[releases page](https://github.com/lmaotrigine/heartbeat/releases)
 
 ### Build from source
 

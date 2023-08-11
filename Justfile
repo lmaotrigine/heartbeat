@@ -18,7 +18,7 @@ _cargo *args:
 
 check:
   cargo fmt --all -- --check
-  @just _cargo clippy --all-features -- -D warnings
+  @just _cargo clippy --all --all-features -- -D warnings
 
 clean:
   cargo clean

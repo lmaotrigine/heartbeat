@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+VERSION=${REF#"refs/tags/"}
+DIST=$(pwd)/dist
+
+echo "Packaging heartbeat $VERSION for $TARGET..."
+
+test -f Cargo.lock || cargo generate-lockfile
+
+echo "Building heartbeat..."
+export PKG_CONFIG_ALLOW_CROSS=1
+export SQLX_OFFLINE=1
+
+### BEGIN MINDLESS HACKING
+# I have no idea what combination of these flags is actually necessary
+# I just poked at it until it worked
+# If you know more about cross-compiling rust, feel free to fix this
+export CC_aarch64_unknown_linux_musl=aarch64-linux-gnu-gcc
+export CC_x86_64_unknown_linux_musl=clang
+export CC_armv7_unknown_linux_musleabihf=arm-linux-gnueabihf-gcc
+### END MINDLESS HACKING
+
+RUSTFLAGS="-D warnings -C target-feature=+crt-static $TARGET_RUSTFLAGS" cargo build --target "$TARGET" --release --all-features
+EXECUTABLE=target/$TARGET/release/heartbeat
+
+if [[ $OS == windows-latest ]]; then
+  EXECUTABLE=$EXECUTABLE.exe
+fi
+
+echo "Copying release files..."
+mkdir "$DIST"
+cp -r "$EXECUTABLE" LICENSE README.md docs static tasker migrations "$DIST"
+
+cd "$DIST"
+echo "Creating release archive..."
+case $OS in
+  ubuntu-latest | macos-latest)
+    ARCHIVE=$DIST/heartbeat-$VERSION-$TARGET.tar.gz
+    tar czf "$ARCHIVE"  -- *
+    echo "archive=$ARCHIVE" >> "$GITHUB_OUTPUT"
+    ;;
+  windows-latest)
+    ARCHIVE=$DIST/heartbeat-$VERSION-$TARGET.zip
+    7z a "$ARCHIVE" -- *
+    ls -la "$(dirname "$ARCHIVE")"
+    ls -la "$ARCHIVE"
+    echo "archive=$(pwd -W)/heartbeat-$VERSION-$TARGET.zip" >> "$GITHUB_OUTPUT"
+    ;;
+esac
