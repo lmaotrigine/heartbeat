@@ -12,7 +12,7 @@ jobs:
           fetch-depth: 1
       - id: short-sha
         run: |
-          echo "tag=$(echo $sha | cut -c1-7)" >> $GITHUB_OUTPUT
+          echo "tag=$(echo "$sha" | cut -c1-7)" >> "$GITHUB_OUTPUT"
         env:
           sha: ${{ github.sha }}
       - uses: docker/setup-buildx-action@v2
