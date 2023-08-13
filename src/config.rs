@@ -84,8 +84,8 @@ impl From<TomlDeError> for Error {
 
 impl Config {
     pub fn try_new() -> Result<Self, Error> {
-        let page_config = read_to_string(Path::new("config.toml")).map_err(Into::<Error>::into)?;
-        let config: Self = toml::from_str(&page_config)?;
+        let config_str = read_to_string(Path::new("config.toml")).map_err(Into::<Error>::into)?;
+        let config: Self = toml::from_str(&config_str)?;
         Ok(config)
     }
 }

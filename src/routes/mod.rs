@@ -11,12 +11,6 @@
     clippy::items_after_statements
 )]
 
-mod api;
-#[cfg(feature = "badges")]
-mod badges;
-mod pages;
-pub mod query;
-
 use crate::{AppState, CONFIG};
 use api::{get_stats, handle_beat_req, post_device, realtime_stats};
 use axum::{
@@ -26,6 +20,12 @@ use axum::{
 #[cfg(feature = "badges")]
 use badges::{last_seen_badge, total_beats_badge};
 use pages::{index_page, privacy_page, stats_page};
+
+mod api;
+#[cfg(feature = "badges")]
+mod badges;
+mod pages;
+pub mod query;
 
 pub fn get_all() -> Router<AppState> {
     let r = Router::new()
@@ -45,26 +45,3 @@ pub fn get_all() -> Router<AppState> {
         r.route("/api/devices", post(post_device))
     }
 }
-
-/*
-#[rocket::catch(default)]
-pub fn default_catcher(status: rocket::http::Status, req: &rocket::Request) -> Page {
-    eprintln!(
-        "returned {} to {} - tried to connect to {} with Authorization {}",
-        status.code,
-        req.client_ip().unwrap_or_else(|| "0.0.0.0".parse().unwrap()),
-        req.uri().path(),
-        req.headers().get_one("Authorization").unwrap_or_default()
-    );
-    Page::new(
-        PageKind::Error,
-        context! {
-            "server_name" => *crate::CONFIG.server_name,
-            "message" => format!("{}", status.reason_lossy()),
-            "status" => status.code,
-            "path" => req.uri().path().to_string(),
-            "method" => req.method().to_string()
-        },
-    )
-}
-*/

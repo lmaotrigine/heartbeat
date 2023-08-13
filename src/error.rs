@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+use crate::templates::error;
 use axum::{
     http::{Method, Request, Response, StatusCode},
     middleware::Next,
@@ -13,8 +14,6 @@ use axum::{
 use axum_realip::RealIp;
 use core::fmt;
 use tracing::warn;
-
-use crate::templates::error;
 
 #[derive(Debug)]
 pub struct Error {

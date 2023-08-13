@@ -94,9 +94,9 @@ pub struct Badge<'a> {
     logo_element: Content<'a>,
 }
 
-static HEIGHT: f32 = 20.0;
-static VERTICAL_MARGIN: f32 = 0.0;
-static SHADOW: bool = true;
+const HEIGHT: f32 = 20.0;
+const VERTICAL_MARGIN: f32 = 0.0;
+const SHADOW: bool = true;
 
 impl<'a> Badge<'a> {
     pub fn new(

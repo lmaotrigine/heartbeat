@@ -10,7 +10,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use chrono::TimeZone;
 
-static EPOCH: u64 = 1_577_836_800_000; // 2020-01-01 00:00:00 UTC
+const EPOCH: u64 = 1_577_836_800_000; // 2020-01-01 00:00:00 UTC
 
 const fn bitmask(shift: u8) -> u64 {
     u64::MAX << shift

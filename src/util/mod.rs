@@ -4,19 +4,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-pub mod hf_time;
-mod plural;
-mod snowflake;
-pub use snowflake::{Generator as SnowflakeGenerator, Snowflake};
-mod serializers;
-pub use serializers::*;
-pub mod formats;
-mod token;
-pub use token::generate as generate_token;
-
 #[cfg(feature = "badges")]
 pub mod badge;
+pub mod formats;
+pub mod hf_time;
+mod plural;
+mod serializers;
+mod snowflake;
+mod token;
 #[cfg(feature = "webhook")]
 mod webhook;
+
+pub use serializers::*;
+pub use snowflake::{Generator as SnowflakeGenerator, Snowflake};
+pub use token::generate as generate_token;
 #[cfg(feature = "webhook")]
 pub use webhook::{Colour as WebhookColour, Webhook};

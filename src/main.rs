@@ -14,6 +14,7 @@
 use axum::{extract::FromRef, middleware, Server};
 use error::handle_errors;
 use lazy_static::lazy_static;
+use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::{
     net::SocketAddr,
     sync::{Arc, Mutex},
@@ -31,7 +32,6 @@ mod util;
 
 use routes::query::fetch_stats;
 pub use routes::query::SERVER_START_TIME;
-use sqlx::{postgres::PgPoolOptions, PgPool};
 
 #[derive(Debug, Clone, FromRef)]
 pub struct AppState {

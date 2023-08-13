@@ -4,20 +4,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-mod vendor;
 use regex::Regex;
+use renderer::Badge;
 use vendor::verdana::FONT_DATA;
-static FONT_FAMILY: &str = "Verdana,Geneva,DejaVu Sans,sans-serif";
-static FONT_SCALE_UP_FACTOR: f32 = 10.0;
-static FONT_SCALE_DOWN_VALUE: &str = "scale(.1)";
+use xml::Render;
+
+const FONT_FAMILY: &str = "Verdana,Geneva,DejaVu Sans,sans-serif";
+const FONT_SCALE_UP_FACTOR: f32 = 10.0;
+const FONT_SCALE_DOWN_VALUE: &str = "scale(.1)";
 
 mod colour;
 mod font;
 mod renderer;
+mod vendor;
 mod xml;
-
-use renderer::Badge;
-use xml::Render;
 
 pub fn make(
     label: Option<&str>,
