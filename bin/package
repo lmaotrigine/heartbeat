@@ -31,7 +31,7 @@ fi
 
 echo "Copying release files..."
 mkdir "$DIST"
-cp -r "$EXECUTABLE" LICENSE README.md docs static tasker migrations "$DIST"
+cp -r "$EXECUTABLE" LICENSE README.md docs static tasker migrations config.example.toml "$DIST"
 
 cd "$DIST"
 echo "Creating release archive..."
