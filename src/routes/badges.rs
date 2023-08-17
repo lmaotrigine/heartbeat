@@ -4,6 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+use std::sync::OnceLock;
+
 use super::query::incr_visits;
 use crate::{
     util::{badge, hf_time::HumanTime},
@@ -12,13 +14,7 @@ use crate::{
 use axum::{extract::State, http::Response, http::StatusCode, response::IntoResponse};
 use base64::prelude::*;
 
-lazy_static::lazy_static! {
-    static ref B64_IMG: String = {
-        let engine = BASE64_STANDARD_NO_PAD;
-        let img = include_bytes!("../../static/favicon-white.png");
-        format!("data:image/png;base64,{}", engine.encode(img))
-    };
-}
+static B64_IMG: OnceLock<String> = OnceLock::new();
 
 pub struct BadgeResponse(String);
 
@@ -28,11 +24,17 @@ impl IntoResponse for BadgeResponse {
         Response::builder()
             .status(StatusCode::OK)
             .header("Content-Type", "image/svg+xml")
+            .header("Cache-Control", "no-cache, max-age=0, must-revalidate")
             .body(res.into_body())
             .unwrap()
     }
 }
 
+fn init_b64() -> String {
+    let engine = BASE64_STANDARD_NO_PAD;
+    let img = include_bytes!("../../static/favicon-white.png");
+    format!("data:image/png;base64,{}", engine.encode(img))
+}
 #[axum::debug_handler]
 pub async fn last_seen_badge(State(AppState { pool, .. }): State<AppState>) -> BadgeResponse {
     let mut conn = pool.acquire().await.unwrap();
@@ -60,7 +62,7 @@ pub async fn last_seen_badge(State(AppState { pool, .. }): State<AppState>) -> B
         message.as_str(),
         Some("#887ee0"),
         None,
-        Some(B64_IMG.as_str()),
+        Some(B64_IMG.get_or_init(init_b64)),
         None,
     ))
 }
@@ -95,7 +97,7 @@ pub async fn total_beats_badge(State(AppState { pool, .. }): State<AppState>) ->
         total_beats.as_str(),
         Some("#6495ed"),
         None,
-        Some(B64_IMG.as_str()),
+        Some(B64_IMG.get_or_init(init_b64)),
         None,
     ))
 }

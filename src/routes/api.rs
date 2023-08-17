@@ -34,7 +34,12 @@ async fn fire_webhook(title: String, message: String, level: WebhookLevel) {
         WebhookLevel::LongAbsences => WebhookColour::Orange,
         WebhookLevel::None => return,
     };
-    match WEBHOOK.execute(title, message, level, colour).await {
+    match WEBHOOK
+        .get()
+        .expect("webhook to be initialized")
+        .execute(title, message, level, colour)
+        .await
+    {
         Ok(()) => (),
         Err(e) => eprintln!("{e}"),
     }

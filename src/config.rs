@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::{fs::read_to_string, io::Error as IoError, path::Path};
 use toml::{self, de::Error as TomlDeError};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Config {
     pub database: Database,
     pub webhook: Webhook,
@@ -19,18 +19,18 @@ pub struct Config {
     pub bind: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Database {
     pub dsn: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Webhook {
     pub url: String,
     pub level: WebhookLevel,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
 pub enum WebhookLevel {
     All,

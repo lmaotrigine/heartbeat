@@ -42,19 +42,20 @@ impl<A: Send + Sync> FromRequestParts<A> for Authorized {
     type Rejection = Error;
 
     async fn from_request_parts(req: &mut Parts, _: &A) -> Result<Self, Self::Rejection> {
-        let expected = CONFIG.secret_key.clone();
+        let config = CONFIG.get().expect("config to be initialized").clone();
+        let expected = config.secret_key;
         if expected.is_none() {
             return Err(Error::new(req.uri.path(), &req.method, StatusCode::NOT_FOUND).with_reason("Not found.".into()));
         }
         let token = match req.headers.get("Authorization") {
-            Some(token) => token.to_str().ok().map(ToOwned::to_owned),
+            Some(token) => token.to_str().ok(),
             None => {
                 return Err(Error::new(req.uri.path(), &req.method, StatusCode::UNAUTHORIZED)
                     .with_reason("No token provided.".into()))
             }
         };
-        if token.as_ref() == expected.as_ref() {
-            Ok(Self(token.unwrap_or_default()))
+        if token == expected.as_deref() {
+            Ok(Self(token.unwrap_or_default().to_string()))
         } else {
             Err(Error::new(req.uri.path(), &req.method, StatusCode::UNAUTHORIZED).with_reason("Invalid token.".into()))
         }

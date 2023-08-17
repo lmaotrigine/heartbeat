@@ -13,11 +13,10 @@
 
 use axum::{extract::FromRef, middleware, Server};
 use error::handle_errors;
-use lazy_static::lazy_static;
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::{
     net::SocketAddr,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, OnceLock},
 };
 use tower_http::services::ServeDir;
 use tracing::warn;
@@ -38,30 +37,29 @@ pub struct AppState {
     stats: Arc<Mutex<models::Stats>>,
     pool: PgPool,
 }
-
-lazy_static! {
-    pub static ref GIT_HASH: &'static str = option_env!("HB_GIT_COMMIT").map_or("", |s| s);
-    pub static ref CONFIG: config::Config = config::Config::try_new().expect("failed to load config file");
-}
+pub static GIT_HASH: OnceLock<&'static str> = OnceLock::new();
+pub static CONFIG: OnceLock<config::Config> = OnceLock::new();
 
 #[cfg(feature = "webhook")]
-lazy_static! {
-    pub static ref WEBHOOK: util::Webhook = util::Webhook::new(&CONFIG.webhook);
-}
+pub static WEBHOOK: OnceLock<util::Webhook> = OnceLock::new();
 
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
-    lazy_static::initialize(&GIT_HASH);
-    lazy_static::initialize(&CONFIG);
+    GIT_HASH
+        .set(option_env!("HB_GIT_COMMIT").unwrap_or_default())
+        .expect("GIT_HASH to not be set");
+    let config = CONFIG
+        .get_or_init(|| config::Config::try_new().expect("failed to load config file"))
+        .clone();
     SERVER_START_TIME
-        .get_or_init(|| routes::query::get_server_start_time(&CONFIG.database.dsn))
+        .get_or_init(|| routes::query::get_server_start_time(&config.database.dsn))
         .await;
     #[cfg(feature = "webhook")]
-    lazy_static::initialize(&WEBHOOK);
+    WEBHOOK.get_or_init(|| util::Webhook::new(config.webhook.clone()));
     let pool = PgPoolOptions::default()
         .max_connections(10)
-        .connect(&CONFIG.database.dsn)
+        .connect(&config.database.dsn)
         .await
         .unwrap();
     let stats = {
@@ -76,7 +74,7 @@ async fn main() {
         _ = tokio::signal::ctrl_c().await;
         warn!("Initiating graceful shutdown");
     };
-    Server::bind(&CONFIG.bind.parse().unwrap())
+    Server::bind(&config.bind.parse().unwrap())
         .serve(router.into_make_service_with_connect_info::<SocketAddr>())
         .with_graceful_shutdown(graceful_shutdown)
         .await

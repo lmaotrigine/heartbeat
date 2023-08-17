@@ -13,7 +13,7 @@ use crate::{
 };
 
 pub struct Webhook {
-    config: &'static WebhookConfig,
+    config: WebhookConfig,
     client: Client,
 }
 
@@ -46,7 +46,7 @@ struct Author<'a> {
 }
 
 impl Webhook {
-    pub fn new(config: &'static WebhookConfig) -> Self {
+    pub fn new(config: WebhookConfig) -> Self {
         Self {
             config,
             client: Client::new(),
@@ -63,21 +63,21 @@ impl Webhook {
         if self.config.level > level {
             return Ok(());
         }
-        let server_url = &CONFIG.live_url;
+        let config = CONFIG.get().expect("config to be initialized").clone();
         let wh_url = &self.config.url;
         if wh_url.is_empty() {
             return Ok(());
         }
-        let host = match reqwest::Url::parse(server_url) {
-            Ok(url) => url.host_str().unwrap_or(&CONFIG.server_name).to_string(),
+        let host = match reqwest::Url::parse(&config.live_url) {
+            Ok(url) => url.host_str().unwrap_or(&config.server_name).to_string(),
             Err(_) => return Err("Invalid server URL".into()),
         };
-        let avatar = format!("{server_url}/favicon.png");
+        let avatar = format!("{}/favicon.png", &config.live_url);
         let body = serde_json::to_string(&WebhookRequest {
             embeds: [Embed {
                 author: Author {
                     name: &host,
-                    url: server_url,
+                    url: &config.live_url,
                     icon_url: &avatar,
                 },
                 title,

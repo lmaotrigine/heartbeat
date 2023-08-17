@@ -62,8 +62,9 @@ fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Opti
 
 pub fn error(message: impl AsRef<str>, method: &str, path: &str) -> Markup {
     let message = message.as_ref();
+    let config = CONFIG.get().expect("config to be initialized").clone();
     html! {
-        (base(format!("{message} - {}", CONFIG.server_name), true, None))
+        (base(format!("{message} - {}", config.server_name), true, None))
         body {
             div.spacer;
             div.pure-g.privacy {
@@ -90,6 +91,8 @@ pub fn error(message: impl AsRef<str>, method: &str, path: &str) -> Markup {
 }
 
 pub fn index(stats: &Stats) -> Markup {
+    let commit = *GIT_HASH.get().expect("GIT_HASH to be initialized");
+    let config = CONFIG.get().expect("config to be initialized").clone();
     let now = Utc::now();
     let last_seen = stats.last_seen.unwrap_or_else(|| std::time::UNIX_EPOCH.into());
     let last_seen_relative = format_relative(now - last_seen);
@@ -98,33 +101,33 @@ pub fn index(stats: &Stats) -> Markup {
     let now_fmt = now.format("%d %B %Y %H:%M:%S");
     let last_seen_fmt = last_seen.format("%d %B %Y %H:%M:%S");
     let extra_head = Some(html! {
-        meta property="og:site_name" content=(CONFIG.server_name);
+        meta property="og:site_name" content=(config.server_name);
         meta property="og:description" content=(format!(r#"Last seen at {last_seen_fmt}.
 This embed was generated at {now_fmt}.
 Due to caching, you will have to check the website if the embed generation time is old."#));
         meta name="theme-color" content="#6495ed";
         (PreEscaped(format!(r#"<script type="module">{}</script>"#, include_str!("./script.mjs"))))
     });
-    let href = format!("{}/tree/{}", CONFIG.repo, *GIT_HASH);
+    let href = format!("{}/tree/{}", config.repo, commit);
     html! {
-        (base(CONFIG.server_name.clone(), true, extra_head))
+        (base(config.server_name.clone(), true, extra_head))
         body {
             div.spacer {}
             div.pure-g.preamble {
                 div."pure-g-u-0"."pure-u-lg-1-6" {}
                 div."pure-u-1"."pure-lg-4-6" {
                     p.centre {
-                        "Welcome to " (CONFIG.server_name)"." br;
+                        "Welcome to " (config.server_name)"." br;
                         "This page displays the last timestamp that they have unlocked and used any of their devices." br;
                         "If they have been absent for more than 48 hours, something is probably wrong." br;
                         "This website is running on version "
                         a href=(href) {
                             code {
-                                (*GIT_HASH)
+                                (commit)
                             }
                         }
                         " of "
-                        a href=(CONFIG.repo) {
+                        a href=(config.repo) {
                             "Heartbeat"
                         }
                         "."
@@ -136,8 +139,7 @@ Due to caching, you will have to check the website if the embed generation time 
                 div."pure-u-0"."pure-u-lg-1-6" {}
                 div."pure-u-1"."pure-u-lg-1-6" {
                     p.centre {
-                        "Last response time:"
-                        br;
+                        "Last response time:" br;
                         span #last-seen {
                             (last_seen_fmt)
                             " UTC"
@@ -192,8 +194,9 @@ Due to caching, you will have to check the website if the embed generation time 
 }
 
 pub fn privacy() -> Markup {
+    let config = CONFIG.get().expect("config to be initialized").clone();
     html! {
-        (base(format!("Privacy Policy - {}", CONFIG.server_name), true, None))
+        (base(format!("Privacy Policy - {}", config.server_name), true, None))
         body {
             div.spacer {}
             div.pure-g.privacy {
@@ -245,10 +248,11 @@ pub fn privacy() -> Markup {
 }
 
 pub async fn stats(stats: &Stats) -> Markup {
-    let title = format!("Stats - {}", CONFIG.server_name);
+    let config = CONFIG.get().expect("config to be initialized").clone();
+    let title = format!("Stats - {}", config.server_name);
     let head = html! {
         meta property="og:site_name" content=(title);
-        meta property="og:description" content=(format!("Stats for {}", CONFIG.server_name));
+        meta property="og:description" content=(format!("Stats for {}", config.server_name));
         meta name="theme-color" content="#6495ed";
         (PreEscaped(format!(r#"<script type="module">{}</script>"#, include_str!("./script.mjs"))))
     };
@@ -257,14 +261,14 @@ pub async fn stats(stats: &Stats) -> Markup {
         .await
         .signed_duration_since(Utc::now());
     html! {
-        (base(format!("Stats - {}", CONFIG.server_name), true, Some(head)))
+        (base(format!("Stats - {}", config.server_name), true, Some(head)))
         body {
             div.spacer {}
             div.pure-g.preamble {
                 div."pure-g-u-0"."pure-u-lg-1-6" {}
                 div."pure-u-1"."pure-u-lg-4-6" {
                     p.centre {
-                        "Statistics for " (CONFIG.server_name)
+                        "Statistics for " (config.server_name)
                     }
                 }
                 div."pure-g-u-0"."pure-u-lg-1-6" {}

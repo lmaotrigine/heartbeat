@@ -13,7 +13,6 @@ publish = false
 
 [dependencies]
 chrono = { version = "0.4.23", features = ["serde", "std", "clock"], default-features = false }
-lazy_static = "1.4.0"
 tokio = { version = "1.24.2", features = ["macros", "parking_lot", "rt-multi-thread", "signal"] }
 serde = { version = "1.0.152", features = ["derive"] }
 sqlx = { version = "0.7", features = ["chrono", "macros", "postgres", "runtime-tokio-rustls"] }
