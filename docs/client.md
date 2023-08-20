@@ -43,6 +43,10 @@ This service exposes an API that clients for all platforms are expected to compl
 
 ### Android
 
-[`Tasker`](https://tasker.joaoapps.com/) profiles and tasks are included in the [`tasker`](/tasker) directory. There is
-also a silly shell script that sets the hostname and Authorization header for the ping task. You may also edit this
-manually.
+A [`Tasker`](https://tasker.joaoapps.com/) package can be downloaded from
+[TaskerNet][taskernet-link]. There is a task which launches a scene that allows
+customizing the server URL and token for your device. You may want to add a shortcut
+widget of that task to your home screen.
+
+[taskernet-link]:
+    https://taskernet.com/shares/?user=AS35m8lYWmKlKnpucO4NKAF5nrvpAAJ9k0B16Xq4oGo55MJi%2Fne5EtkyyRTuOR565VRqEmzf468J&id=Project%3AHeartbeat
