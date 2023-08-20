@@ -18,6 +18,6 @@ pub fn format_num(input: i64) -> String {
         .rev()
         .map(std::str::from_utf8)
         .collect::<std::result::Result<Vec<&str>, _>>()
-        .unwrap()
+        .unwrap_or_default()
         .join(",")
 }

@@ -25,9 +25,16 @@ pub async fn get_server_start_time(dsn: &str) -> chrono::DateTime<Utc> {
             WHERE _id = 0;
             "#
     )
-    .fetch_optional(&mut *sqlx::PgPool::connect(dsn).await.unwrap().acquire().await.unwrap())
+    .fetch_optional(
+        &mut *sqlx::PgPool::connect(dsn)
+            .await
+            .expect("SERVER_START_TIME: failed to connect to postgresql")
+            .acquire()
+            .await
+            .expect("SERVER_START_TIME: failed to acquire connection"),
+    )
     .await
-    .unwrap();
+    .unwrap_or_default();
     rec.map_or(now, |rec| rec.server_start_time)
 }
 
@@ -63,13 +70,13 @@ pub async fn fetch_stats(mut conn: PoolConnection<Postgres>) -> Stats {
     )
     .fetch_all(&mut *conn)
     .await
-    .unwrap();
+    .unwrap_or_default();
     // can't find a way to not make this a second query
     let (visits, longest_absence) =
         sqlx::query!("SELECT EXTRACT(epoch FROM longest_absence)::BIGINT as longest_absence, total_visits FROM stats;")
             .fetch_optional(&mut *conn)
             .await
-            .unwrap()
+            .unwrap_or_default()
             .map_or((0, Some(0)), |v| (v.total_visits, v.longest_absence));
     let longest = chrono::Duration::seconds(longest_absence.unwrap_or_default());
     let mut devices = vec![];

@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT total_visits FROM stats;",
+  "query": "SELECT SUM(num_beats)::BIGINT AS total_beats FROM devices;",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "total_visits",
+        "name": "total_beats",
         "type_info": "Int8"
       }
     ],
@@ -13,8 +13,8 @@
       "Left": []
     },
     "nullable": [
-      false
+      null
     ]
   },
-  "hash": "5671c60a006bda6529f94b40842431fb8daa66c4eb390b278e1377145f168d2f"
+  "hash": "a947da46b89572cc4a08d6d62fb1908782b1c36978373f7514a04278bbf6030d"
 }

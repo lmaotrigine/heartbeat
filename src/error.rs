@@ -13,7 +13,7 @@ use axum::{
 };
 use axum_realip::RealIp;
 use core::fmt;
-use tracing::warn;
+use tracing::{error, warn};
 
 #[derive(Debug)]
 pub struct Error {
@@ -48,16 +48,34 @@ impl fmt::Display for Error {
 
 impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
+        if self.path.starts_with("/api") {
+            return (self.status, self.message).into_response();
+        }
         let markup = error(&self.message, self.method.as_str(), &self.path);
         let res = markup.into_response();
-        Response::builder().status(self.status).body(res.into_body()).unwrap()
+        Response::builder()
+            .status(self.status)
+            .body(res.into_body())
+            .unwrap_or_else(|e| {
+                error!("Failed to build error response for {self:?}: {e:?}");
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            })
     }
 }
 
-pub async fn handle_errors<B: Send + 'static>(mut req: Request<B>, next: Next<B>) -> impl IntoResponse {
+pub async fn handle_errors<B: Send + std::fmt::Debug + 'static>(
+    mut req: Request<B>,
+    next: Next<B>,
+) -> impl IntoResponse {
     let path = req.uri().path().to_owned();
     let method = req.method().clone();
-    let RealIp(ip) = req.extract_parts::<RealIp>().await.unwrap();
+    let ip = match req.extract_parts::<RealIp>().await {
+        Ok(RealIp(ip)) => ip,
+        Err(e) => {
+            error!("Failed to get Real IP from request: {e:?}\n{req:#?}");
+            return Err(Error::new(&path, &method, StatusCode::INTERNAL_SERVER_ERROR));
+        }
+    };
     let headers = req.headers().clone();
     let auth = headers
         .get("Authorization")

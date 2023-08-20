@@ -22,9 +22,11 @@ use axum::{
     Json,
 };
 use chrono::Utc;
+use reqwest::StatusCode;
 use serde::Serialize;
 use sqlx::postgres::types::PgInterval;
 use std::time::UNIX_EPOCH;
+use tracing::error;
 
 #[cfg(feature = "webhook")]
 async fn fire_webhook(title: String, message: String, level: WebhookLevel) {
@@ -49,8 +51,14 @@ async fn fire_webhook(title: String, message: String, level: WebhookLevel) {
 async fn fire_webhook(_title: String, _message: String, _level: WebhookLevel) {}
 
 #[axum::debug_handler]
-pub async fn handle_beat_req(State(AppState { stats, pool }): State<AppState>, info: AuthInfo) -> String {
-    let mut conn = pool.acquire().await.unwrap();
+pub async fn handle_beat_req(State(AppState { stats, pool }): State<AppState>, info: AuthInfo) -> (StatusCode, String) {
+    let mut conn = match pool.acquire().await.map_err(|e| {
+        error!("Failed to acquire connection from pool. {e:?}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    }) {
+        Ok(x) => x,
+        Err(e) => return (e, "-1".into()),
+    };
     let now = Utc::now();
     let prev_beat = sqlx::query!(
         r#"
@@ -73,7 +81,10 @@ pub async fn handle_beat_req(State(AppState { stats, pool }): State<AppState>, i
     )
     .fetch_optional(&mut *conn)
     .await
-    .unwrap();
+    .unwrap_or_else(|e| {
+        error!("Failed to update database on successful beat: {e:?}");
+        None
+    });
     if let Some(record) = prev_beat {
         let diff = now - record.time_stamp;
         let update_longest_absence = {
@@ -95,11 +106,10 @@ pub async fn handle_beat_req(State(AppState { stats, pool }): State<AppState>, i
             let pg_diff = PgInterval::try_from(chrono::Duration::microseconds(
                 diff.num_microseconds().unwrap_or(i64::MAX - 1),
             ))
-            .unwrap();
-            sqlx::query!(r#"UPDATE stats SET longest_absence = $1 WHERE _id = 0;"#, pg_diff)
+            .expect("We have travelled way too far into the future.");
+            let _ = sqlx::query!(r#"UPDATE stats SET longest_absence = $1 WHERE _id = 0;"#, pg_diff)
                 .execute(&mut *conn)
-                .await
-                .unwrap();
+                .await;
         }
         if diff.num_hours() >= 1 {
             fire_webhook(
@@ -121,7 +131,7 @@ pub async fn handle_beat_req(State(AppState { stats, pool }): State<AppState>, i
         WebhookLevel::All,
     )
     .await;
-    format!("{}", now.timestamp())
+    (StatusCode::OK, format!("{}", now.timestamp()))
 }
 
 fn _get_stats(state: &AppState) -> impl Serialize {
@@ -148,7 +158,11 @@ fn _get_stats(state: &AppState) -> impl Serialize {
         num_visits: r.num_visits,
         total_beats: r.total_beats,
         devices: r.devices.as_slice().to_vec(),
-        uptime: (Utc::now() - *crate::SERVER_START_TIME.get().unwrap()).num_seconds(),
+        uptime: (Utc::now()
+            - *crate::SERVER_START_TIME
+                .get()
+                .expect("SERVER_START_TIME to be initialized"))
+        .num_seconds(),
     }
 }
 
@@ -176,17 +190,45 @@ pub async fn post_device(
     State(AppState { stats, pool }): State<AppState>,
     Json(device): Json<PostDevice>,
 ) -> impl IntoResponse {
-    let mut conn = pool.acquire().await.unwrap();
+    let mut conn = match pool.acquire().await.map_err(|e| {
+        error!("Failed to acquire connection from pool. {e:?}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    }) {
+        Ok(x) => x,
+        Err(e) => {
+            return (
+                e,
+                Json(DeviceAddResp {
+                    id: -1,
+                    name: None,
+                    token: String::new(),
+                }),
+            )
+        }
+    };
     let id = SnowflakeGenerator::default().generate();
-    let res = sqlx::query!(
+    let res = match sqlx::query!(
         r#"INSERT INTO devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;"#,
-        i64::try_from(id.id()).unwrap(),
+        i64::try_from(id.id()).expect("snowflake out of i64 range"),
         device.name,
         generate_token(id),
     )
     .fetch_one(&mut *conn)
     .await
-    .unwrap();
+    {
+        Ok(record) => record,
+        Err(e) => {
+            error!("Failed to insert new device into database: {e:?}");
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(DeviceAddResp {
+                    id: -1,
+                    name: None,
+                    token: String::new(),
+                }),
+            );
+        }
+    };
     {
         let mut w = stats.lock().unwrap();
         w.devices.push(Device {
@@ -209,13 +251,16 @@ pub async fn post_device(
     .await;
     #[derive(Serialize)]
     struct DeviceAddResp {
-        id: u64,
+        id: i64,
         name: Option<String>,
         token: String,
     }
-    Json(DeviceAddResp {
-        id: u64::try_from(res.id).unwrap(),
-        name: res.name,
-        token: res.token,
-    })
+    (
+        StatusCode::OK,
+        Json(DeviceAddResp {
+            id: res.id,
+            name: res.name,
+            token: res.token,
+        }),
+    )
 }

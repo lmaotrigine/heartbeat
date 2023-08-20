@@ -8,11 +8,12 @@ use std::sync::OnceLock;
 
 use super::query::incr_visits;
 use crate::{
-    util::{badge, hf_time::HumanTime},
+    util::{badge, formats::format_num, hf_time::HumanTime},
     AppState,
 };
 use axum::{extract::State, http::Response, http::StatusCode, response::IntoResponse};
 use base64::prelude::*;
+use tracing::error;
 
 static B64_IMG: OnceLock<String> = OnceLock::new();
 
@@ -37,8 +38,20 @@ fn init_b64() -> String {
 }
 #[axum::debug_handler]
 pub async fn last_seen_badge(State(AppState { pool, .. }): State<AppState>) -> BadgeResponse {
-    let mut conn = pool.acquire().await.unwrap();
-    let last_seen = sqlx::query!(
+    let Ok(mut conn) = pool.acquire().await.map_err(|e| {
+        error!("Failed to acquire connection from pool. {e:?}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    }) else {
+        return BadgeResponse(badge::make(
+            Some("Error"),
+            "An internal error occurred",
+            Some("#FF0000"),
+            None,
+            None,
+            None,
+        ));
+    };
+    let last_seen = sqlx::query_scalar!(
         r#"
         SELECT
             MAX(time_stamp) AS last_seen
@@ -47,8 +60,7 @@ pub async fn last_seen_badge(State(AppState { pool, .. }): State<AppState>) -> B
     )
     .fetch_one(&mut *conn)
     .await
-    .unwrap()
-    .last_seen;
+    .unwrap_or_default();
     let message = last_seen.map_or_else(
         || "never".to_string(),
         |last_seen| {
@@ -69,28 +81,26 @@ pub async fn last_seen_badge(State(AppState { pool, .. }): State<AppState>) -> B
 
 #[axum::debug_handler]
 pub async fn total_beats_badge(State(AppState { pool, .. }): State<AppState>) -> BadgeResponse {
-    let mut conn = pool.acquire().await.unwrap();
-    let total_beats = sqlx::query!(
-        r#"
-        WITH indiv AS (
-            SELECT num_beats FROM devices
-        )
-        SELECT SUM(indiv.num_beats)::BIGINT AS total_beats FROM indiv;
-        "#
-    )
-    .fetch_one(&mut *conn)
-    .await
-    .unwrap()
-    .total_beats
-    .unwrap_or_default()
-    .to_string()
-    .as_bytes()
-    .rchunks(3)
-    .rev()
-    .map(std::str::from_utf8)
-    .collect::<Result<Vec<&str>, _>>()
-    .unwrap()
-    .join(",");
+    let Ok(mut conn) = pool.acquire().await.map_err(|e| {
+        error!("Failed to acquire connection from pool. {e:?}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    }) else {
+        return BadgeResponse(badge::make(
+            Some("Error"),
+            "An internal error occurred",
+            Some("#FF0000"),
+            None,
+            None,
+            None,
+        ));
+    };
+    let total_beats = format_num(
+        sqlx::query_scalar!("SELECT SUM(num_beats)::BIGINT AS total_beats FROM devices;")
+            .fetch_one(&mut *conn)
+            .await
+            .unwrap_or_default()
+            .unwrap_or_default(),
+    );
     incr_visits(&mut conn).await;
     BadgeResponse(badge::make(
         Some("Total Beats"),

@@ -20,7 +20,7 @@ impl CharWidthTable {
     }
 
     fn width_of_char_code(&self, char_code: u32) -> Option<f32> {
-        if Self::is_control_char(u8::try_from(char_code).unwrap()) {
+        if Self::is_control_char(u8::try_from(char_code).ok()?) {
             return Some(0.0);
         }
         let index = self.data.binary_search_by(|(a, _, _)| a.cmp(&char_code));

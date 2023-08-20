@@ -26,9 +26,9 @@ struct Colour {
 impl Colour {
     fn new(r: &str, g: &str, b: &str) -> Self {
         Self {
-            r: u8::from_str_radix(r, 16).unwrap(),
-            g: u8::from_str_radix(g, 16).unwrap(),
-            b: u8::from_str_radix(b, 16).unwrap(),
+            r: u8::from_str_radix(r, 16).expect("invalid red component not caught by regex"),
+            g: u8::from_str_radix(g, 16).expect("invalid green component not caught by regex"),
+            b: u8::from_str_radix(b, 16).expect("invalid blue component not caught by regex"),
         }
     }
 

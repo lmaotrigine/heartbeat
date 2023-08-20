@@ -61,9 +61,9 @@ async fn main() {
         .max_connections(10)
         .connect(&config.database.dsn)
         .await
-        .unwrap();
+        .expect("create database pool to not fail");
     let stats = {
-        let conn = pool.acquire().await.unwrap();
+        let conn = pool.acquire().await.expect("wtf literally the first connection");
         Arc::new(Mutex::new(fetch_stats(conn).await))
     };
     let router = routes::get_all()

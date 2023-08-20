@@ -10,6 +10,7 @@ use axum::{
     http::{request::Parts, StatusCode},
 };
 use sqlx::PgPool;
+use tracing::error;
 
 #[axum::async_trait]
 impl FromRequestParts<AppState> for AuthInfo {
@@ -20,11 +21,14 @@ impl FromRequestParts<AppState> for AuthInfo {
             return Err(Error::new(req.uri.path(), &req.method, StatusCode::UNAUTHORIZED).with_reason("No token provided.".into()));
         };
         let pool = PgPool::from_ref(state);
-        let mut conn = pool.acquire().await.unwrap();
+        let mut conn = pool.acquire().await.map_err(|e| {
+            error!("Failed to acquire connection from pool. {e:?}");
+            Error::new(req.uri.path(), &req.method, StatusCode::INTERNAL_SERVER_ERROR)
+        })?;
         sqlx::query_as!(
             AuthInfo,
             "SELECT id, name FROM devices WHERE token = $1;",
-            token.to_str().unwrap()
+            token.to_str().unwrap_or_default()
         )
         .fetch_one(&mut *conn)
         .await

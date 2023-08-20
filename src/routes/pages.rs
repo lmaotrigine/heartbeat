@@ -10,28 +10,52 @@ use crate::{
     AppState,
 };
 use axum::{extract::State, response::IntoResponse};
-use html::Markup;
+use html::{Markup, PreEscaped};
+use reqwest::StatusCode;
+use tracing::error;
 
 #[axum::debug_handler]
 pub async fn index_page(State(AppState { stats, pool }): State<AppState>) -> impl IntoResponse {
-    let mut conn = pool.acquire().await.unwrap();
+    let mut conn = match pool.acquire().await.map_err(|e| {
+        error!("Failed to acquire connection from pool. {e:?}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    }) {
+        Ok(x) => x,
+        Err(e) => {
+            return (
+                e,
+                PreEscaped("<samp>This service is temporarily unavailable</samp>".into()),
+            )
+        }
+    };
     {
         stats.lock().unwrap().num_visits += 1;
     }
     incr_visits(&mut conn).await;
     let stats = fetch_stats(conn).await;
-    index(&stats)
+    (StatusCode::OK, index(&stats))
 }
 
 #[axum::debug_handler]
-pub async fn stats_page(State(AppState { stats, pool }): State<AppState>) -> Markup {
+pub async fn stats_page(State(AppState { stats, pool }): State<AppState>) -> (StatusCode, Markup) {
     {
         stats.lock().unwrap().num_visits += 1;
     }
-    let mut conn = pool.acquire().await.unwrap();
+    let mut conn = match pool.acquire().await.map_err(|e| {
+        error!("Failed to acquire connection from pool. {e:?}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    }) {
+        Ok(x) => x,
+        Err(e) => {
+            return (
+                e,
+                PreEscaped("<samp>This service is temporarily unavailable</samp>".into()),
+            )
+        }
+    };
     incr_visits(&mut conn).await;
     let stats = fetch_stats(conn).await;
-    stats_template(&stats).await
+    (StatusCode::OK, stats_template(&stats).await)
 }
 
 #[axum::debug_handler]
