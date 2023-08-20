@@ -33,7 +33,3 @@ axum-realip = { git = "https://git.5ht2.me/lmaotrigine/axum-realip", version = "
 default = []
 badges = ["regex"]
 webhook = ["reqwest"]
-
-[workspace]
-members = [".", "bin/ref-type"]
-default-members = ["."]
