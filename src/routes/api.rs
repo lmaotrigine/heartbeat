@@ -209,7 +209,7 @@ pub async fn post_device(
     let id = SnowflakeGenerator::default().generate();
     let res = match sqlx::query!(
         r#"INSERT INTO devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;"#,
-        i64::try_from(id.id()).expect("snowflake out of i64 range"),
+        i64::try_from(id.id()).expect("snowflake out of i64 range. Is it 2089 already?"),
         device.name,
         generate_token(id),
     )
