@@ -9,9 +9,8 @@ use crate::{
     templates::{index, privacy, stats as stats_template},
     AppState,
 };
-use axum::{extract::State, response::IntoResponse};
+use axum::{extract::State, http::StatusCode, response::IntoResponse};
 use html::{Markup, PreEscaped};
-use reqwest::StatusCode;
 use tracing::error;
 
 #[axum::debug_handler]

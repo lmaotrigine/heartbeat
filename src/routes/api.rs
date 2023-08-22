@@ -18,11 +18,11 @@ use axum::{
         ws::{Message, WebSocket},
         State, WebSocketUpgrade,
     },
+    http::StatusCode,
     response::IntoResponse,
     Json,
 };
 use chrono::Utc;
-use reqwest::StatusCode;
 use serde::Serialize;
 use sqlx::postgres::types::PgInterval;
 use std::time::UNIX_EPOCH;
