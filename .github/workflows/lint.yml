@@ -14,6 +14,15 @@ jobs:
       - uses: actions/checkout@master
         with:
           fetch-depth: 1
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: setup latest rust stable
         uses: dtolnay/rust-toolchain@master
         with:

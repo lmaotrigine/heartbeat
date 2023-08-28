@@ -18,7 +18,8 @@ impl FromRequestParts<AppState> for AuthInfo {
 
     async fn from_request_parts(req: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
         let Some(token) = req.headers.get("Authorization") else {
-            return Err(Error::new(req.uri.path(), &req.method, StatusCode::UNAUTHORIZED).with_reason("No token provided.".into()));
+            return Err(Error::new(req.uri.path(), &req.method, StatusCode::UNAUTHORIZED)
+                .with_reason("No token provided.".into()));
         };
         let pool = PgPool::from_ref(state);
         let mut conn = pool.acquire().await.map_err(|e| {
