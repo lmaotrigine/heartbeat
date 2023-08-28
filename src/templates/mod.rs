@@ -6,7 +6,7 @@
 
 use crate::{
     models::Stats,
-    util::formats::{format_num, format_relative},
+    util::formats::{format_relative, Formattable},
     CONFIG, GIT_HASH, SERVER_START_TIME,
 };
 use chrono::Utc;
@@ -97,7 +97,7 @@ pub fn index(stats: &Stats) -> Markup {
     let last_seen = stats.last_seen.unwrap_or_else(|| std::time::UNIX_EPOCH.into());
     let last_seen_relative = format_relative(now - last_seen);
     let longest_absence = format_relative(stats.longest_absence);
-    let total_beats = format_num(stats.total_beats);
+    let total_beats = stats.total_beats.format();
     let now_fmt = now.format("%d %B %Y %H:%M:%S");
     let last_seen_fmt = last_seen.format("%d %B %Y %H:%M:%S");
     let extra_head = Some(html! {
@@ -280,7 +280,7 @@ pub async fn stats(stats: &Stats) -> Markup {
                         "Total visits:"
                         br;
                         span #visits {
-                            (format_num(stats.num_visits))
+                            (stats.num_visits.format())
                         }
                     }
                 }
@@ -289,7 +289,7 @@ pub async fn stats(stats: &Stats) -> Markup {
                         "Total devices:"
                         br;
                         span #devices {
-                            (format_num(stats.devices.len() as _))
+                            (stats.devices.len().format())
                         }
                     }
                 }
@@ -298,7 +298,7 @@ pub async fn stats(stats: &Stats) -> Markup {
                         "Total beats received:"
                         br;
                         span #total-beats {
-                            (format_num(stats.total_beats))
+                            (stats.total_beats.format())
                         }
                     }
                 }

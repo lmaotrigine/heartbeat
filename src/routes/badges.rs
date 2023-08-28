@@ -8,7 +8,7 @@ use std::sync::OnceLock;
 
 use super::query::incr_visits;
 use crate::{
-    util::{badge, formats::format_num, hf_time::HumanTime},
+    util::{badge, formats::Formattable, hf_time::HumanTime},
     AppState,
 };
 use axum::{extract::State, http::Response, http::StatusCode, response::IntoResponse};
@@ -94,13 +94,12 @@ pub async fn total_beats_badge(State(AppState { pool, .. }): State<AppState>) ->
             None,
         ));
     };
-    let total_beats = format_num(
-        sqlx::query_scalar!("SELECT SUM(num_beats)::BIGINT AS total_beats FROM devices;")
-            .fetch_one(&mut *conn)
-            .await
-            .unwrap_or_default()
-            .unwrap_or_default(),
-    );
+    let total_beats = sqlx::query_scalar!("SELECT SUM(num_beats)::BIGINT AS total_beats FROM devices;")
+        .fetch_one(&mut *conn)
+        .await
+        .unwrap_or_default()
+        .unwrap_or_default()
+        .format();
     incr_visits(&mut conn).await;
     BadgeResponse(badge::make(
         Some("Total Beats"),
