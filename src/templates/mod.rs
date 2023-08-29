@@ -6,7 +6,7 @@
 
 use crate::{
     models::Stats,
-    util::formats::{format_relative, Formattable},
+    util::formats::{format_relative, FormatNum},
     CONFIG, GIT_HASH, SERVER_START_TIME,
 };
 use chrono::Utc;

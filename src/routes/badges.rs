@@ -8,7 +8,7 @@ use std::sync::OnceLock;
 
 use super::query::incr_visits;
 use crate::{
-    util::{badge, formats::Formattable, hf_time::HumanTime},
+    util::{badge, formats::FormatNum, hf_time::HumanTime},
     AppState,
 };
 use axum::{extract::State, http::Response, http::StatusCode, response::IntoResponse};
