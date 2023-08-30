@@ -4,9 +4,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-const $ = document.querySelector.bind(document);
+const $i = document.getElementById.bind(document);
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October','November','December'];
-const map = {Y: 'year', m: 'month', w: 'week', d: 'day', H: 'hour', M: 'minute', S: 'second'};
+const units = {Y: 'year', m: 'month', w: 'week', d: 'day', H: 'hour', M: 'minute', S: 'second'};
 
 function zeroPad(n) {
   return n < 10 ? '0' + n : n;
@@ -37,7 +37,7 @@ function formatRelativeTime(secs) {
   [M, S] = [Math.floor(rem / 60), Math.round(rem % 60)];
   const fmt = { Y, m, w, d, H, M, S };
   const arr = [];
-  Object.entries(fmt).filter(([, v]) => v > 0).forEach(([k, v]) => arr.push(plural(v, map[k])));
+  Object.entries(fmt).filter(([, v]) => v > 0).forEach(([k, v]) => arr.push(plural(v, units[k])));
   if (arr.length === 0) {
     return '0 seconds';
   }
@@ -51,17 +51,17 @@ function formatRelativeTime(secs) {
 }
 
 function Stats(stats) {
-  $('#visits').innerText = stats.num_visits.toLocaleString('en-GB');
-  $('#devices').innerText = stats.devices.length.toLocaleString('en-GB');
-  $('#total-beats').innerText = stats.total_beats.toLocaleString('en-GB');
-  $('#uptime').innerText = formatRelativeTime(stats.uptime);
+  $i('visits').innerText = stats.num_visits.toLocaleString('en-GB');
+  $i('devices').innerText = stats.devices.length.toLocaleString('en-GB');
+  $i('total-beats').innerText = stats.total_beats.toLocaleString('en-GB');
+  $i('uptime').innerText = formatRelativeTime(stats.uptime);
 }
 
 function Index(stats) {
-  $('#last-seen').innerText = formatDate(stats.last_seen);
-  $('#time-difference').innerText = formatRelativeTime(stats.last_seen_relative, true);
-  $('#longest-absence').innerText = formatRelativeTime(stats.longest_absence);
-  $('#total-beats').innerText = stats.total_beats.toLocaleString('en-GB');
+  $i('last-seen').innerText = formatDate(stats.last_seen);
+  $i('time-difference').innerText = formatRelativeTime(stats.last_seen_relative, true);
+  $i('longest-absence').innerText = formatRelativeTime(stats.longest_absence);
+  $i('total-beats').innerText = stats.total_beats.toLocaleString('en-GB');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
