@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+which rg
+
+! rg -g !bin/forbid -i 'dbg!|fixme|todo|xxx'

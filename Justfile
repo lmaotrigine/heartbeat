@@ -20,6 +20,9 @@ check:
   cargo fmt --all -- --check
   @just _cargo clippy --all --all-features -- -D warnings
 
+check-forbidden:
+  @bin/forbid
+
 clean:
   cargo clean
 

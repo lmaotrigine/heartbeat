@@ -43,7 +43,7 @@ async fn fire_webhook(title: String, message: String, level: WebhookLevel) {
         .await
     {
         Ok(()) => (),
-        Err(e) => eprintln!("{e}"),
+        Err(e) => error!("{e}"),
     }
 }
 

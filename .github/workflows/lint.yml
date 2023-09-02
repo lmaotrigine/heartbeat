@@ -41,6 +41,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           owner: casey
           name: just
+      - name: setup ripgrep
+        uses: lmaotrigine/fetch-crate-action@mistress
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          owner: BurntSushi
+          name: ripgrep
+          bin: rg
       - name: check and test
         run: |
-          just ci-lint
+          just ci-lint check-forbidden
+        shell: bash

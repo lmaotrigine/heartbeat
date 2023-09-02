@@ -73,7 +73,7 @@ impl Webhook {
             Err(_) => return Err("Invalid server URL".into()),
         };
         let avatar = format!("{}/favicon.png", &config.live_url);
-        let body = serde_json::to_string(&WebhookRequest {
+        let body = WebhookRequest {
             embeds: [Embed {
                 author: Author {
                     name: &host,
@@ -86,8 +86,7 @@ impl Webhook {
             }],
             avatar_url: &avatar,
             username: &host,
-        })
-        .unwrap();
+        };
         let response = match self.client.post(wh_url).json(&body).send().await {
             Ok(r) => r,
             Err(e) => return Err(format!("failed to send webhook: {e}")),
