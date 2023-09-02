@@ -1,22 +1,27 @@
+use crate::AppState;
 use axum::{
     body::Bytes,
-    extract::FromRequestParts,
+    extract::{FromRequestParts, State},
     http::{request::Parts, StatusCode},
+    response::IntoResponse,
     Extension,
 };
 use hmac::{Hmac, Mac};
 use serde_json::Value;
 use sha2::Sha256;
 use std::{
+    borrow::Cow,
     future::Future,
     pin::Pin,
     str::FromStr,
     sync::{Arc, Mutex},
     task::{Context, Poll},
 };
-use tokio::sync::oneshot::{channel, Receiver, Sender};
-
-use crate::CONFIG;
+use tokio::{
+    process::Command,
+    sync::oneshot::{channel, Receiver, Sender},
+};
+use tracing::error;
 
 #[derive(Clone)]
 pub struct Shutdown(Arc<Mutex<Option<Sender<()>>>>);
@@ -156,16 +161,28 @@ impl<S: Send + Sync> FromRequestParts<S> for Secret {
     }
 }
 
+pub struct HttpResult(Result<(), (StatusCode, &'static str)>);
+
+impl IntoResponse for HttpResult {
+    fn into_response(self) -> axum::response::Response {
+        match self.0 {
+            Ok(()) => ().into_response(),
+            Err(e) => e.into_response(),
+        }
+    }
+}
+
 #[axum::debug_handler]
-pub async fn deploy(shutdown: Shutdown, request_secret: Secret, body: Bytes) -> Result<(), (StatusCode, &'static str)> {
-    let secret = CONFIG
-        .get()
-        .expect("config to be initialized")
-        .github
-        .webhook_secret
-        .as_ref()
-        .ok_or((StatusCode::SERVICE_UNAVAILABLE, "No secret configured"))?
-        .as_bytes();
+pub async fn deploy(
+    State(AppState { config, .. }): State<AppState>,
+    shutdown: Shutdown,
+    request_secret: Secret,
+    body: Bytes,
+) -> (StatusCode, Cow<'static, str>) {
+    let secret = match config.github.webhook_secret.as_ref() {
+        Some(s) => s.as_bytes(),
+        None => return (StatusCode::SERVICE_UNAVAILABLE, "No secret configured".into()),
+    };
     let sha = Hmac::<Sha256>::new_from_slice(secret)
         .unwrap()
         .with_data(body.as_ref())
@@ -173,12 +190,37 @@ pub async fn deploy(shutdown: Shutdown, request_secret: Secret, body: Bytes) -> 
         .into_bytes()
         .encode_hex::<String>();
     if sha != request_secret.value() {
-        return Err((StatusCode::UNAUTHORIZED, "Invalid signature"));
+        return (StatusCode::UNAUTHORIZED, "Invalid signature".into());
     }
     let raw = String::from_utf8_lossy(body.as_ref());
-    let payload = Value::from_str(&raw).map_err(|_| (StatusCode::BAD_REQUEST, "Invalid JSON in request body"))?;
+    let payload = match Value::from_str(&raw) {
+        Err(_) => return (StatusCode::BAD_REQUEST, "Invalid JSON in request body".into()),
+        Ok(v) => v,
+    };
     if payload["action"] == "completed" && payload["workflow_run"]["name"] == ".github/workflows/docker.yml" {
+        let output = match Command::new("docker")
+            .args([
+                "pull",
+                &format!("ghcr.io/{}:latest", payload["repository"]["full_name"]),
+            ])
+            .output()
+            .await
+        {
+            Err(e) => {
+                error!("I/O error during docker pull execution: {e:?}");
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("I/O error while executing docker pull: {e:?}").into(),
+                );
+            }
+            Ok(out) => out,
+        };
+        if !output.status.success() {
+            let err = String::from_utf8_lossy(&output.stderr).to_string();
+            error!("Error pulling from GHCR: {err}");
+            return (StatusCode::INTERNAL_SERVER_ERROR, err.into());
+        }
         shutdown.notify();
     }
-    Ok(())
+    (StatusCode::OK, "".into())
 }

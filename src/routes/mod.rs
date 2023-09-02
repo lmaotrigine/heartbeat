@@ -11,7 +11,7 @@
     clippy::items_after_statements
 )]
 
-use crate::{AppState, CONFIG};
+use crate::{config::Config, AppState};
 use api::{get_stats, handle_beat_req, post_device, realtime_stats};
 use axum::{
     routing::{get, post},
@@ -34,7 +34,7 @@ pub async fn health_check() -> &'static str {
     "OK"
 }
 
-pub fn get_all() -> Router<AppState> {
+pub fn get_all(config: &Config) -> Router<AppState> {
     let r = Router::new()
         .route("/", get(index_page))
         .route("/.well-known/deploy", post(deploy))
@@ -48,16 +48,8 @@ pub fn get_all() -> Router<AppState> {
     let r = r
         .route("/badge/last-seen", get(last_seen_badge))
         .route("/badge/total-beats", get(total_beats_badge));
-    if CONFIG
-        .get()
-        .expect("config to be initialized")
-        .clone()
-        .secret_key
-        .unwrap_or_default()
-        .is_empty()
-    {
-        r
-    } else {
-        r.route("/api/devices", post(post_device))
+    match config.secret_key.as_ref() {
+        Some(s) if !s.is_empty() => r,
+        _ => r.route("/api/devices", post(post_device)),
     }
 }

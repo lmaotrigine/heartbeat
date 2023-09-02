@@ -5,11 +5,11 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use crate::{
+    config::Config,
     models::Stats,
     util::formats::{format_relative, FormatNum},
-    CONFIG, GIT_HASH, SERVER_START_TIME,
 };
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use html::{html, Markup, PreEscaped, DOCTYPE};
 
 fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Option<Markup>) -> Markup {
@@ -60,9 +60,8 @@ fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Opti
     }
 }
 
-pub fn error(message: impl AsRef<str>, method: &str, path: &str) -> Markup {
+pub fn error(message: impl AsRef<str>, method: &str, path: &str, config: &Config) -> Markup {
     let message = message.as_ref();
-    let config = CONFIG.get().expect("config to be initialized").clone();
     html! {
         (base(format!("{message} - {}", config.server_name), true, None))
         body {
@@ -90,9 +89,7 @@ pub fn error(message: impl AsRef<str>, method: &str, path: &str) -> Markup {
     }
 }
 
-pub fn index(stats: &Stats) -> Markup {
-    let commit = *GIT_HASH.get().expect("GIT_HASH to be initialized");
-    let config = CONFIG.get().expect("config to be initialized").clone();
+pub fn index(stats: &Stats, commit: &str, config: &Config) -> Markup {
     let now = Utc::now();
     let last_seen = stats.last_seen.unwrap_or_else(|| std::time::UNIX_EPOCH.into());
     let last_seen_relative = format_relative(now - last_seen);
@@ -193,8 +190,7 @@ Due to caching, you will have to check the website if the embed generation time 
     }
 }
 
-pub fn privacy() -> Markup {
-    let config = CONFIG.get().expect("config to be initialized").clone();
+pub fn privacy(config: &Config) -> Markup {
     html! {
         (base(format!("Privacy Policy - {}", config.server_name), true, None))
         body {
@@ -247,8 +243,7 @@ pub fn privacy() -> Markup {
     }
 }
 
-pub async fn stats(stats: &Stats) -> Markup {
-    let config = CONFIG.get().expect("config to be initialized").clone();
+pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -> Markup {
     let title = format!("Stats - {}", config.server_name);
     let head = html! {
         meta property="og:site_name" content=(title);
@@ -256,10 +251,7 @@ pub async fn stats(stats: &Stats) -> Markup {
         meta name="theme-color" content="#6495ed";
         (PreEscaped(format!(r#"<script type="module">{}</script>"#, include_str!("./script.mjs"))))
     };
-    let uptime = SERVER_START_TIME
-        .get_or_init(|| async { Utc::now() })
-        .await
-        .signed_duration_since(Utc::now());
+    let uptime = server_start_time.signed_duration_since(Utc::now());
     html! {
         (base(format!("Stats - {}", config.server_name), true, Some(head)))
         body {

@@ -7,9 +7,6 @@
 use crate::models::{Device, Stats};
 use chrono::Utc;
 use sqlx::{pool::PoolConnection, PgConnection, Postgres};
-use tokio::sync::OnceCell;
-
-pub static SERVER_START_TIME: OnceCell<chrono::DateTime<Utc>> = OnceCell::const_new();
 
 pub async fn get_server_start_time(dsn: &str) -> chrono::DateTime<Utc> {
     let now = Utc::now();

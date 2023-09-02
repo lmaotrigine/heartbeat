@@ -12,11 +12,13 @@
 )]
 
 use axum::{extract::FromRef, middleware, Extension, Server};
+use chrono::{DateTime, Utc};
+use config::Config;
 use error::handle_errors;
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::{
     net::SocketAddr,
-    sync::{Arc, Mutex, OnceLock},
+    sync::{Arc, Mutex},
 };
 use tower_http::services::ServeDir;
 use tracing::{span, warn, Instrument, Level};
@@ -29,34 +31,24 @@ mod routes;
 mod templates;
 mod util;
 
-pub use routes::query::SERVER_START_TIME;
 use routes::{query::fetch_stats, shutdown::Shutdown};
 
 #[derive(Debug, Clone, FromRef)]
 pub struct AppState {
     stats: Arc<Mutex<models::Stats>>,
     pool: PgPool,
+    config: Config,
+    git_hash: &'static str,
+    #[cfg(feature = "webhook")]
+    webhook: util::Webhook,
+    server_start_time: DateTime<Utc>,
 }
-pub static GIT_HASH: OnceLock<&'static str> = OnceLock::new();
-pub static CONFIG: OnceLock<config::Config> = OnceLock::new();
-
-#[cfg(feature = "webhook")]
-pub static WEBHOOK: OnceLock<util::Webhook> = OnceLock::new();
 
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
-    GIT_HASH
-        .set(option_env!("HB_GIT_COMMIT").unwrap_or_default())
-        .expect("GIT_HASH to not be set");
-    let config = CONFIG
-        .get_or_init(|| config::Config::try_new().expect("failed to load config file"))
-        .clone();
-    SERVER_START_TIME
-        .get_or_init(|| routes::query::get_server_start_time(&config.database.dsn))
-        .await;
-    #[cfg(feature = "webhook")]
-    WEBHOOK.get_or_init(|| util::Webhook::new(config.webhook.clone()));
+    let config = Config::try_new().expect("failed to load config file");
+    let server_start_time = routes::query::get_server_start_time(&config.database.dsn).await;
     let pool = PgPoolOptions::default()
         .max_connections(10)
         .connect(&config.database.dsn)
@@ -66,11 +58,20 @@ async fn main() {
         let conn = pool.acquire().await.expect("wtf literally the first connection");
         Arc::new(Mutex::new(fetch_stats(conn).await))
     };
+    let app_state = AppState {
+        stats,
+        pool,
+        config: config.clone(),
+        git_hash: option_env!("HB_GIT_COMMIT").unwrap_or_default(),
+        #[cfg(feature = "webhook")]
+        webhook: util::Webhook::new(config.webhook.clone()),
+        server_start_time,
+    };
     let (shutdown, signal) = Shutdown::new();
-    let router = routes::get_all()
-        .with_state(AppState { stats, pool })
+    let router = routes::get_all(&config)
+        .with_state(app_state.clone())
         .fallback_service(ServeDir::new("static/"))
-        .layer(middleware::from_fn(handle_errors))
+        .layer(middleware::from_fn_with_state(app_state, handle_errors))
         .layer(Extension(shutdown));
     #[allow(clippy::redundant_pub_crate)]
     let graceful_shutdown = async {

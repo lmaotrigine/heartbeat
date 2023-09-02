@@ -4,6 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#[cfg(feature = "webhook")]
+use crate::util::WebhookColour;
 use crate::{
     config::WebhookLevel,
     guards::Authorized,
@@ -11,8 +13,6 @@ use crate::{
     util::{generate_token, SnowflakeGenerator},
     AppState,
 };
-#[cfg(feature = "webhook")]
-use crate::{util::WebhookColour, WEBHOOK};
 use axum::{
     extract::{
         ws::{Message, WebSocket},
@@ -28,31 +28,35 @@ use sqlx::postgres::types::PgInterval;
 use std::time::UNIX_EPOCH;
 use tracing::error;
 
-#[cfg(feature = "webhook")]
-async fn fire_webhook(title: String, message: String, level: WebhookLevel) {
-    let colour = match level {
-        WebhookLevel::All => WebhookColour::Blue,
-        WebhookLevel::NewDevices => WebhookColour::Green,
-        WebhookLevel::LongAbsences => WebhookColour::Orange,
-        WebhookLevel::None => return,
-    };
-    match WEBHOOK
-        .get()
-        .expect("webhook to be initialized")
-        .execute(title, message, level, colour)
-        .await
+#[allow(unused_variables)]
+async fn fire_webhook(state: AppState, title: String, message: String, level: WebhookLevel) {
+    #[cfg(not(feature = "webhook"))]
+    return;
+    #[cfg(feature = "webhook")]
     {
-        Ok(()) => (),
-        Err(e) => error!("{e}"),
+        let colour = match level {
+            WebhookLevel::All => WebhookColour::Blue,
+            WebhookLevel::NewDevices => WebhookColour::Green,
+            WebhookLevel::LongAbsences => WebhookColour::Orange,
+            WebhookLevel::None => return,
+        };
+        if !cfg!(feature = "webhook") {
+            return;
+        }
+        match state
+            .webhook
+            .execute(title, message, level, colour, &state.config)
+            .await
+        {
+            Ok(()) => (),
+            Err(e) => error!("{e}"),
+        }
     }
 }
 
-#[cfg(not(feature = "webhook"))]
-async fn fire_webhook(_title: String, _message: String, _level: WebhookLevel) {}
-
 #[axum::debug_handler]
-pub async fn handle_beat_req(State(AppState { stats, pool }): State<AppState>, info: AuthInfo) -> (StatusCode, String) {
-    let mut conn = match pool.acquire().await.map_err(|e| {
+pub async fn handle_beat_req(State(state): State<AppState>, info: AuthInfo) -> (StatusCode, String) {
+    let mut conn = match state.pool.acquire().await.map_err(|e| {
         error!("Failed to acquire connection from pool. {e:?}");
         StatusCode::INTERNAL_SERVER_ERROR
     }) {
@@ -89,7 +93,7 @@ pub async fn handle_beat_req(State(AppState { stats, pool }): State<AppState>, i
         let diff = now - record.time_stamp;
         let update_longest_absence = {
             let mut ret = false;
-            let mut w = stats.lock().unwrap();
+            let mut w = state.stats.lock().unwrap();
             if diff > w.longest_absence {
                 w.longest_absence = diff;
                 ret = true;
@@ -113,6 +117,7 @@ pub async fn handle_beat_req(State(AppState { stats, pool }): State<AppState>, i
         }
         if diff.num_hours() >= 1 {
             fire_webhook(
+                state.clone(),
                 "Absence longer than 1 hour".into(),
                 format!("From <t:{}> to <t:{}>", record.time_stamp.timestamp(), now.timestamp()),
                 WebhookLevel::LongAbsences,
@@ -121,6 +126,7 @@ pub async fn handle_beat_req(State(AppState { stats, pool }): State<AppState>, i
         }
     }
     fire_webhook(
+        state,
         "Successful beat".into(),
         format!(
             "From `{}` on <t:{}:D> at <t:{}:T>",
@@ -158,11 +164,7 @@ fn _get_stats(state: &AppState) -> impl Serialize {
         num_visits: r.num_visits,
         total_beats: r.total_beats,
         devices: r.devices.as_slice().to_vec(),
-        uptime: (Utc::now()
-            - *crate::SERVER_START_TIME
-                .get()
-                .expect("SERVER_START_TIME to be initialized"))
-        .num_seconds(),
+        uptime: (Utc::now() - state.server_start_time).num_seconds(),
     }
 }
 
@@ -187,10 +189,10 @@ async fn stream_stats(app_state: AppState, mut ws: WebSocket) {
 #[axum::debug_handler]
 pub async fn post_device(
     _auth: Authorized,
-    State(AppState { stats, pool }): State<AppState>,
+    State(state): State<AppState>,
     Json(device): Json<PostDevice>,
 ) -> impl IntoResponse {
-    let mut conn = match pool.acquire().await.map_err(|e| {
+    let mut conn = match state.pool.acquire().await.map_err(|e| {
         error!("Failed to acquire connection from pool. {e:?}");
         StatusCode::INTERNAL_SERVER_ERROR
     }) {
@@ -230,7 +232,7 @@ pub async fn post_device(
         }
     };
     {
-        let mut w = stats.lock().unwrap();
+        let mut w = state.stats.lock().unwrap();
         w.devices.push(Device {
             id: res.id,
             name: res.name.clone(),
@@ -239,6 +241,7 @@ pub async fn post_device(
         });
     }
     fire_webhook(
+        state,
         "New Device added".into(),
         format!(
             "A new device called `{}` was added on <t:{}:D> at <t:{}:T>",

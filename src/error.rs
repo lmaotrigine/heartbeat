@@ -4,8 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use crate::templates::error;
+use crate::{config::Config, templates::error, AppState};
 use axum::{
+    extract::State,
     http::{Method, Request, Response, StatusCode},
     middleware::Next,
     response::IntoResponse,
@@ -21,14 +22,16 @@ pub struct Error {
     method: Method,
     message: String,
     status: StatusCode,
+    config: Config,
 }
 
 impl Error {
-    pub fn new(path: &str, method: &Method, status: StatusCode) -> Self {
+    pub fn new(path: &str, method: &Method, status: StatusCode, config: Config) -> Self {
         Self {
             path: path.into(),
             method: method.clone(),
             status,
+            config,
             message: status.canonical_reason().unwrap_or_default().to_string(),
         }
     }
@@ -41,7 +44,7 @@ impl Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let markup = error(&self.message, self.method.as_str(), &self.path);
+        let markup = error(&self.message, self.method.as_str(), &self.path, &self.config);
         write!(f, "{}", markup.0)
     }
 }
@@ -51,7 +54,7 @@ impl IntoResponse for Error {
         if self.path.starts_with("/api") {
             return (self.status, self.message).into_response();
         }
-        let markup = error(&self.message, self.method.as_str(), &self.path);
+        let markup = error(&self.message, self.method.as_str(), &self.path, &self.config);
         let res = markup.into_response();
         Response::builder()
             .status(self.status)
@@ -64,16 +67,18 @@ impl IntoResponse for Error {
 }
 
 pub async fn handle_errors<B: Send + std::fmt::Debug + 'static>(
+    State(state): State<AppState>,
     mut req: Request<B>,
     next: Next<B>,
 ) -> impl IntoResponse {
     let path = req.uri().path().to_owned();
     let method = req.method().clone();
+    let config = state.config;
     let ip = match req.extract_parts::<RealIp>().await {
         Ok(RealIp(ip)) => ip,
         Err(e) => {
             error!("Failed to get Real IP from request: {e:?}\n{req:#?}");
-            return Err(Error::new(&path, &method, StatusCode::INTERNAL_SERVER_ERROR));
+            return Err(Error::new(&path, &method, StatusCode::INTERNAL_SERVER_ERROR, config));
         }
     };
     let headers = req.headers().clone();
@@ -86,7 +91,7 @@ pub async fn handle_errors<B: Send + std::fmt::Debug + 'static>(
         StatusCode::METHOD_NOT_ALLOWED | StatusCode::NOT_FOUND | StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => {
             let code = status.as_u16();
             warn!("returned {code} to {ip} - tried to {method} {path} with Authorization {auth}");
-            Err(Error::new(&path, &method, status))
+            Err(Error::new(&path, &method, status, config))
         }
         _ => Ok(resp),
     }

@@ -14,7 +14,15 @@ use html::{Markup, PreEscaped};
 use tracing::error;
 
 #[axum::debug_handler]
-pub async fn index_page(State(AppState { stats, pool }): State<AppState>) -> impl IntoResponse {
+pub async fn index_page(
+    State(AppState {
+        stats,
+        pool,
+        git_hash,
+        config,
+        ..
+    }): State<AppState>,
+) -> impl IntoResponse {
     let mut conn = match pool.acquire().await.map_err(|e| {
         error!("Failed to acquire connection from pool. {e:?}");
         StatusCode::INTERNAL_SERVER_ERROR
@@ -32,11 +40,19 @@ pub async fn index_page(State(AppState { stats, pool }): State<AppState>) -> imp
     }
     incr_visits(&mut conn).await;
     let stats = fetch_stats(conn).await;
-    (StatusCode::OK, index(&stats))
+    (StatusCode::OK, index(&stats, git_hash, &config))
 }
 
 #[axum::debug_handler]
-pub async fn stats_page(State(AppState { stats, pool }): State<AppState>) -> (StatusCode, Markup) {
+pub async fn stats_page(
+    State(AppState {
+        stats,
+        pool,
+        server_start_time,
+        config,
+        ..
+    }): State<AppState>,
+) -> (StatusCode, Markup) {
     {
         stats.lock().unwrap().num_visits += 1;
     }
@@ -54,10 +70,10 @@ pub async fn stats_page(State(AppState { stats, pool }): State<AppState>) -> (St
     };
     incr_visits(&mut conn).await;
     let stats = fetch_stats(conn).await;
-    (StatusCode::OK, stats_template(&stats).await)
+    (StatusCode::OK, stats_template(&stats, &config, server_start_time))
 }
 
 #[axum::debug_handler]
-pub async fn privacy_page() -> Markup {
-    privacy()
+pub async fn privacy_page(State(AppState { config, .. }): State<AppState>) -> Markup {
+    privacy(&config)
 }

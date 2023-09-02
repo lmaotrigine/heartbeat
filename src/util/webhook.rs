@@ -7,11 +7,9 @@
 use reqwest::Client;
 use serde::Serialize;
 
-use crate::{
-    config::{Webhook as WebhookConfig, WebhookLevel},
-    CONFIG,
-};
+use crate::config::{Config, Webhook as WebhookConfig, WebhookLevel};
 
+#[derive(Debug, Clone)]
 pub struct Webhook {
     config: WebhookConfig,
     client: Client,
@@ -59,11 +57,11 @@ impl Webhook {
         message: String,
         level: WebhookLevel,
         colour: Colour,
+        config: &Config,
     ) -> Result<(), String> {
         if self.config.level > level {
             return Ok(());
         }
-        let config = CONFIG.get().expect("config to be initialized").clone();
         let wh_url = &self.config.url;
         if wh_url.is_empty() {
             return Ok(());
