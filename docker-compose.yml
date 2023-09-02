@@ -8,8 +8,6 @@ services:
       - heartbeat-net
     ports:
       - 127.0.0.1:6060:6060
-    build:
-      context: .
     depends_on:
       - db
     restart: unless-stopped
