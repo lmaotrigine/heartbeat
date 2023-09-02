@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   server:
-    image: ghcr.io/lmaotrigine/heartbeat
+    image: ghcr.io/lmaotrigine/heartbeat:latest
     volumes:
       - ./config.toml:/usr/local/share/heartbeat/config.toml
     networks:
@@ -13,6 +13,7 @@ services:
     depends_on:
       - db
     restart: unless-stopped
+    pull_policy: always
 
   db:
     image: postgres:15

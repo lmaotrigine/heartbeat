@@ -16,7 +16,13 @@ pub struct Config {
     pub repo: String,
     pub server_name: String,
     pub live_url: String,
+    pub github: GitHub,
     pub bind: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct GitHub {
+    pub webhook_secret: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]

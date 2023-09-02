@@ -11,7 +11,7 @@
     clippy::multiple_crate_versions, // dependency hell. idk.
 )]
 
-use axum::{extract::FromRef, middleware, Server};
+use axum::{extract::FromRef, middleware, Extension, Server};
 use error::handle_errors;
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::{
@@ -19,7 +19,7 @@ use std::{
     sync::{Arc, Mutex, OnceLock},
 };
 use tower_http::services::ServeDir;
-use tracing::warn;
+use tracing::{span, warn, Instrument, Level};
 
 mod config;
 mod error;
@@ -29,8 +29,8 @@ mod routes;
 mod templates;
 mod util;
 
-use routes::query::fetch_stats;
 pub use routes::query::SERVER_START_TIME;
+use routes::{query::fetch_stats, shutdown::Shutdown};
 
 #[derive(Debug, Clone, FromRef)]
 pub struct AppState {
@@ -66,17 +66,24 @@ async fn main() {
         let conn = pool.acquire().await.expect("wtf literally the first connection");
         Arc::new(Mutex::new(fetch_stats(conn).await))
     };
+    let (shutdown, signal) = Shutdown::new();
     let router = routes::get_all()
         .with_state(AppState { stats, pool })
         .fallback_service(ServeDir::new("static/"))
-        .layer(middleware::from_fn(handle_errors));
+        .layer(middleware::from_fn(handle_errors))
+        .layer(Extension(shutdown));
+    #[allow(clippy::redundant_pub_crate)]
     let graceful_shutdown = async {
-        _ = tokio::signal::ctrl_c().await;
+        tokio::select! {
+            _ = tokio::signal::ctrl_c() => (),
+            _ = signal => (),
+        }
         warn!("Initiating graceful shutdown");
     };
     Server::bind(&config.bind.parse().unwrap())
         .serve(router.into_make_service_with_connect_info::<SocketAddr>())
         .with_graceful_shutdown(graceful_shutdown)
+        .instrument(span!(Level::INFO, "server"))
         .await
         .unwrap();
 }

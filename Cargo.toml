@@ -28,6 +28,8 @@ tracing-subscriber = "0.3.17"
 tracing = "0.1.37"
 axum-realip = { git = "https://git.5ht2.me/lmaotrigine/axum-realip", version = "0.1.0" }
 rand = { version = "0.8.5", default-features = false, features = ["getrandom"] }
+hmac = "0.12.1"
+sha2 = "0.10.7"
 
 [features]
 default = []

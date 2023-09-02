@@ -21,11 +21,14 @@ use axum::{
 use badges::{last_seen_badge, total_beats_badge};
 use pages::{index_page, privacy_page, stats_page};
 
+use self::shutdown::deploy;
+
 mod api;
 #[cfg(feature = "badges")]
 mod badges;
 mod pages;
 pub mod query;
+pub mod shutdown;
 
 pub async fn health_check() -> &'static str {
     "OK"
@@ -34,6 +37,7 @@ pub async fn health_check() -> &'static str {
 pub fn get_all() -> Router<AppState> {
     let r = Router::new()
         .route("/", get(index_page))
+        .route("/.well-known/deploy", post(deploy))
         .route("/.well-known/health", get(health_check))
         .route("/stats", get(stats_page))
         .route("/privacy", get(privacy_page))
