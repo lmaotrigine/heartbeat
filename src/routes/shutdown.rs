@@ -17,11 +17,7 @@ use std::{
     sync::{Arc, Mutex},
     task::{Context, Poll},
 };
-use tokio::{
-    process::Command,
-    sync::oneshot::{channel, Receiver, Sender},
-};
-use tracing::error;
+use tokio::sync::oneshot::{channel, Receiver, Sender};
 
 #[derive(Clone)]
 pub struct Shutdown(Arc<Mutex<Option<Sender<()>>>>);
@@ -198,28 +194,6 @@ pub async fn deploy(
         Ok(v) => v,
     };
     if payload["action"] == "completed" && payload["workflow_run"]["name"] == ".github/workflows/docker.yml" {
-        let output = match Command::new("docker")
-            .args([
-                "pull",
-                &format!("ghcr.io/{}:latest", payload["repository"]["full_name"]),
-            ])
-            .output()
-            .await
-        {
-            Err(e) => {
-                error!("I/O error during docker pull execution: {e:?}");
-                return (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    format!("I/O error while executing docker pull: {e:?}").into(),
-                );
-            }
-            Ok(out) => out,
-        };
-        if !output.status.success() {
-            let err = String::from_utf8_lossy(&output.stderr).to_string();
-            error!("Error pulling from GHCR: {err}");
-            return (StatusCode::INTERNAL_SERVER_ERROR, err.into());
-        }
         shutdown.notify();
     }
     (StatusCode::OK, "".into())

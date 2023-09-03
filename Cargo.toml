@@ -13,7 +13,7 @@ publish = false
 
 [dependencies]
 chrono = { version = "0.4.23", features = ["serde", "std", "clock"], default-features = false }
-tokio = { version = "1.24.2", features = ["macros", "process", "rt-multi-thread", "signal"] }
+tokio = { version = "1.24.2", features = ["macros", "rt-multi-thread", "signal"] }
 serde = { version = "1.0.152", features = ["derive"] }
 sqlx = { version = "0.7", features = ["chrono", "macros", "postgres", "runtime-tokio-rustls"], default-features = false }
 toml = "0.7.6"
