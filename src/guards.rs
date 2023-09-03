@@ -24,7 +24,7 @@ impl FromRequestParts<AppState> for AuthInfo {
                 StatusCode::UNAUTHORIZED,
                 state.config.clone(),
             )
-            .with_reason("No token provided.".into()));
+            .with_reason("No token provided."));
         };
         let pool = PgPool::from_ref(state);
         let mut conn = pool.acquire().await.map_err(|e| {
@@ -50,7 +50,7 @@ impl FromRequestParts<AppState> for AuthInfo {
                 StatusCode::UNAUTHORIZED,
                 state.config.clone(),
             )
-            .with_reason("Invalid token.".into())
+            .with_reason("Invalid token.")
         })
     }
 }
@@ -68,7 +68,7 @@ impl FromRequestParts<AppState> for Authorized {
         if expected.is_none() {
             return Err(
                 Error::new(req.uri.path(), &req.method, StatusCode::NOT_FOUND, state.config.clone())
-                    .with_reason("Not found.".into()),
+                    .with_reason("Not found."),
             );
         }
         let token = match req.headers.get("Authorization") {
@@ -80,7 +80,7 @@ impl FromRequestParts<AppState> for Authorized {
                     StatusCode::UNAUTHORIZED,
                     state.config.clone(),
                 )
-                .with_reason("No token provided.".into()))
+                .with_reason("No token provided."))
             }
         };
         if token == expected.as_deref() {
@@ -92,7 +92,7 @@ impl FromRequestParts<AppState> for Authorized {
                 StatusCode::UNAUTHORIZED,
                 state.config.clone(),
             )
-            .with_reason("Invalid token.".into()))
+            .with_reason("Invalid token."))
         }
     }
 }

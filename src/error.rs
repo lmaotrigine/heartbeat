@@ -20,7 +20,7 @@ use tracing::{error, warn};
 pub struct Error {
     path: String,
     method: Method,
-    message: String,
+    message: &'static str,
     status: StatusCode,
     config: Config,
 }
@@ -32,19 +32,19 @@ impl Error {
             method: method.clone(),
             status,
             config,
-            message: status.canonical_reason().unwrap_or_default().to_string(),
+            message: status.canonical_reason().unwrap_or_default(),
         }
     }
 
     #[allow(clippy::missing_const_for_fn)] // false positive
-    pub fn with_reason(self, message: String) -> Self {
+    pub fn with_reason(self, message: &'static str) -> Self {
         Self { message, ..self }
     }
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let markup = error(&self.message, self.method.as_str(), &self.path, &self.config);
+        let markup = error(self.message, self.method.as_str(), &self.path, &self.config);
         write!(f, "{}", markup.0)
     }
 }
@@ -54,7 +54,7 @@ impl IntoResponse for Error {
         if self.path.starts_with("/api") {
             return (self.status, self.message).into_response();
         }
-        let markup = error(&self.message, self.method.as_str(), &self.path, &self.config);
+        let markup = error(self.message, self.method.as_str(), &self.path, &self.config);
         let res = markup.into_response();
         Response::builder()
             .status(self.status)
