@@ -4,14 +4,14 @@ bind = "0.0.0.0:6060"
 
 # this is used for <title> tags
 # and some headings
-server_name = "VJ's heartbeat"
+server_name = "Isis's heartbeat"
 
 # the full url to the server
 live_url = "https://hb.5ht2.me"
 
 # a random URL-safe string.
 # if left blank, addition of devices is disabled.
-# this may be generated using `openssl rand -base64 45 | sed 's/[/+=]//g'`
+# this may be generated using `openssl rand -base64 45`
 secret_key = ""
 
 # don't change this unless you're using a fork
@@ -36,6 +36,6 @@ level = "none"
 [github]
 # for hot reloading using GitHub webhooks.
 # if left black, hot reloading is disabled.
-# this may be generated using `openssl rand -base64 45 | sed 's/[/+=]//g'`
+# this may be generated using `openssl rand -base64 45`
 # you should configure your GitHub webhook to use the same secret.
 webhook_secret = ""

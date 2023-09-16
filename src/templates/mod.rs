@@ -1,4 +1,4 @@
-// Copyright (c) 2023 VJ <root@5ht2.me>
+// Copyright (c) 2023 Isis <root@5ht2.me>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -6,7 +6,7 @@
 
 use crate::{
     config::Config,
-    models::Stats,
+    stats::Stats,
     util::formats::{format_relative, FormatNum},
 };
 use chrono::{DateTime, Utc};
@@ -17,7 +17,7 @@ fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Opti
     html! {
         (DOCTYPE)
         (PreEscaped(r#"
-<!-- Copyright 2023 VJ <root@5ht2.me>
+<!-- Copyright 2023 Isis <root@5ht2.me>
    -
    - This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -50,7 +50,6 @@ fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Opti
                 title { (title) }
                 meta property="og:image" content="/favicon.png";
                 link rel="icon" type="image/x-icon" href="/favicon.ico";
-                link rel="stylesheet" href="/grids.min.css";
                 link rel="stylesheet" href="/style.css";
                 @if let Some(extra_head) = extra_head {
                     (extra_head)
@@ -60,30 +59,30 @@ fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Opti
     }
 }
 
-pub fn error(message: impl AsRef<str>, method: &str, path: &str, config: &Config) -> Markup {
+pub fn error(message: impl AsRef<str>, method: &str, path: &str, server_name: &str) -> Markup {
     let message = message.as_ref();
     html! {
-        (base(format!("{message} - {}", config.server_name), true, None))
+        (base(format!("{message} - {server_name}"), true, None))
         body {
-            div.spacer;
-            div.pure-g.privacy {
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.spacer {}
+            div.privacy {
+                div.grid-cell {}
+                div {
                     p.centre {
                         (message)": " (method) " on " b { (path) }
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
-            div.spacer;
-            div.pure-g.links {
-                div."pure-g-u-0"."pure-u-lg-1-6";
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.spacer {}
+            div.links {
+                div.grid-cell;
+                div {
                     p.centre {
                         a href="/" { "Main Page" }
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
         }
     }
@@ -110,9 +109,9 @@ Due to caching, you will have to check the website if the embed generation time 
         (base(config.server_name.clone(), true, extra_head))
         body {
             div.spacer {}
-            div.pure-g.preamble {
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-lg-4-6" {
+            div.preamble {
+                div.grid-cell {}
+                div {
                     p.centre {
                         "Welcome to " (config.server_name)"." br;
                         "This page displays the last timestamp that they have unlocked and used any of their devices." br;
@@ -130,11 +129,11 @@ Due to caching, you will have to check the website if the embed generation time 
                         "."
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
-            div.pure-g.times {
-                div."pure-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-1-6" {
+            div.times {
+                div.grid-cell {}
+                div.grid-cell {
                     p.centre {
                         "Last response time:" br;
                         span #last-seen {
@@ -143,16 +142,15 @@ Due to caching, you will have to check the website if the embed generation time 
                         }
                     }
                 }
-                div."pure-u-1"."pure-u-lg-1-6" {
+                div.grid-cell {
                     p.centre {
                         "Time since last response:" br;
                         span #time-difference {
                             (last_seen_relative)
-                            " ago"
                         }
                     }
                 }
-                div."pure-u-1"."pure-u-lg-1-6" {
+                div.grid-cell {
                     p.centre {
                         "Longest absence:" br;
                         span #longest-absence {
@@ -160,7 +158,7 @@ Due to caching, you will have to check the website if the embed generation time 
                         }
                     }
                 }
-                div."pure-u-1"."pure-u-lg-1-6" {
+                div.grid-cell {
                     p.centre {
                         "Total beats received:" br;
                         span #total-beats {
@@ -168,12 +166,12 @@ Due to caching, you will have to check the website if the embed generation time 
                         }
                     }
                 }
-                div."pure-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
             div.spacer {}
-            div.pure-g.links {
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.links {
+                div.grid-cell {}
+                div {
                     p.centre {
                         a href="/stats"{
                             "Stats"
@@ -184,7 +182,7 @@ Due to caching, you will have to check the website if the embed generation time 
                         }
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
         }
     }
@@ -195,9 +193,9 @@ pub fn privacy(config: &Config) -> Markup {
         (base(format!("Privacy Policy - {}", config.server_name), true, None))
         body {
             div.spacer {}
-            div.pure-g.privacy {
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.privacy {
+                div.grid-cell {}
+                div {
                     p.centre {
                         "Heartbeat Privacy Information"
                         br;br;
@@ -221,12 +219,12 @@ pub fn privacy(config: &Config) -> Markup {
                         "Logs are not shared with anybody."
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
-            div.spacer;
-            div.pure-g.links {
-                div."pure-g-u-0"."pure-u-lg-1-6";
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.spacer {}
+            div.links {
+                div.grid-cell;
+                div {
                     p.centre {
                         a href="/" {
                             "Main Page"
@@ -237,7 +235,7 @@ pub fn privacy(config: &Config) -> Markup {
                         }
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
         }
     }
@@ -256,18 +254,18 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
         (base(format!("Stats - {}", config.server_name), true, Some(head)))
         body {
             div.spacer {}
-            div.pure-g.preamble {
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.preamble {
+                div.grid-cell {}
+                div {
                     p.centre {
                         "Statistics for " (config.server_name)
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
-            div.pure-g.times {
-                div."pure-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-1-6" {
+            div.times {
+                div.grid-cell {}
+                div.grid-cell {
                     p.centre {
                         "Total visits:"
                         br;
@@ -276,7 +274,7 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
                         }
                     }
                 }
-                div."pure-u-1"."pure-u-lg-1-6" {
+                div.grid-cell {
                     p.centre {
                         "Total devices:"
                         br;
@@ -285,7 +283,7 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
                         }
                     }
                 }
-                div."pure-u-1"."pure-u-lg-1-6" {
+                div.grid-cell {
                     p.centre {
                         "Total beats received:"
                         br;
@@ -294,7 +292,7 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
                         }
                     }
                 }
-                div."pure-u-1"."pure-u-lg-1-6" {
+                div.grid-cell {
                     p.centre {
                         "Uptime:"
                         br;
@@ -303,12 +301,12 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
                         }
                     }
                 }
-                div."pure-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
             div.spacer {}
-            div.pure-g.links {
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.links {
+                div.grid-cell {}
+                div {
                     p.centre {
                         a href="/" {
                             "Main Page"
@@ -319,7 +317,7 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
                         }
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
         }
     }

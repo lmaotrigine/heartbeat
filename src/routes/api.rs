@@ -1,4 +1,4 @@
-// Copyright (c) 2023 VJ <root@5ht2.me>
+// Copyright (c) 2023 Isis <root@5ht2.me>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,18 +8,19 @@
 use crate::util::WebhookColour;
 use crate::{
     config::WebhookLevel,
-    guards::Authorized,
-    models::{AuthInfo, Device, PostDevice},
-    util::{generate_token, SnowflakeGenerator},
+    error::Error,
+    guards::{AuthInfo, Authorized},
+    models::{Device, PostDevice},
+    util::{generate_token, Snowflake, SnowflakeGenerator},
     AppState,
 };
 use axum::{
     extract::{
         ws::{Message, WebSocket},
-        State, WebSocketUpgrade,
+        Path, State, WebSocketUpgrade,
     },
     http::StatusCode,
-    response::IntoResponse,
+    response::Response,
     Json,
 };
 use chrono::Utc;
@@ -67,16 +68,16 @@ pub async fn handle_beat_req(State(state): State<AppState>, info: AuthInfo) -> (
     let prev_beat = sqlx::query!(
         r#"
     WITH dummy1 AS (
-        INSERT INTO beats (time_stamp, device) VALUES ($1, $2)
+        INSERT INTO heartbeat.beats (time_stamp, device) VALUES ($1, $2)
     ),
     dummy2 AS (
-        UPDATE devices SET num_beats = num_beats + 1 WHERE id = $2
+        UPDATE heartbeat.devices SET num_beats = num_beats + 1 WHERE id = $2
     ),
     dummy3 AS (
-        SELECT longest_absence FROM stats
+        SELECT longest_absence FROM heartbeat.stats
     )
     SELECT beats.time_stamp, dummy3.longest_absence
-    FROM beats, dummy3
+    FROM heartbeat.beats beats, dummy3
     ORDER BY time_stamp DESC
     LIMIT 1;
     "#,
@@ -111,9 +112,12 @@ pub async fn handle_beat_req(State(state): State<AppState>, info: AuthInfo) -> (
                 diff.num_microseconds().unwrap_or(i64::MAX - 1),
             ))
             .expect("We have travelled way too far into the future.");
-            let _ = sqlx::query!(r#"UPDATE stats SET longest_absence = $1 WHERE _id = 0;"#, pg_diff)
-                .execute(&mut *conn)
-                .await;
+            let _ = sqlx::query!(
+                r#"UPDATE heartbeat.stats SET longest_absence = $1 WHERE _id = 0;"#,
+                pg_diff
+            )
+            .execute(&mut *conn)
+            .await;
         }
         if diff.num_hours() >= 1 {
             fire_webhook(
@@ -169,12 +173,12 @@ fn _get_stats(state: &AppState) -> impl Serialize {
 }
 
 #[axum::debug_handler]
-pub async fn get_stats(State(stats): State<AppState>) -> impl IntoResponse {
+pub async fn get_stats(State(stats): State<AppState>) -> Json<impl Serialize> {
     Json(_get_stats(&stats))
 }
 
 #[axum::debug_handler]
-pub async fn realtime_stats(ws: WebSocketUpgrade, State(state): State<AppState>) -> impl IntoResponse {
+pub async fn realtime_stats(ws: WebSocketUpgrade, State(state): State<AppState>) -> Response {
     ws.on_upgrade(|ws| async { stream_stats(state, ws).await })
 }
 
@@ -191,7 +195,13 @@ pub async fn post_device(
     _auth: Authorized,
     State(state): State<AppState>,
     Json(device): Json<PostDevice>,
-) -> impl IntoResponse {
+) -> (StatusCode, Json<impl Serialize>) {
+    #[derive(Serialize)]
+    struct DeviceAddResp {
+        id: i64,
+        name: Option<String>,
+        token: String,
+    }
     let mut conn = match state.pool.acquire().await.map_err(|e| {
         error!("Failed to acquire connection from pool. {e:?}");
         StatusCode::INTERNAL_SERVER_ERROR
@@ -210,7 +220,7 @@ pub async fn post_device(
     };
     let id = SnowflakeGenerator::default().generate();
     let res = match sqlx::query!(
-        r#"INSERT INTO devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;"#,
+        r#"INSERT INTO heartbeat.devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;"#,
         i64::try_from(id.id()).expect("snowflake out of i64 range. Is it 2089 already?"),
         device.name,
         generate_token(id),
@@ -252,12 +262,7 @@ pub async fn post_device(
         WebhookLevel::NewDevices,
     )
     .await;
-    #[derive(Serialize)]
-    struct DeviceAddResp {
-        id: i64,
-        name: Option<String>,
-        token: String,
-    }
+
     (
         StatusCode::OK,
         Json(DeviceAddResp {
@@ -266,4 +271,72 @@ pub async fn post_device(
             token: res.token,
         }),
     )
+}
+
+#[axum::debug_handler]
+pub async fn regenerate_device_token(
+    _auth: Authorized,
+    State(state): State<AppState>,
+    Path(device_id): Path<i64>,
+    method: axum::http::Method,
+    uri: axum::http::Uri,
+) -> Result<Json<impl Serialize>, Error> {
+    #[derive(Serialize)]
+    struct DeviceUpdateResp {
+        id: i64,
+        name: Option<String>,
+        token: String,
+    }
+
+    let mut conn = match state.pool.acquire().await.map_err(|e| {
+        error!("Failed to acquire connection from pool. {e:?}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    }) {
+        Ok(x) => x,
+        Err(e) => return Err(Error::new(uri.path(), &method, e, &state.config.server_name)),
+    };
+
+    let found = sqlx::query_scalar!(
+        "SELECT EXISTS(SELECT 1 FROM heartbeat.devices WHERE id = $1);",
+        device_id
+    )
+    .fetch_one(&mut *conn)
+    .await
+    .map_err(|e| {
+        error!("Failed to check if device exists: {e:?}");
+        Error::new(
+            uri.path(),
+            &method,
+            StatusCode::INTERNAL_SERVER_ERROR,
+            &state.config.server_name,
+        )
+    })?
+    .unwrap_or(false);
+    if !found {
+        return Err(Error::new(
+            uri.path(),
+            &method,
+            StatusCode::NOT_FOUND,
+            &state.config.server_name,
+        ));
+    }
+    let token = generate_token(Snowflake::from(device_id));
+    let res = sqlx::query_as!(
+        DeviceUpdateResp,
+        "UPDATE heartbeat.devices SET token = $1 WHERE id = $2 RETURNING id, name, token;",
+        token,
+        device_id
+    )
+    .fetch_one(&mut *conn)
+    .await
+    .map_err(|e| {
+        error!("Failed to update device token: {e:?}");
+        Error::new(
+            uri.path(),
+            &method,
+            StatusCode::INTERNAL_SERVER_ERROR,
+            &state.config.server_name,
+        )
+    })?;
+    Ok(Json(res))
 }

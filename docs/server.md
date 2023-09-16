@@ -35,8 +35,14 @@ ln -s target/release/heartbeat ./heartbeat
 ./heartbeat
 ```
 
-In addition, you will need access to a [PostgreSQL](https://www.postgresql.org) (of a supported server version).
-The schemas for the database are located in the [`migrations`](/migrations) directory.
+In addition, you will need access to a [PostgreSQL](https://www.postgresql.org) (of a supported server version). If the
+server requires SSL/TLS connections, you will need to build with the `sqlx-tls` feature flag to enable support for this.
+Migrations are embedded in the `migrate_db` binary, and running this will apply all pending migrations. For more details
+on managing migrations, refer to the [SQLX CLI
+docs](https://github.com/launchbadge/sqlx/blob/v0.7.1/sqlx-cli/README.md).
+
+For starting fresh, you can simple use the [`init.sql`](/docker-entrypoint-initdb.d/init.sql) script to create the
+necessary tables and indexes in your database.
 
 
 ## Running in production

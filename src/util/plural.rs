@@ -1,4 +1,4 @@
-// Copyright (c) 2023 VJ <root@5ht2.me>
+// Copyright (c) 2023 Isis <root@5ht2.me>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -54,12 +54,6 @@ impl<'a> Rough<'a> {
         self
     }
 
-    #[allow(dead_code)] // we don't deal with non-standard plurals for now
-    pub fn plural(mut self, plural: &str) -> Self {
-        self.plural = plural.to_owned();
-        self
-    }
-
     pub fn compute(&self, n: i64) -> String {
         if n == 1 {
             format!("{} {}", self.article, self.singular)
@@ -68,25 +62,3 @@ impl<'a> Rough<'a> {
         }
     }
 }
-
-#[macro_export]
-macro_rules! plural {
-    ($n:expr, $singular:expr) => {
-        $crate::util::plural::Plural::from($singular).compute($n)
-    };
-}
-
-#[macro_export]
-macro_rules! rough {
-    ($n:expr, $singular:expr, $article:expr) => {
-        $crate::util::plural::Rough::from($singular)
-            .article($article)
-            .compute($n)
-    };
-    ($n:expr, $singular:expr) => {
-        $crate::util::plural::Rough::from($singular).compute($n)
-    };
-}
-
-pub use plural;
-pub use rough;

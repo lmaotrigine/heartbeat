@@ -70,3 +70,6 @@ flags for compilation from source.
   to shields.io.
 
 - `webhook`: Enables logging certain events to a Discord webhook. See the config file comments for more info.
+
+- `sqlx-tls`: Enables the `tls-rustls` feature of `sqlx`, which allows you to connect to PostgreSQL servers over
+  SSL/TLS.

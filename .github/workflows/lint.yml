@@ -50,5 +50,5 @@ jobs:
           bin: rg
       - name: check and test
         run: |
-          just ci-lint check-forbidden
+          just ci-lint
         shell: bash

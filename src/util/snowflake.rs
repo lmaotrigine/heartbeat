@@ -1,4 +1,4 @@
-// Copyright (c) 2023 VJ <root@5ht2.me>
+// Copyright (c) 2023 Isis <root@5ht2.me>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -30,6 +30,12 @@ pub struct Generator {
 pub struct Snowflake(u64);
 
 impl Snowflake {
+    #[allow(clippy::cast_sign_loss)] // we just..panic
+    pub const fn from(id: i64) -> Self {
+        assert!(id >= 0, "snowflake ID must be positive!");
+        Self(id as _)
+    }
+
     pub const fn id(self) -> u64 {
         self.0
     }

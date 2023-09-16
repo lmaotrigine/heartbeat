@@ -1,15 +1,15 @@
-// Copyright (c) 2023 VJ <root@5ht2.me>
+// Copyright (c) 2023 Isis <root@5ht2.me>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use super::query::{fetch_stats, incr_visits};
 use crate::{
+    stats::Stats,
     templates::{index, privacy, stats as stats_template},
-    AppState,
+    AppState, ConnectionExt,
 };
-use axum::{extract::State, http::StatusCode, response::IntoResponse};
+use axum::{extract::State, http::StatusCode};
 use html::{Markup, PreEscaped};
 use tracing::error;
 
@@ -22,7 +22,7 @@ pub async fn index_page(
         config,
         ..
     }): State<AppState>,
-) -> impl IntoResponse {
+) -> (StatusCode, Markup) {
     let mut conn = match pool.acquire().await.map_err(|e| {
         error!("Failed to acquire connection from pool. {e:?}");
         StatusCode::INTERNAL_SERVER_ERROR
@@ -38,9 +38,8 @@ pub async fn index_page(
     {
         stats.lock().unwrap().num_visits += 1;
     }
-    incr_visits(&mut conn).await;
-    let stats = fetch_stats(conn).await;
-    (StatusCode::OK, index(&stats, git_hash, &config))
+    let _ = conn.incr_visits().await;
+    (StatusCode::OK, index(&Stats::fetch(conn).await, git_hash, &config))
 }
 
 #[axum::debug_handler]
@@ -68,8 +67,8 @@ pub async fn stats_page(
             )
         }
     };
-    incr_visits(&mut conn).await;
-    let stats = fetch_stats(conn).await;
+    let _ = conn.incr_visits().await;
+    let stats = Stats::fetch(conn).await;
     (StatusCode::OK, stats_template(&stats, &config, server_start_time))
 }
 

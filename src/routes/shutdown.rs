@@ -3,60 +3,12 @@ use axum::{
     body::Bytes,
     extract::{FromRequestParts, State},
     http::{request::Parts, StatusCode},
-    response::IntoResponse,
-    Extension,
 };
+use axum_shutdown::Shutdown;
 use hmac::{Hmac, Mac};
 use serde_json::Value;
 use sha2::Sha256;
-use std::{
-    borrow::Cow,
-    future::Future,
-    pin::Pin,
-    str::FromStr,
-    sync::{Arc, Mutex},
-    task::{Context, Poll},
-};
-use tokio::sync::oneshot::{channel, Receiver, Sender};
-
-#[derive(Clone)]
-pub struct Shutdown(Arc<Mutex<Option<Sender<()>>>>);
-
-impl Shutdown {
-    pub fn new() -> (Self, Signal) {
-        let (tx, rx) = channel();
-        let shutdown = Self(Arc::new(Mutex::new(Some(tx))));
-        let signal = Signal(rx);
-        (shutdown, signal)
-    }
-
-    pub fn notify(&self) {
-        if let Some(tx) = self.0.lock().unwrap().take() {
-            tx.send(()).expect("shutdown listener already dropped");
-        }
-    }
-}
-
-#[axum::async_trait]
-impl<S: Send + Sync> FromRequestParts<S> for Shutdown {
-    type Rejection = <Extension<Self> as FromRequestParts<S>>::Rejection;
-
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let Extension(state) = Extension::<Self>::from_request_parts(parts, state).await?;
-        Ok(state)
-    }
-}
-
-pub struct Signal(Receiver<()>);
-
-impl Future for Signal {
-    type Output = ();
-
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let receiver = Pin::new(&mut self.get_mut().0);
-        receiver.poll(cx).map(|_| ())
-    }
-}
+use std::{borrow::Cow, str::FromStr};
 
 const HEX_CHARS: &[u8; 16] = b"0123456789abcdef";
 
@@ -154,17 +106,6 @@ impl<S: Send + Sync> FromRequestParts<S> for Secret {
             .strip_prefix("sha256=")
             .ok_or((StatusCode::BAD_REQUEST, "Malformed signature"))
             .map(Self::new)
-    }
-}
-
-pub struct HttpResult(Result<(), (StatusCode, &'static str)>);
-
-impl IntoResponse for HttpResult {
-    fn into_response(self) -> axum::response::Response {
-        match self.0 {
-            Ok(()) => ().into_response(),
-            Err(e) => e.into_response(),
-        }
     }
 }
 

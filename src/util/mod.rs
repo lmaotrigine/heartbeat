@@ -1,21 +1,19 @@
-// Copyright (c) 2023 VJ <root@5ht2.me>
+// Copyright (c) 2023 Isis <root@5ht2.me>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#[cfg(feature = "badges")]
-pub mod badge;
 pub mod formats;
 pub mod hf_time;
+#[macro_use]
 mod plural;
-mod serializers;
+pub mod serde;
 mod snowflake;
 mod token;
 #[cfg(feature = "webhook")]
 mod webhook;
 
-pub use serializers::*;
 pub use snowflake::{Generator as SnowflakeGenerator, Snowflake};
 pub use token::generate as generate_token;
 #[cfg(feature = "webhook")]
