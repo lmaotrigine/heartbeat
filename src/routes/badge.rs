@@ -153,11 +153,4 @@ mod tests {
             &B64_IMG["data:image/png;base64,".len()..],
         );
     }
-    #[test]
-    fn get_b64_img() {
-        println!(
-            "{}",
-            Base64Unpadded::encode(IMG_BYTES, &mut [0u8; BUFFER_SIZE]).unwrap()
-        );
-    }
 }
