@@ -52,3 +52,4 @@ path = "src/bin/web.rs"
 panic = "abort"
 strip = true
 opt-level = "z"
+lto = true

@@ -31,8 +31,8 @@ struct WebhookRequest<'a> {
 #[derive(Serialize)]
 struct Embed<'a> {
     author: Author<'a>,
-    title: String,
-    description: String,
+    title: &'a str,
+    description: &'a str,
     color: u32,
 }
 
@@ -53,8 +53,8 @@ impl Webhook {
 
     pub async fn execute(
         &self,
-        title: String,
-        message: String,
+        title: &str,
+        message: &str,
         level: WebhookLevel,
         colour: Colour,
         config: &Config,

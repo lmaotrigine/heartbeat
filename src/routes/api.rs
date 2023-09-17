@@ -30,7 +30,7 @@ use std::time::UNIX_EPOCH;
 use tracing::error;
 
 #[allow(unused_variables)]
-async fn fire_webhook(state: AppState, title: String, message: String, level: WebhookLevel) {
+async fn fire_webhook(state: AppState, title: &str, message: &str, level: WebhookLevel) {
     #[cfg(not(feature = "webhook"))]
     return;
     #[cfg(feature = "webhook")]
@@ -122,8 +122,8 @@ pub async fn handle_beat_req(State(state): State<AppState>, info: AuthInfo) -> (
         if diff.num_hours() >= 1 {
             fire_webhook(
                 state.clone(),
-                "Absence longer than 1 hour".into(),
-                format!("From <t:{}> to <t:{}>", record.time_stamp.timestamp(), now.timestamp()),
+                "Absence longer than 1 hour",
+                &format!("From <t:{}> to <t:{}>", record.time_stamp.timestamp(), now.timestamp()),
                 WebhookLevel::LongAbsences,
             )
             .await;
@@ -131,8 +131,8 @@ pub async fn handle_beat_req(State(state): State<AppState>, info: AuthInfo) -> (
     }
     fire_webhook(
         state,
-        "Successful beat".into(),
-        format!(
+        "Successful beat",
+        &format!(
             "From `{}` on <t:{}:D> at <t:{}:T>",
             info.name.unwrap_or_else(|| "unknown device".into()),
             now.timestamp(),
@@ -252,8 +252,8 @@ pub async fn post_device(
     }
     fire_webhook(
         state,
-        "New Device added".into(),
-        format!(
+        "New Device added",
+        &format!(
             "A new device called `{}` was added on <t:{}:D> at <t:{}:T>",
             device.name,
             id.created_at().timestamp(),
