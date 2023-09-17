@@ -67,17 +67,17 @@ pub async fn handle_beat_req(State(state): State<AppState>, info: AuthInfo) -> (
     let now = Utc::now();
     let prev_beat = sqlx::query!(
         r#"
-    WITH dummy1 AS (
+    WITH discard AS (
         INSERT INTO heartbeat.beats (time_stamp, device) VALUES ($1, $2)
     ),
-    dummy2 AS (
+    discard_this_too AS (
         UPDATE heartbeat.devices SET num_beats = num_beats + 1 WHERE id = $2
     ),
-    dummy3 AS (
+    longest_absence AS (
         SELECT longest_absence FROM heartbeat.stats
     )
-    SELECT beats.time_stamp, dummy3.longest_absence
-    FROM heartbeat.beats beats, dummy3
+    SELECT beats.time_stamp, longest_absence.longest_absence
+    FROM heartbeat.beats beats, longest_absence
     ORDER BY time_stamp DESC
     LIMIT 1;
     "#,
