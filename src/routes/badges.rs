@@ -37,25 +37,34 @@ const BLUE_MAGENTA: Colour = Colour::from_rgb(136, 126, 224);
 const CORNFLOWER_BLUE: Colour = Colour::from_rgb(100, 149, 237);
 
 pub struct BadgeResponse {
-    svg: String,
+    badge: String,
     status: StatusCode,
 }
 
 impl BadgeResponse {
-    pub const fn new(status: StatusCode, svg: String) -> Self {
-        Self { svg, status }
+    pub fn new(label: &str, message: &str, colour: Colour) -> Self {
+        Self {
+            status: StatusCode::OK,
+            badge: Badge::builder()
+                .label(label)
+                .message(message)
+                .logo(B64_IMG)
+                .colour(colour)
+                .build()
+                .render(),
+        }
     }
 
     pub fn internal_error() -> Self {
-        Self::new(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Badge::builder()
+        Self {
+            status: StatusCode::INTERNAL_SERVER_ERROR,
+            badge: Badge::builder()
                 .label("Error")
                 .message("An internal error occurred")
                 .colour(Colour::RED)
                 .build()
                 .render(),
-        )
+        }
     }
 }
 
@@ -67,7 +76,7 @@ impl IntoResponse for BadgeResponse {
                 (header::CONTENT_TYPE, "image/svg+xml"),
                 (header::CACHE_CONTROL, "no-cache, max-age=0, must-revalidate"),
             ],
-            self.svg,
+            self.badge,
         )
             .into_response()
     }
@@ -101,16 +110,7 @@ pub async fn last_seen(State(AppState { stats, pool, .. }): State<AppState>) -> 
         stats.lock().num_visits += 1;
         let _ = conn.incr_visits().await;
     });
-    BadgeResponse::new(
-        StatusCode::OK,
-        Badge::builder()
-            .label("Last Online")
-            .message(&message)
-            .colour(BLUE_MAGENTA)
-            .logo(B64_IMG)
-            .build()
-            .render(),
-    )
+    BadgeResponse::new("Last Online", &message, BLUE_MAGENTA)
 }
 
 #[axum::debug_handler]
@@ -130,15 +130,7 @@ pub async fn total_beats(State(AppState { stats, pool, .. }): State<AppState>) -
         stats.lock().num_visits += 1;
         let _ = conn.incr_visits().await;
     });
-    BadgeResponse::new(
-        StatusCode::OK,
-        Badge::builder()
-            .label("Total Beats")
-            .message(&total_beats)
-            .colour(CORNFLOWER_BLUE)
-            .build()
-            .render(),
-    )
+    BadgeResponse::new("Total Beats", &total_beats, CORNFLOWER_BLUE)
 }
 
 #[cfg(test)]
