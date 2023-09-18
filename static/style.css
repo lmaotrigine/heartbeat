@@ -28,6 +28,7 @@ body {
   background-color: #060606;
   color: #f6f6f6;
   max-height: 100vh;
+  max-width: 100vw;
 }
 
 a {
