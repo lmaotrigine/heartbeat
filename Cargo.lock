@@ -163,9 +163,10 @@ dependencies = [
 [[package]]
 name = "axum-shutdown"
 version = "0.1.0"
-source = "git+https://git.5ht2.me/lmaotrigine/axum-shutdown#d6dd883d3c1132c80921a304374c213def87ec1e"
+source = "git+https://git.5ht2.me/lmaotrigine/axum-shutdown#2b5bd90fe4048645b959a3e86fbf7f5517b6c940"
 dependencies = [
  "axum",
+ "parking_lot",
  "tokio",
 ]
 
@@ -187,7 +188,7 @@ dependencies = [
 [[package]]
 name = "badges"
 version = "0.1.0"
-source = "git+https://github.com/lmaotrigine/badges#c40fca2e5867d11e2a60e8fa1f69913078aa28de"
+source = "git+https://github.com/lmaotrigine/badges#661d56b0e69d43c8591613bff03e6f9018d07b51"
 dependencies = [
  "regex",
 ]
