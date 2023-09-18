@@ -74,7 +74,7 @@ impl IntoResponse for BadgeResponse {
 }
 
 #[axum::debug_handler]
-pub async fn last_seen(State(AppState { pool, .. }): State<AppState>) -> BadgeResponse {
+pub async fn last_seen(State(AppState { stats, pool, .. }): State<AppState>) -> BadgeResponse {
     let Ok(mut conn) = pool.acquire().await.map_err(|e| {
         error!("Failed to acquire connection from pool. {e:?}");
     }) else {
@@ -97,7 +97,10 @@ pub async fn last_seen(State(AppState { pool, .. }): State<AppState>) -> BadgeRe
             format!("{:#}", HumanTime::from(diff))
         },
     );
-    let _ = conn.incr_visits().await;
+    tokio::spawn(async move {
+        stats.lock().num_visits += 1;
+        let _ = conn.incr_visits().await;
+    });
     BadgeResponse::new(
         StatusCode::OK,
         Badge::builder()
@@ -111,7 +114,7 @@ pub async fn last_seen(State(AppState { pool, .. }): State<AppState>) -> BadgeRe
 }
 
 #[axum::debug_handler]
-pub async fn total_beats(State(AppState { pool, .. }): State<AppState>) -> BadgeResponse {
+pub async fn total_beats(State(AppState { stats, pool, .. }): State<AppState>) -> BadgeResponse {
     let Ok(mut conn) = pool.acquire().await.map_err(|e| {
         error!("Failed to acquire connection from pool. {e:?}");
     }) else {
@@ -123,7 +126,10 @@ pub async fn total_beats(State(AppState { pool, .. }): State<AppState>) -> Badge
         .unwrap_or_default()
         .unwrap_or_default()
         .format();
-    let _ = conn.incr_visits().await;
+    tokio::spawn(async move {
+        stats.lock().num_visits += 1;
+        let _ = conn.incr_visits().await;
+    });
     BadgeResponse::new(
         StatusCode::OK,
         Badge::builder()
