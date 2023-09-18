@@ -1,4 +1,4 @@
-ARG RUST_VERSION=1.71.0
+ARG RUST_VERSION=bullseye
 
 FROM rust:${RUST_VERSION} AS base
 RUN cargo install cargo-chef
@@ -9,12 +9,12 @@ COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM base AS build
-ARG FEATURES=badges,webhook
+ARG FEATURES=default
 COPY --from=inter /usr/src/app/recipe.json recipe.json
-ENV PKG_CONFIG_ALLOW_CROSS=1 SQLX_OFFLINE=1 FEATURES=${FEATURES:-default}
-RUN cargo chef cook --release --features ${FEATURES:-default} --bin heartbeat --recipe-path recipe.json
+ENV PKG_CONFIG_ALLOW_CROSS=1 SQLX_OFFLINE=1 FEATURES=${FEATURES}
+RUN cargo chef cook --release --features ${FEATURES} --bin heartbeat --recipe-path recipe.json
 COPY . .
-RUN cargo build --release --features ${FEATURES:-default} --bin heartbeat
+RUN cargo build --release --features ${FEATURES} --bin heartbeat
 
 ####
 

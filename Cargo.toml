@@ -9,6 +9,7 @@ repository = "https://github.com/lmaotrigine/heartbeat"
 homepage = "https://hb.5ht2.me"
 publish = false
 default-run = "heartbeat"
+rust-version = "1.69"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -36,7 +37,7 @@ parking_lot = { version = "0.12" }
 color-eyre = "0.6.2"
 
 [features]
-default = []
+default = ["badges", "webhook"]
 badges = ["dep:badges"]
 webhook = ["reqwest"]
 migrate = ["sqlx/migrate"]

@@ -20,14 +20,13 @@ docker compose up
 
 If you know what you're doing, you can edit the compose file to use, say, a database on a different host/network.
 
-### Pre-built binaries
-
-Pre-built, statically linked binaries are available as compressed archives on the
-[releases page](https://github.com/lmaotrigine/heartbeat/releases)
-
 ### Build from source
 
-See the [optional features](./usage.md#optional-features) section for feature flags.
+You will require a Rust toolchain to build from source. The Minimum Supported Rust Version is 1.69. However, this is
+subject to change at any time, so make sure you have the latest stable toolchain installed anyway. This crate is not
+intended for use as a library, so there is no guarantee for the MSRV.
+
+See the [feature flags](./usage.md#feature-flags) section for feature flags.
 
 ```sh
 cargo build --release # add --feature flags here
