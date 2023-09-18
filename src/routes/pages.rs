@@ -5,7 +5,6 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use crate::{
-    sealed::Connection,
     templates::{index, privacy, stats as stats_template},
     AppState, ConnectionExt,
 };
@@ -18,15 +17,15 @@ pub async fn index_page(
         stats,
         git_hash,
         config,
+        mut pool,
         ..
     }): State<AppState>,
-    mut conn: Connection,
 ) -> (StatusCode, Markup) {
     {
         stats.lock().unwrap().num_visits += 1;
     }
     tokio::spawn(async move {
-        let _ = conn.incr_visits().await;
+        let _ = pool.incr_visits().await;
     });
     (StatusCode::OK, index(&stats.lock().unwrap().clone(), git_hash, &config))
 }
@@ -37,15 +36,15 @@ pub async fn stats_page(
         stats,
         server_start_time,
         config,
+        mut pool,
         ..
     }): State<AppState>,
-    mut conn: Connection,
 ) -> (StatusCode, Markup) {
     {
         stats.lock().unwrap().num_visits += 1;
     }
     tokio::spawn(async move {
-        let _ = conn.incr_visits().await;
+        let _ = pool.incr_visits().await;
     });
     (
         StatusCode::OK,

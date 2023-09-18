@@ -8,7 +8,7 @@ use std::ops::{Deref, DerefMut};
 
 use axum::{extract::FromRequestParts, http::StatusCode};
 use chrono::{DateTime, Utc};
-use sqlx::{pool::PoolConnection, PgConnection, Postgres};
+use sqlx::{pool::PoolConnection, PgConnection, PgPool, Postgres};
 use tracing::error;
 
 use crate::{error::Error, AppState};
@@ -18,6 +18,7 @@ mod private {
 }
 
 impl private::Sealed for PgConnection {}
+impl private::Sealed for PgPool {}
 
 /// Extension trait for [`PgConnection`].
 ///
@@ -110,5 +111,18 @@ impl ConnectionExt for PgConnection {
         .await
         .unwrap_or_default();
         rec.map_or(now, |rec| rec.server_start_time)
+    }
+}
+
+#[axum::async_trait]
+impl ConnectionExt for PgPool {
+    async fn incr_visits(&mut self) -> sqlx::Result<()> {
+        let mut conn = self.acquire().await?;
+        conn.incr_visits().await
+    }
+
+    async fn server_start_time(&mut self) -> DateTime<Utc> {
+        let mut conn = self.acquire().await.unwrap();
+        conn.server_start_time().await
     }
 }
