@@ -45,6 +45,18 @@ impl BResponse {
     pub const fn new(status: StatusCode, svg: String) -> Self {
         Self { svg, status }
     }
+
+    pub fn internal_error() -> Self {
+        Self::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Badge::builder()
+                .label("Error")
+                .message("An internal error occurred")
+                .colour(Colour::RED)
+                .build()
+                .render(),
+        )
+    }
 }
 
 impl IntoResponse for BResponse {
@@ -66,16 +78,7 @@ pub async fn last_seen(State(AppState { pool, .. }): State<AppState>) -> BRespon
     let Ok(mut conn) = pool.acquire().await.map_err(|e| {
         error!("Failed to acquire connection from pool. {e:?}");
     }) else {
-        return BResponse::new(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Badge::builder()
-                .label("Error")
-                .message("An internal error occurred")
-                .colour(Colour::RED)
-                .logo(B64_IMG)
-                .build()
-                .render(),
-        );
+        return BResponse::internal_error();
     };
     let last_seen = sqlx::query_scalar!(
         r#"
@@ -112,15 +115,7 @@ pub async fn total_beats(State(AppState { pool, .. }): State<AppState>) -> BResp
     let Ok(mut conn) = pool.acquire().await.map_err(|e| {
         error!("Failed to acquire connection from pool. {e:?}");
     }) else {
-        return BResponse::new(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Badge::builder()
-                .label("Error")
-                .message("An internal error occurred")
-                .colour(Colour::RED)
-                .build()
-                .render(),
-        );
+        return BResponse::internal_error();
     };
     let total_beats = sqlx::query_scalar!("SELECT SUM(num_beats)::BIGINT AS total_beats FROM heartbeat.devices;")
         .fetch_one(&mut *conn)

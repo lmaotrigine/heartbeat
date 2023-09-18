@@ -13,7 +13,6 @@ use axum::{
     RequestExt,
 };
 use axum_realip::RealIp;
-use core::fmt;
 use tracing::{error, warn};
 
 #[derive(Debug)]
@@ -39,13 +38,6 @@ impl Error {
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn with_reason(self, message: &'static str) -> Self {
         Self { message, ..self }
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let markup = error(self.message, self.method.as_str(), &self.path, &self.server_name);
-        write!(f, "{}", markup.0)
     }
 }
 

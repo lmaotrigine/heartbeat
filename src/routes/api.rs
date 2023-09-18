@@ -11,6 +11,7 @@ use crate::{
     error::Error,
     guards::{AuthInfo, Authorized},
     models::{Device, PostDevice},
+    sealed::Connection,
     util::{generate_token, Snowflake, SnowflakeGenerator},
     AppState,
 };
@@ -56,14 +57,11 @@ async fn fire_webhook(state: AppState, title: &str, message: &str, level: Webhoo
 }
 
 #[axum::debug_handler]
-pub async fn handle_beat_req(State(state): State<AppState>, info: AuthInfo) -> (StatusCode, String) {
-    let mut conn = match state.pool.acquire().await.map_err(|e| {
-        error!("Failed to acquire connection from pool. {e:?}");
-        StatusCode::INTERNAL_SERVER_ERROR
-    }) {
-        Ok(x) => x,
-        Err(e) => return (e, "-1".into()),
-    };
+pub async fn handle_beat_req(
+    State(state): State<AppState>,
+    info: AuthInfo,
+    mut conn: Connection,
+) -> (StatusCode, String) {
     let now = Utc::now();
     let prev_beat = sqlx::query!(
         r#"
@@ -84,7 +82,7 @@ pub async fn handle_beat_req(State(state): State<AppState>, info: AuthInfo) -> (
         now,
         info.id
     )
-    .fetch_optional(&mut *conn)
+    .fetch_optional(&mut **conn)
     .await
     .unwrap_or_else(|e| {
         error!("Failed to update database on successful beat: {e:?}");
@@ -116,7 +114,7 @@ pub async fn handle_beat_req(State(state): State<AppState>, info: AuthInfo) -> (
                 r#"UPDATE heartbeat.stats SET longest_absence = $1 WHERE _id = 0;"#,
                 pg_diff
             )
-            .execute(&mut *conn)
+            .execute(&mut **conn)
             .await;
         }
         if diff.num_hours() >= 1 {
@@ -194,6 +192,7 @@ async fn stream_stats(app_state: AppState, mut ws: WebSocket) {
 pub async fn post_device(
     _auth: Authorized,
     State(state): State<AppState>,
+    mut conn: Connection,
     Json(device): Json<PostDevice>,
 ) -> (StatusCode, Json<impl Serialize>) {
     #[derive(Serialize)]
@@ -202,22 +201,6 @@ pub async fn post_device(
         name: Option<String>,
         token: String,
     }
-    let mut conn = match state.pool.acquire().await.map_err(|e| {
-        error!("Failed to acquire connection from pool. {e:?}");
-        StatusCode::INTERNAL_SERVER_ERROR
-    }) {
-        Ok(x) => x,
-        Err(e) => {
-            return (
-                e,
-                Json(DeviceAddResp {
-                    id: -1,
-                    name: None,
-                    token: String::new(),
-                }),
-            )
-        }
-    };
     let id = SnowflakeGenerator::default().generate();
     let res = match sqlx::query!(
         r#"INSERT INTO heartbeat.devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;"#,
@@ -225,7 +208,7 @@ pub async fn post_device(
         device.name,
         generate_token(id),
     )
-    .fetch_one(&mut *conn)
+    .fetch_one(&mut **conn)
     .await
     {
         Ok(record) => record,
@@ -277,6 +260,7 @@ pub async fn post_device(
 pub async fn regenerate_device_token(
     _auth: Authorized,
     State(state): State<AppState>,
+    mut conn: Connection,
     Path(device_id): Path<i64>,
     method: axum::http::Method,
     uri: axum::http::Uri,
@@ -288,19 +272,11 @@ pub async fn regenerate_device_token(
         token: String,
     }
 
-    let mut conn = match state.pool.acquire().await.map_err(|e| {
-        error!("Failed to acquire connection from pool. {e:?}");
-        StatusCode::INTERNAL_SERVER_ERROR
-    }) {
-        Ok(x) => x,
-        Err(e) => return Err(Error::new(uri.path(), &method, e, &state.config.server_name)),
-    };
-
     let found = sqlx::query_scalar!(
         "SELECT EXISTS(SELECT 1 FROM heartbeat.devices WHERE id = $1);",
         device_id
     )
-    .fetch_one(&mut *conn)
+    .fetch_one(&mut **conn)
     .await
     .map_err(|e| {
         error!("Failed to check if device exists: {e:?}");
@@ -327,7 +303,7 @@ pub async fn regenerate_device_token(
         token,
         device_id
     )
-    .fetch_one(&mut *conn)
+    .fetch_one(&mut **conn)
     .await
     .map_err(|e| {
         error!("Failed to update device token: {e:?}");

@@ -23,7 +23,7 @@ impl FromRequestParts<AppState> for AuthInfo {
     type Rejection = Error;
 
     async fn from_request_parts(req: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
-        let Some(token) = req.headers.get("Authorization") else {
+        let Some(token) = req.headers.get("Authorization").and_then(|t| t.to_str().ok()) else {
             return Err(Error::new(
                 req.uri.path(),
                 &req.method,
@@ -45,7 +45,7 @@ impl FromRequestParts<AppState> for AuthInfo {
         sqlx::query_as!(
             AuthInfo,
             "SELECT id, name FROM heartbeat.devices WHERE token = $1;",
-            token.to_str().unwrap_or_default()
+            token
         )
         .fetch_one(&mut *conn)
         .await
