@@ -27,7 +27,7 @@ body {
   padding: 2.5em;
   background-color: #060606;
   color: #f6f6f6;
-  height: 100vh;
+  max-height: 100vh;
 }
 
 a {
