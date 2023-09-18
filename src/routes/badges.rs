@@ -36,12 +36,12 @@ const B64_IMG: &str = concat!(
 const BLUE_MAGENTA: Colour = Colour::from_rgb(136, 126, 224);
 const CORNFLOWER_BLUE: Colour = Colour::from_rgb(100, 149, 237);
 
-pub struct BResponse {
+pub struct BadgeResponse {
     svg: String,
     status: StatusCode,
 }
 
-impl BResponse {
+impl BadgeResponse {
     pub const fn new(status: StatusCode, svg: String) -> Self {
         Self { svg, status }
     }
@@ -59,7 +59,7 @@ impl BResponse {
     }
 }
 
-impl IntoResponse for BResponse {
+impl IntoResponse for BadgeResponse {
     fn into_response(self) -> Response {
         (
             self.status,
@@ -74,11 +74,11 @@ impl IntoResponse for BResponse {
 }
 
 #[axum::debug_handler]
-pub async fn last_seen(State(AppState { pool, .. }): State<AppState>) -> BResponse {
+pub async fn last_seen(State(AppState { pool, .. }): State<AppState>) -> BadgeResponse {
     let Ok(mut conn) = pool.acquire().await.map_err(|e| {
         error!("Failed to acquire connection from pool. {e:?}");
     }) else {
-        return BResponse::internal_error();
+        return BadgeResponse::internal_error();
     };
     let last_seen = sqlx::query_scalar!(
         r#"
@@ -98,7 +98,7 @@ pub async fn last_seen(State(AppState { pool, .. }): State<AppState>) -> BRespon
         },
     );
     let _ = conn.incr_visits().await;
-    BResponse::new(
+    BadgeResponse::new(
         StatusCode::OK,
         Badge::builder()
             .label("Last Online")
@@ -111,11 +111,11 @@ pub async fn last_seen(State(AppState { pool, .. }): State<AppState>) -> BRespon
 }
 
 #[axum::debug_handler]
-pub async fn total_beats(State(AppState { pool, .. }): State<AppState>) -> BResponse {
+pub async fn total_beats(State(AppState { pool, .. }): State<AppState>) -> BadgeResponse {
     let Ok(mut conn) = pool.acquire().await.map_err(|e| {
         error!("Failed to acquire connection from pool. {e:?}");
     }) else {
-        return BResponse::internal_error();
+        return BadgeResponse::internal_error();
     };
     let total_beats = sqlx::query_scalar!("SELECT SUM(num_beats)::BIGINT AS total_beats FROM heartbeat.devices;")
         .fetch_one(&mut *conn)
@@ -124,7 +124,7 @@ pub async fn total_beats(State(AppState { pool, .. }): State<AppState>) -> BResp
         .unwrap_or_default()
         .format();
     let _ = conn.incr_visits().await;
-    BResponse::new(
+    BadgeResponse::new(
         StatusCode::OK,
         Badge::builder()
             .label("Total Beats")

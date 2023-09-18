@@ -20,14 +20,15 @@ use axum::{
     Router,
 };
 #[cfg(feature = "badges")]
-use badge::{last_seen, total_beats};
+use badge_routes::{last_seen, total_beats};
 use pages::{index_page, privacy_page, stats_page};
 
 use self::shutdown::deploy;
 
 mod api;
 #[cfg(feature = "badges")]
-mod badge;
+#[path = "badges.rs"]
+mod badge_routes;
 mod pages;
 mod shutdown;
 
