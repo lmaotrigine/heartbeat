@@ -1,15 +1,15 @@
 #![forbid(unsafe_code)]
-#![deny(clippy::all, clippy::pedantic, clippy::nursery, missing_docs)]
+#![deny(missing_docs, clippy::all, clippy::pedantic, clippy::nursery, clippy::unwrap_used)]
 #![allow(clippy::cast_precision_loss)] // quote from the docs: "this isn't bad at all"
 
 //! A server to keep a live heartbeat (ping) of your devices.
 
 use axum::extract::FromRef;
 use chrono::{DateTime, Utc};
-pub use sealed::ConnectionExt;
+use parking_lot::Mutex;
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use stats::Stats;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 mod config;
 mod error;
@@ -24,6 +24,7 @@ pub mod routes;
 
 pub use config::Config;
 pub use error::handle_errors;
+pub use sealed::{ConnectionExt, PoolExt};
 
 /// Global application state.
 #[derive(Debug, Clone, FromRef)]

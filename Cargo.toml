@@ -32,6 +32,8 @@ toml = "0.7"
 tower-http = { version = "0.4", features = ["fs"] }
 tracing-subscriber = "0.3"
 tracing = "0.1"
+parking_lot = { version = "0.12" }
+color-eyre = "0.6.2"
 
 [features]
 default = []

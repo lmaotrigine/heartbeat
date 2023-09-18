@@ -6,7 +6,7 @@
 
 use crate::{
     templates::{index, privacy, stats as stats_template},
-    AppState, ConnectionExt,
+    AppState, PoolExt,
 };
 use axum::{extract::State, http::StatusCode};
 use html::Markup;
@@ -22,7 +22,7 @@ pub async fn index_page(
     }): State<AppState>,
 ) -> (StatusCode, Markup) {
     let stats = {
-        let mut guard = stats.lock().unwrap();
+        let mut guard = stats.lock();
         guard.num_visits += 1;
         guard.clone()
     };
@@ -43,7 +43,7 @@ pub async fn stats_page(
     }): State<AppState>,
 ) -> (StatusCode, Markup) {
     let stats = {
-        let mut guard = stats.lock().unwrap();
+        let mut guard = stats.lock();
         guard.num_visits += 1;
         guard.clone()
     };

@@ -5,10 +5,17 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #![forbid(unsafe_code)]
-#![deny(clippy::all, clippy::pedantic, clippy::nursery)]
+#![deny(
+    clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::unwrap_in_result,
+    clippy::unwrap_used
+)]
 
 use axum::{middleware, Extension, Server};
 use axum_shutdown::Shutdown;
+use color_eyre::eyre::Result;
 use std::net::SocketAddr;
 use tower_http::services::ServeDir;
 use tracing::{span, warn, Instrument, Level};
@@ -16,10 +23,11 @@ use tracing::{span, warn, Instrument, Level};
 use heartbeat::{handle_errors, routes::router, AppState, Config};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
+    color_eyre::install()?;
     let config = Config::try_new().expect("failed to load config file");
-    let bind = config.bind.parse::<SocketAddr>().unwrap();
+    let bind = config.bind.parse::<SocketAddr>()?;
     let router = router(&config);
     let app_state = AppState::from_config(config).await;
     let (shutdown, signal) = Shutdown::new();
@@ -36,10 +44,9 @@ async fn main() {
         }
         warn!("Initiating graceful shutdown");
     };
-    Server::bind(&bind)
+    Ok(Server::bind(&bind)
         .serve(router.into_make_service_with_connect_info::<SocketAddr>())
         .with_graceful_shutdown(graceful_shutdown)
         .instrument(span!(Level::INFO, "server"))
-        .await
-        .unwrap();
+        .await?)
 }

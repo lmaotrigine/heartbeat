@@ -9,6 +9,7 @@ use hmac::{Hmac, Mac};
 use serde_json::Value;
 use sha2::Sha256;
 use std::{borrow::Cow, str::FromStr};
+use tracing::error;
 
 const HEX_CHARS: &[u8; 16] = b"0123456789abcdef";
 
@@ -115,27 +116,30 @@ pub async fn deploy(
     shutdown: Shutdown,
     request_secret: Secret,
     body: Bytes,
-) -> (StatusCode, Cow<'static, str>) {
+) -> Result<(StatusCode, Cow<'static, str>), (StatusCode, Cow<'static, str>)> {
     let secret = match config.github.webhook_secret.as_ref() {
         Some(s) => s.as_bytes(),
-        None => return (StatusCode::SERVICE_UNAVAILABLE, "No secret configured".into()),
+        None => return Err((StatusCode::SERVICE_UNAVAILABLE, "No secret configured".into())),
     };
     let sha = Hmac::<Sha256>::new_from_slice(secret)
-        .unwrap()
+        .map_err(|e| {
+            error!("Failed to create HMAC: {e:?}");
+            (StatusCode::INTERNAL_SERVER_ERROR, "An internal error occurred.".into())
+        })?
         .with_data(body.as_ref())
         .finalize()
         .into_bytes()
         .encode_hex::<String>();
     if sha != request_secret.value() {
-        return (StatusCode::UNAUTHORIZED, "Invalid signature".into());
+        return Err((StatusCode::UNAUTHORIZED, "Invalid signature".into()));
     }
     let raw = String::from_utf8_lossy(body.as_ref());
     let payload = match Value::from_str(&raw) {
-        Err(_) => return (StatusCode::BAD_REQUEST, "Invalid JSON in request body".into()),
+        Err(_) => return Err((StatusCode::BAD_REQUEST, "Invalid JSON in request body".into())),
         Ok(v) => v,
     };
     if payload["action"] == "completed" && payload["workflow_run"]["name"] == ".github/workflows/docker.yml" {
         shutdown.notify();
     }
-    (StatusCode::OK, "".into())
+    Ok((StatusCode::OK, "".into()))
 }

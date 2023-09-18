@@ -92,7 +92,7 @@ pub async fn handle_beat_req(
         let diff = now - record.time_stamp;
         let update_longest_absence = {
             let mut ret = false;
-            let mut w = state.stats.lock().unwrap();
+            let mut w = state.stats.lock();
             if diff > w.longest_absence {
                 w.longest_absence = diff;
                 ret = true;
@@ -153,7 +153,7 @@ fn _get_stats(state: &AppState) -> impl Serialize {
         devices: Vec<Device>,
         uptime: i64,
     }
-    let r = { state.stats.lock().unwrap().clone() };
+    let r = state.stats.lock().clone();
     let last_seen_relative = (Utc::now() - r.last_seen.unwrap_or_else(|| UNIX_EPOCH.into())).num_seconds();
     StatsResp {
         last_seen: r.last_seen.map(|x| x.timestamp()),
@@ -183,7 +183,9 @@ pub async fn realtime_stats(ws: WebSocketUpgrade, State(state): State<AppState>)
 async fn stream_stats(app_state: AppState, mut ws: WebSocket) {
     loop {
         let stats = _get_stats(&app_state);
-        let _ = ws.send(Message::Text(serde_json::to_string(&stats).unwrap())).await;
+        let _ = ws
+            .send(Message::Text(serde_json::to_string(&stats).unwrap_or_default()))
+            .await;
         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
     }
 }
@@ -225,7 +227,7 @@ pub async fn post_device(
         }
     };
     {
-        let mut w = state.stats.lock().unwrap();
+        let mut w = state.stats.lock();
         w.devices.push(Device {
             id: res.id,
             name: res.name.clone(),

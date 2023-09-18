@@ -59,7 +59,9 @@ impl std::fmt::Display for Snowflake {
 }
 
 pub fn ts() -> u64 {
-    let t = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let t = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("broken system clock");
     t.as_secs() * 1000 + (u64::from(t.subsec_nanos())) / 1_000_000
 }
 

@@ -1,10 +1,11 @@
 #![forbid(unsafe_code)]
 #![deny(clippy::all, clippy::pedantic, clippy::nursery)]
 
+use color_eyre::eyre::Result;
 use serde::Deserialize;
 use sqlx::PgPool;
 use std::{env, fs::read_to_string};
-use tracing::{error, info};
+use tracing::info;
 
 #[derive(Deserialize)]
 struct Config {
@@ -16,45 +17,10 @@ struct Dsn {
     dsn: String,
 }
 
-#[derive(Debug)]
-enum Error {
-    Sqlx(sqlx::Error),
-    Migration(sqlx::migrate::MigrateError),
-    Io(std::io::Error),
-    Toml(toml::de::Error),
-}
-
-impl From<sqlx::Error> for Error {
-    fn from(error: sqlx::Error) -> Self {
-        Self::Sqlx(error)
-    }
-}
-
-impl From<sqlx::migrate::MigrateError> for Error {
-    fn from(error: sqlx::migrate::MigrateError) -> Self {
-        Self::Migration(error)
-    }
-}
-
-impl From<std::io::Error> for Error {
-    fn from(error: std::io::Error) -> Self {
-        Self::Io(error)
-    }
-}
-
-impl From<toml::de::Error> for Error {
-    fn from(error: toml::de::Error) -> Self {
-        Self::Toml(error)
-    }
-}
-
 #[tokio::main]
-async fn main() {
-    migrate().await.unwrap_or_else(|e| error!("{e:?}"));
-}
-
-async fn migrate() -> Result<(), Error> {
+async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
+    color_eyre::install()?;
     let dsn = if let Ok(dsn) = env::var("DATABASE_URL") {
         dsn
     } else {

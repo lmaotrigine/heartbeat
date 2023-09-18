@@ -144,7 +144,7 @@ mod tests {
     #[test]
     fn test_my_manual_typing_actually_matches_the_image() {
         assert_eq!(
-            Base64Unpadded::encode(IMG_BYTES, &mut [0u8; BUFFER_SIZE]).unwrap(),
+            Base64Unpadded::encode(IMG_BYTES, &mut [0u8; BUFFER_SIZE]).expect("buffer overflow"),
             &B64_IMG["data:image/png;base64,".len()..],
         );
     }

@@ -31,6 +31,15 @@ pub trait ConnectionExt: private::Sealed {
     async fn server_start_time(&mut self) -> DateTime<Utc>;
 }
 
+/// Extension trait for [`PgPool`].
+///
+/// This is similar to [`ConnectionExt`].
+#[axum::async_trait]
+pub trait PoolExt: private::Sealed {
+    /// Increment the number of visits to the site.
+    async fn incr_visits(&mut self) -> sqlx::Result<()>;
+}
+
 pub struct Connection(PoolConnection<Postgres>);
 
 impl Deref for Connection {
@@ -95,7 +104,7 @@ impl ConnectionExt for PgConnection {
 
     async fn server_start_time(&mut self) -> DateTime<Utc> {
         let now = Utc::now();
-        let rec = sqlx::query!(
+        sqlx::query_scalar!(
             r#"
             WITH dummy AS (
                 INSERT INTO heartbeat.stats (_id)
@@ -109,20 +118,15 @@ impl ConnectionExt for PgConnection {
         )
         .fetch_optional(self)
         .await
-        .unwrap_or_default();
-        rec.map_or(now, |rec| rec.server_start_time)
+        .unwrap_or_default()
+        .unwrap_or(now)
     }
 }
 
 #[axum::async_trait]
-impl ConnectionExt for PgPool {
+impl PoolExt for PgPool {
     async fn incr_visits(&mut self) -> sqlx::Result<()> {
         let mut conn = self.acquire().await?;
         conn.incr_visits().await
-    }
-
-    async fn server_start_time(&mut self) -> DateTime<Utc> {
-        let mut conn = self.acquire().await.unwrap();
-        conn.server_start_time().await
     }
 }
