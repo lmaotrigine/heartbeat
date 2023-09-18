@@ -6,7 +6,6 @@
 
 use crate::{
     sealed::Connection,
-    stats::Stats,
     templates::{index, privacy, stats as stats_template},
     AppState, ConnectionExt,
 };
@@ -26,11 +25,10 @@ pub async fn index_page(
     {
         stats.lock().unwrap().num_visits += 1;
     }
-    let _ = conn.incr_visits().await;
-    (
-        StatusCode::OK,
-        index(&Stats::fetch(conn.into()).await, git_hash, &config),
-    )
+    tokio::spawn(async move {
+        let _ = conn.incr_visits().await;
+    });
+    (StatusCode::OK, index(&stats.lock().unwrap().clone(), git_hash, &config))
 }
 
 #[axum::debug_handler]
@@ -46,9 +44,13 @@ pub async fn stats_page(
     {
         stats.lock().unwrap().num_visits += 1;
     }
-    let _ = conn.incr_visits().await;
-    let stats = Stats::fetch(conn.into()).await;
-    (StatusCode::OK, stats_template(&stats, &config, server_start_time))
+    tokio::spawn(async move {
+        let _ = conn.incr_visits().await;
+    });
+    (
+        StatusCode::OK,
+        stats_template(&stats.lock().unwrap().clone(), &config, server_start_time),
+    )
 }
 
 #[axum::debug_handler]
