@@ -21,13 +21,15 @@ pub async fn index_page(
         ..
     }): State<AppState>,
 ) -> (StatusCode, Markup) {
-    {
-        stats.lock().unwrap().num_visits += 1;
-    }
+    let stats = {
+        let mut guard = stats.lock().unwrap();
+        guard.num_visits += 1;
+        guard.clone()
+    };
     tokio::spawn(async move {
         let _ = pool.incr_visits().await;
     });
-    (StatusCode::OK, index(&stats.lock().unwrap().clone(), git_hash, &config))
+    (StatusCode::OK, index(&stats, git_hash, &config))
 }
 
 #[axum::debug_handler]
@@ -40,16 +42,15 @@ pub async fn stats_page(
         ..
     }): State<AppState>,
 ) -> (StatusCode, Markup) {
-    {
-        stats.lock().unwrap().num_visits += 1;
-    }
+    let stats = {
+        let mut guard = stats.lock().unwrap();
+        guard.num_visits += 1;
+        guard.clone()
+    };
     tokio::spawn(async move {
         let _ = pool.incr_visits().await;
     });
-    (
-        StatusCode::OK,
-        stats_template(&stats.lock().unwrap().clone(), &config, server_start_time),
-    )
+    (StatusCode::OK, stats_template(&stats, &config, server_start_time))
 }
 
 #[axum::debug_handler]
