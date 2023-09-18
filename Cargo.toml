@@ -29,7 +29,7 @@ sha2 = "0.10"
 sqlx = { version = "0.7", features = ["chrono", "macros", "postgres", "runtime-tokio"], default-features = false }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
 toml = "0.7"
-tower-http = { version = "0.4", features = ["fs"] }
+tower-http = { version = "0.4", features = ["fs", "trace"] }
 tracing-subscriber = "0.3"
 tracing = "0.1"
 parking_lot = { version = "0.12" }

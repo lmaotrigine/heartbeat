@@ -44,31 +44,25 @@ impl AppState {
     /// This consumes the [`Config`] and should thus only be called after constructing
     /// all other components that take a reference to the [`Config`].
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// In terms of error handling, this function just bails.
-    /// This is because it is assumed that all subsequent usage is invalid without a valid
-    /// state.
-    ///
-    /// It will panic if the database
-    /// pool could not be created, or (for some reason), fetching the stats using the pool
-    /// fails.
-    pub async fn from_config(config: Config) -> Self {
+    /// This function will return an error if the database pool could not be created, or
+    /// (for some reason), fetching the stats using the pool fails.
+    pub async fn from_config(config: Config) -> sqlx::Result<Self> {
         #[cfg(feature = "webhook")]
         let webhook = util::Webhook::new(config.webhook.clone());
         let pool = PgPoolOptions::default()
             .max_connections(10)
             .connect(&config.database.dsn)
-            .await
-            .expect("create database pool to not fail");
+            .await?;
         let (server_start_time, stats) = {
-            let mut conn = pool.acquire().await.expect("wtf literally the first connection");
+            let mut conn = pool.acquire().await?;
             (
                 conn.server_start_time().await,
                 Arc::new(Mutex::new(Stats::fetch(conn).await)),
             )
         };
-        Self {
+        Ok(Self {
             stats,
             pool,
             config,
@@ -76,6 +70,6 @@ impl AppState {
             #[cfg(feature = "webhook")]
             webhook,
             server_start_time,
-        }
+        })
     }
 }

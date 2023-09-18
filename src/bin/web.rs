@@ -17,7 +17,10 @@ use axum::{middleware, Extension, Server};
 use axum_shutdown::Shutdown;
 use color_eyre::eyre::Result;
 use std::net::SocketAddr;
-use tower_http::services::ServeDir;
+use tower_http::{
+    services::ServeDir,
+    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
+};
 use tracing::{span, warn, Instrument, Level};
 
 use heartbeat::{handle_errors, routes::router, AppState, Config};
@@ -26,15 +29,19 @@ use heartbeat::{handle_errors, routes::router, AppState, Config};
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
     color_eyre::install()?;
-    let config = Config::try_new().expect("failed to load config file");
+    let config = Config::try_new()?;
     let bind = config.bind.parse::<SocketAddr>()?;
     let router = router(&config);
-    let app_state = AppState::from_config(config).await;
+    let app_state = AppState::from_config(config).await?;
     let (shutdown, signal) = Shutdown::new();
+    let trace_service = TraceLayer::new_for_http()
+        .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
+        .on_response(DefaultOnResponse::new().level(Level::INFO));
     let router = router
         .with_state(app_state.clone())
         .fallback_service(ServeDir::new("static/"))
         .layer(middleware::from_fn_with_state(app_state, handle_errors))
+        .layer(trace_service)
         .layer(Extension(shutdown));
     #[allow(clippy::redundant_pub_crate)]
     let graceful_shutdown = async {
