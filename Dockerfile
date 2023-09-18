@@ -1,4 +1,4 @@
-ARG RUST_VERSION=bullseye
+ARG RUST_VERSION=latest
 
 FROM rust:${RUST_VERSION} AS base
 RUN cargo install cargo-chef
@@ -18,7 +18,7 @@ RUN cargo build --release --features ${FEATURES} --bin heartbeat
 
 ####
 
-FROM gcr.io/distroless/cc-debian11
+FROM gcr.io/distroless/cc-debian12
 
 ARG RUST_LOG=info
 
