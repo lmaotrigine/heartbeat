@@ -12,7 +12,7 @@ use crate::{
 use chrono::{DateTime, Utc};
 use html::{html, Markup, PreEscaped, DOCTYPE};
 
-fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Option<Markup>) -> Markup {
+fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Option<Markup>, body: &Markup) -> Markup {
     let title = title.as_ref();
     html! {
         (DOCTYPE)
@@ -55,14 +55,14 @@ fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Opti
                     (extra_head)
                 }
             }
+            (body)
         }
     }
 }
 
 pub fn error(message: impl AsRef<str>, method: &str, path: &str, server_name: &str) -> Markup {
     let message = message.as_ref();
-    html! {
-        (base(format!("{message} - {server_name}"), true, None))
+    let body = html! {
         body {
             div.spacer {}
             div.privacy {
@@ -85,7 +85,8 @@ pub fn error(message: impl AsRef<str>, method: &str, path: &str, server_name: &s
                 div.grid-cell {}
             }
         }
-    }
+    };
+    base(format!("{message} - {server_name}"), true, None, &body)
 }
 
 pub fn index(stats: &Stats, commit: &str, config: &Config) -> Markup {
@@ -105,8 +106,7 @@ Due to caching, you will have to check the website if the embed generation time 
         (PreEscaped(format!(r#"<script type="module">{}</script>"#, include_str!("./script.mjs"))))
     });
     let href = format!("{}/tree/{}", config.repo, commit);
-    html! {
-        (base(config.server_name.clone(), true, extra_head))
+    let body = html! {
         body {
             div.spacer {}
             div.preamble {
@@ -185,12 +185,12 @@ Due to caching, you will have to check the website if the embed generation time 
                 div.grid-cell {}
             }
         }
-    }
+    };
+    base(config.server_name.clone(), true, extra_head, &body)
 }
 
 pub fn privacy(config: &Config) -> Markup {
-    html! {
-        (base(format!("Privacy Policy - {}", config.server_name), true, None))
+    let body = html! {
         body {
             div.spacer {}
             div.privacy {
@@ -238,7 +238,8 @@ pub fn privacy(config: &Config) -> Markup {
                 div.grid-cell {}
             }
         }
-    }
+    };
+    base(format!("Privacy Policy - {}", config.server_name), true, None, &body)
 }
 
 pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -> Markup {
@@ -250,8 +251,7 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
         (PreEscaped(format!(r#"<script type="module">{}</script>"#, include_str!("./script.mjs"))))
     };
     let uptime = server_start_time.signed_duration_since(Utc::now());
-    html! {
-        (base(format!("Stats - {}", config.server_name), true, Some(head)))
+    let body = html! {
         body {
             div.spacer {}
             div.preamble {
@@ -320,5 +320,6 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
                 div.grid-cell {}
             }
         }
-    }
+    };
+    base(format!("Stats - {}", config.server_name), true, Some(head), &body)
 }
