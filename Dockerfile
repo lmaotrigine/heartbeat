@@ -1,18 +1,21 @@
 ARG RUST_VERSION=bullseye
 
-FROM rust:${RUST_VERSION} AS base
-RUN cargo install cargo-chef
+FROM rust:${RUST_VERSION} AS build
+
 WORKDIR /usr/src/app
 
-FROM base AS inter
-COPY . .
-RUN cargo chef prepare --recipe-path recipe.json
+COPY Cargo.toml Cargo.lock ./
 
-FROM base AS build
 ARG FEATURES=default
-COPY --from=inter /usr/src/app/recipe.json recipe.json
 ENV PKG_CONFIG_ALLOW_CROSS=1 SQLX_OFFLINE=1 FEATURES=${FEATURES}
-RUN cargo chef cook --release --features ${FEATURES} --bin heartbeat --recipe-path recipe.json
+## Explicitly build dependencies to cache them
+RUN \
+  set -eux; \
+  mkdir -p src/bin; \
+  echo 'fn main() {println!("If you see this, the build broke.")}' \
+    | tee src/bin/web.rs src/bin/migrate_db.rs > src/bin/generate_secret.rs; \
+  cargo build --release --features ${FEATURES} --bin heartbeat
+## Build the actual binary
 COPY . .
 RUN cargo build --release --features ${FEATURES} --bin heartbeat
 
