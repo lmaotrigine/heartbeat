@@ -12,9 +12,9 @@ use stats::Stats;
 use std::sync::Arc;
 
 mod config;
+mod devices;
 mod error;
 mod guards;
-mod models;
 mod sealed;
 mod stats;
 mod templates;

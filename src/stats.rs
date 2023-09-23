@@ -4,20 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use crate::{
-    models::Device,
-    util::serde::{duration, ts},
-};
+use crate::devices::Device;
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
 use sqlx::{pool::PoolConnection, Postgres};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone)]
 pub struct Stats {
-    #[serde(serialize_with = "ts::serialize")]
     pub last_seen: Option<chrono::DateTime<chrono::Utc>>,
     pub devices: Vec<Device>,
-    #[serde(with = "duration")]
     pub longest_absence: chrono::Duration,
     pub num_visits: i64,
     pub total_beats: i64,

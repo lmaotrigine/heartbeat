@@ -8,9 +8,9 @@
 use crate::util::WebhookColour;
 use crate::{
     config::WebhookLevel,
+    devices::{Device, PostDevice},
     error::Error,
     guards::{AuthInfo, Authorized},
-    models::{Device, PostDevice},
     sealed::Connection,
     util::{generate_token, Snowflake, SnowflakeGenerator},
     AppState,

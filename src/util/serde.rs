@@ -17,22 +17,3 @@ pub mod ts {
         }
     }
 }
-
-pub mod duration {
-    use serde::Deserialize;
-
-    pub fn serialize<S>(duration: &chrono::Duration, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_i64(duration.num_seconds())
-    }
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<chrono::Duration, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let seconds = i64::deserialize(deserializer)?;
-        Ok(chrono::Duration::seconds(seconds))
-    }
-}

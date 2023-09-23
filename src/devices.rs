@@ -5,21 +5,13 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use crate::util::serde::ts;
-use chrono::serde::ts_seconds;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize)]
-pub struct Beat {
-    #[serde(with = "ts_seconds")]
-    time_stamp: chrono::DateTime<chrono::Utc>,
-    device: Device,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Device {
     pub id: i64,
     pub name: Option<String>,
-    #[serde(serialize_with = "ts::serialize")]
+    #[serde(with = "ts")]
     pub last_beat: Option<chrono::DateTime<chrono::Utc>>,
     pub num_beats: i64,
 }
