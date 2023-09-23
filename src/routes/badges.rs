@@ -33,8 +33,8 @@ const B64_IMG: &str = concat!(
     "QmCC",
 );
 
-const BLUE_MAGENTA: Colour = Colour::from_rgb(136, 126, 224);
-const CORNFLOWER_BLUE: Colour = Colour::from_rgb(100, 149, 237);
+const BLUE_MAGENTA: Colour = Colour::from_colour_code(0x88_7e_e0);
+const ERROR: Colour = Colour::from_colour_code(0xe0_5d_44);
 
 pub struct BadgeResponse {
     badge: String,
@@ -61,7 +61,7 @@ impl BadgeResponse {
             badge: Badge::builder()
                 .label("Error")
                 .message("An internal error occurred")
-                .colour(Colour::RED)
+                .colour(ERROR)
                 .build()
                 .render(),
         }
@@ -130,7 +130,7 @@ pub async fn total_beats(State(AppState { stats, pool, .. }): State<AppState>) -
         stats.lock().num_visits += 1;
         let _ = conn.incr_visits().await;
     });
-    BadgeResponse::new("Total Beats", &total_beats, CORNFLOWER_BLUE)
+    BadgeResponse::new("Total Beats", &total_beats, Colour::CORNFLOWER_BLUE)
 }
 
 #[cfg(test)]
