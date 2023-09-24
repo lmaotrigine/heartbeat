@@ -27,7 +27,7 @@ use chrono::Utc;
 use serde::Serialize;
 use sqlx::postgres::types::PgInterval;
 use std::time::UNIX_EPOCH;
-use tracing::error;
+use tracing::{error, info};
 
 #[allow(unused_variables)]
 async fn fire_webhook(state: AppState, title: &str, message: &str, level: WebhookLevel) {
@@ -122,15 +122,12 @@ pub async fn handle_beat_req(State(state): State<AppState>, info: DeviceAuth) ->
             .await;
         }
     }
+    let name = info.name.unwrap_or_else(|| format!("<unknown> ({})", info.id));
+    info!(id = %info.id, "Successful beat from device {name}");
     fire_webhook(
         state,
         "Successful beat",
-        &format!(
-            "From `{}` on <t:{}:D> at <t:{}:T>",
-            info.name.unwrap_or_else(|| "unknown device".into()),
-            now.timestamp(),
-            now.timestamp()
-        ),
+        &format!("From `{name}` on <t:{0}:D> at <t:{0}:T>", now.timestamp()),
         WebhookLevel::All,
     )
     .await;
