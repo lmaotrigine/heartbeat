@@ -17,7 +17,7 @@ pub async fn index_page(
         stats,
         git_hash,
         config,
-        mut pool,
+        pool,
         ..
     }): State<AppState>,
 ) -> (StatusCode, Markup) {
@@ -38,7 +38,7 @@ pub async fn stats_page(
         stats,
         server_start_time,
         config,
-        mut pool,
+        pool,
         ..
     }): State<AppState>,
 ) -> (StatusCode, Markup) {

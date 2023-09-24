@@ -24,7 +24,7 @@ pub mod routes;
 
 pub use config::Config;
 pub use error::handle_errors;
-pub use sealed::{ConnectionExt, PoolExt};
+pub use sealed::PoolExt;
 
 /// Global application state.
 #[derive(Debug, Clone, FromRef)]
@@ -56,10 +56,9 @@ impl AppState {
             .connect(&config.database.dsn)
             .await?;
         let (server_start_time, stats) = {
-            let mut conn = pool.acquire().await?;
             (
-                conn.server_start_time().await,
-                Arc::new(Mutex::new(Stats::fetch(conn).await)),
+                pool.server_start_time().await,
+                Arc::new(Mutex::new(Stats::fetch(&pool).await)),
             )
         };
         Ok(Self {

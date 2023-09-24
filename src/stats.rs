@@ -6,7 +6,7 @@
 
 use crate::devices::Device;
 use chrono::Utc;
-use sqlx::{pool::PoolConnection, Postgres};
+use sqlx::PgPool;
 
 #[derive(Debug, Clone)]
 pub struct Stats {
@@ -18,7 +18,7 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub async fn fetch(mut conn: PoolConnection<Postgres>) -> Self {
+    pub async fn fetch(pool: &PgPool) -> Self {
         let devs = sqlx::query!(
             r#"
     WITH b AS (
@@ -33,14 +33,14 @@ impl Stats {
     GROUP BY d.id
     "#
         )
-        .fetch_all(&mut *conn)
+        .fetch_all(pool)
         .await
         .unwrap_or_default();
         // can't find a way to not make this a second query
         let (visits, longest_absence) = sqlx::query!(
             "SELECT EXTRACT(epoch FROM longest_absence)::BIGINT as longest_absence, total_visits FROM heartbeat.stats;"
         )
-        .fetch_optional(&mut *conn)
+        .fetch_optional(pool)
         .await
         .unwrap_or_default()
         .map_or((0, Some(0)), |v| (v.total_visits, v.longest_absence));

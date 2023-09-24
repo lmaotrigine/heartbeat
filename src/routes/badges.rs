@@ -6,7 +6,7 @@
 
 use crate::{
     util::{formats::FormatNum, hf_time::HumanTime},
-    AppState, ConnectionExt,
+    AppState, PoolExt,
 };
 use axum::{
     extract::State,
@@ -14,7 +14,6 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use badges::{Badge, Colour, Render};
-use tracing::error;
 
 const B64_IMG: &str = concat!(
     "data:image/png;base64,",
@@ -34,7 +33,6 @@ const B64_IMG: &str = concat!(
 );
 
 const BLUE_MAGENTA: Colour = Colour::from_colour_code(0x88_7e_e0);
-const ERROR: Colour = Colour::from_colour_code(0xe0_5d_44);
 
 pub struct BadgeResponse {
     badge: String,
@@ -50,18 +48,6 @@ impl BadgeResponse {
                 .message(message)
                 .logo(B64_IMG)
                 .colour(colour)
-                .build()
-                .render(),
-        }
-    }
-
-    pub fn internal_error() -> Self {
-        Self {
-            status: StatusCode::INTERNAL_SERVER_ERROR,
-            badge: Badge::builder()
-                .label("Error")
-                .message("An internal error occurred")
-                .colour(ERROR)
                 .build()
                 .render(),
         }
@@ -84,11 +70,6 @@ impl IntoResponse for BadgeResponse {
 
 #[axum::debug_handler]
 pub async fn last_seen(State(AppState { stats, pool, .. }): State<AppState>) -> BadgeResponse {
-    let Ok(mut conn) = pool.acquire().await.map_err(|e| {
-        error!("Failed to acquire connection from pool. {e:?}");
-    }) else {
-        return BadgeResponse::internal_error();
-    };
     let last_seen = sqlx::query_scalar!(
         r#"
         SELECT
@@ -96,7 +77,7 @@ pub async fn last_seen(State(AppState { stats, pool, .. }): State<AppState>) -> 
         FROM heartbeat.beats;
         "#
     )
-    .fetch_one(&mut *conn)
+    .fetch_one(&pool)
     .await
     .unwrap_or_default();
     let message = last_seen.map_or_else(
@@ -108,27 +89,22 @@ pub async fn last_seen(State(AppState { stats, pool, .. }): State<AppState>) -> 
     );
     tokio::spawn(async move {
         stats.lock().num_visits += 1;
-        let _ = conn.incr_visits().await;
+        let _ = pool.incr_visits().await;
     });
     BadgeResponse::new("Last Online", &message, BLUE_MAGENTA)
 }
 
 #[axum::debug_handler]
 pub async fn total_beats(State(AppState { stats, pool, .. }): State<AppState>) -> BadgeResponse {
-    let Ok(mut conn) = pool.acquire().await.map_err(|e| {
-        error!("Failed to acquire connection from pool. {e:?}");
-    }) else {
-        return BadgeResponse::internal_error();
-    };
     let total_beats = sqlx::query_scalar!("SELECT SUM(num_beats)::BIGINT AS total_beats FROM heartbeat.devices;")
-        .fetch_one(&mut *conn)
+        .fetch_one(&pool)
         .await
         .unwrap_or_default()
         .unwrap_or_default()
         .format();
     tokio::spawn(async move {
         stats.lock().num_visits += 1;
-        let _ = conn.incr_visits().await;
+        let _ = pool.incr_visits().await;
     });
     BadgeResponse::new("Total Beats", &total_beats, Colour::CORNFLOWER_BLUE)
 }

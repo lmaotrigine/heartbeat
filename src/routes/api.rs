@@ -10,8 +10,7 @@ use crate::{
     config::WebhookLevel,
     devices::{Device, PostDevice},
     error::Error,
-    guards::{AuthInfo, Authorized},
-    sealed::Connection,
+    guards::{DeviceAuth, MasterAuth},
     util::{generate_token, Snowflake, SnowflakeGenerator},
     AppState,
 };
@@ -57,11 +56,7 @@ async fn fire_webhook(state: AppState, title: &str, message: &str, level: Webhoo
 }
 
 #[axum::debug_handler]
-pub async fn handle_beat_req(
-    State(state): State<AppState>,
-    info: AuthInfo,
-    mut conn: Connection,
-) -> (StatusCode, String) {
+pub async fn handle_beat_req(State(state): State<AppState>, info: DeviceAuth) -> (StatusCode, String) {
     let now = Utc::now();
     let prev_beat = sqlx::query!(
         r#"
@@ -82,7 +77,7 @@ pub async fn handle_beat_req(
         now,
         info.id
     )
-    .fetch_optional(&mut **conn)
+    .fetch_optional(&state.pool)
     .await
     .unwrap_or_else(|e| {
         error!("Failed to update database on successful beat: {e:?}");
@@ -114,7 +109,7 @@ pub async fn handle_beat_req(
                 r#"UPDATE heartbeat.stats SET longest_absence = $1 WHERE _id = 0;"#,
                 pg_diff
             )
-            .execute(&mut **conn)
+            .execute(&state.pool)
             .await;
         }
         if diff.num_hours() >= 1 {
@@ -192,9 +187,8 @@ async fn stream_stats(app_state: AppState, mut ws: WebSocket) {
 
 #[axum::debug_handler]
 pub async fn post_device(
-    _auth: Authorized,
+    _auth: MasterAuth,
     State(state): State<AppState>,
-    mut conn: Connection,
     Json(device): Json<PostDevice>,
 ) -> (StatusCode, Json<impl Serialize>) {
     #[derive(Serialize)]
@@ -210,7 +204,7 @@ pub async fn post_device(
         device.name,
         generate_token(id),
     )
-    .fetch_one(&mut **conn)
+    .fetch_one(&state.pool)
     .await
     {
         Ok(record) => record,
@@ -260,9 +254,8 @@ pub async fn post_device(
 
 #[axum::debug_handler]
 pub async fn regenerate_device_token(
-    _auth: Authorized,
+    _auth: MasterAuth,
     State(state): State<AppState>,
-    mut conn: Connection,
     Path(device_id): Path<i64>,
     method: axum::http::Method,
     uri: axum::http::Uri,
@@ -278,7 +271,7 @@ pub async fn regenerate_device_token(
         "SELECT EXISTS(SELECT 1 FROM heartbeat.devices WHERE id = $1);",
         device_id
     )
-    .fetch_one(&mut **conn)
+    .fetch_one(&state.pool)
     .await
     .map_err(|e| {
         error!("Failed to check if device exists: {e:?}");
@@ -305,7 +298,7 @@ pub async fn regenerate_device_token(
         token,
         device_id
     )
-    .fetch_one(&mut **conn)
+    .fetch_one(&state.pool)
     .await
     .map_err(|e| {
         error!("Failed to update device token: {e:?}");
