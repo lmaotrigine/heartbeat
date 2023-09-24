@@ -108,8 +108,8 @@ impl TimePeriod {
 pub struct HumanTime(Duration);
 
 impl HumanTime {
-    const DAYS_IN_YEAR: i64 = 365;
     const DAYS_IN_MONTH: i64 = 30;
+    const DAYS_IN_YEAR: i64 = 365;
 
     pub fn to_text(self, accuracy: Accuracy, tense: Tense) -> String {
         let mut periods = match accuracy {
