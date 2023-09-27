@@ -14,6 +14,7 @@ pub struct Config {
     /// Database configuration.
     pub database: Database,
     /// Webhook configuration.
+    #[cfg(feature = "webhook")]
     pub webhook: Webhook,
     /// A random URL-safe string used as a master Authorization header
     /// for adding new devices.
@@ -27,7 +28,7 @@ pub struct Config {
     pub live_url: String,
     /// Configuration related to automatic deployment using GitHub
     /// webhooks.
-    pub github: GitHub,
+    pub github: Option<GitHub>,
     /// The bind address for the server. Must be parsable by [`std::net::ToSocketAddrs`].
     pub bind: String,
 }
@@ -35,7 +36,7 @@ pub struct Config {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GitHub {
     /// The secret used to verify the authenticity of GitHub webhooks.
-    pub webhook_secret: Option<String>,
+    pub webhook_secret: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -44,6 +45,7 @@ pub struct Database {
     pub dsn: String,
 }
 
+#[cfg(feature = "webhook")]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Webhook {
     /// The URL of the Discord webhook.

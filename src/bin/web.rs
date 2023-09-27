@@ -21,7 +21,7 @@ use tower_http::{
     services::ServeDir,
     trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
 };
-use tracing::{span, warn, Instrument, Level};
+use tracing::{info, span, warn, Instrument, Level};
 
 use heartbeat::{handle_errors, routes::router, AppState, Config};
 
@@ -51,8 +51,9 @@ async fn main() -> Result<()> {
         }
         warn!("Initiating graceful shutdown");
     };
-    Ok(Server::bind(&bind)
-        .serve(router.into_make_service_with_connect_info::<SocketAddr>())
+    let server = Server::bind(&bind).serve(router.into_make_service_with_connect_info::<SocketAddr>());
+    info!("Listening on {}", server.local_addr());
+    Ok(server
         .with_graceful_shutdown(graceful_shutdown)
         .instrument(span!(Level::INFO, "server"))
         .await?)

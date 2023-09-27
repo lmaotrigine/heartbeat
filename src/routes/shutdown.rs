@@ -117,8 +117,8 @@ pub async fn deploy(
     request_secret: Secret,
     body: Bytes,
 ) -> Result<(StatusCode, Cow<'static, str>), (StatusCode, Cow<'static, str>)> {
-    let secret = match config.github.webhook_secret.as_ref() {
-        Some(s) => s.as_bytes(),
+    let secret = match config.github {
+        Some(ref g) => g.webhook_secret.as_bytes(),
         None => return Err((StatusCode::SERVICE_UNAVAILABLE, "No secret configured".into())),
     };
     let sha = Hmac::<Sha256>::new_from_slice(secret)

@@ -2,6 +2,8 @@ ARG RUST_VERSION=bullseye
 
 FROM rust:${RUST_VERSION} AS build
 
+SHELL [ "/bin/bash", "-euxo", "pipefail", "-c" ]
+
 WORKDIR /usr/src/app
 
 COPY Cargo.toml Cargo.lock ./
@@ -9,9 +11,7 @@ COPY Cargo.toml Cargo.lock ./
 ARG FEATURES=default
 ENV PKG_CONFIG_ALLOW_CROSS=1 SQLX_OFFLINE=1 FEATURES=${FEATURES}
 ## Explicitly build dependencies to cache them
-RUN \
-  set -eux; \
-  mkdir -p src/bin; \
+RUN mkdir -p src/bin; \
   echo 'fn main() {println!("If you see this, the build broke.")}' \
     | tee src/bin/web.rs src/bin/migrate_db.rs > src/bin/generate_secret.rs; \
   cargo build --release --features ${FEATURES} --bin heartbeat
@@ -21,7 +21,7 @@ RUN cargo build --release --features ${FEATURES} --bin heartbeat
 
 ####
 
-FROM gcr.io/distroless/cc-debian11
+FROM gcr.io/distroless/cc-debian11:nonroot
 
 ARG RUST_LOG=info
 
