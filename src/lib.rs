@@ -1,6 +1,5 @@
 #![forbid(unsafe_code)]
 #![deny(missing_docs, clippy::all, clippy::pedantic, clippy::nursery, clippy::unwrap_used)]
-#![allow(clippy::cast_precision_loss)] // quote from the docs: "this isn't bad at all"
 
 //! A server to keep a live heartbeat (ping) of your devices.
 
