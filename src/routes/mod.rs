@@ -39,23 +39,24 @@ pub(crate) async fn health_check() -> &'static str {
 /// Creates and returns a [`Router`] with only the routes determined by
 /// crate features and the provided [`Config`].
 pub fn router(config: &Config) -> Router<AppState> {
-    let r = Router::new()
+    let mut router = Router::new()
         .route("/", get(index_page))
         .route("/.well-known/deploy", post(deploy))
         .route("/.well-known/health", get(health_check))
-        .route("/stats", get(stats_page))
-        .route("/privacy", get(privacy_page))
         .route("/api/beat", post(handle_beat_req))
         .route("/api/stats", get(get_stats))
-        .route("/api/stats/ws", get(realtime_stats));
-    #[cfg(feature = "badges")]
-    let r = r
-        .route("/badge/last-seen", get(last_seen))
-        .route("/badge/total-beats", get(total_beats));
-    match config.secret_key.as_ref() {
-        Some(s) if !s.is_empty() => r
+        .route("/api/stats/ws", get(realtime_stats))
+        .route("/privacy", get(privacy_page))
+        .route("/stats", get(stats_page));
+    if matches!(config.secret_key, Some(ref s) if !s.is_empty()) {
+        router = router
             .route("/api/devices", post(post_device))
-            .route("/api/devices/:device_id/token/generate", post(regenerate_device_token)),
-        _ => r,
+            .route("/api/devices/:device_id/token/generate", post(regenerate_device_token));
     }
+
+    #[cfg(not(feature = "badges"))]
+    return router;
+    router
+        .route("/badge/last-seen", get(last_seen))
+        .route("/badge/total-beats", get(total_beats))
 }
