@@ -117,7 +117,11 @@ impl<T: AsRef<[u8]>> ToHex for T {
     }
 }
 
+/// Extension trait for [`Mac`].
+///
+/// Allows for chaining `.with_data(data)` onto a [`Mac`] to update it with some data.
 pub trait MacExt {
+    /// Update the [`Mac`] with the given data.
     fn with_data(self, data: &[u8]) -> Self;
 }
 
