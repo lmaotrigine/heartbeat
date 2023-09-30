@@ -46,8 +46,8 @@ async fn main() -> Result<()> {
     #[allow(clippy::redundant_pub_crate)]
     let graceful_shutdown = async {
         tokio::select! {
-            _ = tokio::signal::ctrl_c() => (),
-            _ = signal => (),
+            _ = tokio::signal::ctrl_c() => info!("Interrupt signal received"),
+            _ = signal => info!("Shutdown signal received"),
         }
         warn!("Initiating graceful shutdown");
     };
