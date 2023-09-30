@@ -10,21 +10,21 @@ use parking_lot::Mutex;
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use stats::Stats;
 use std::sync::Arc;
+use traits::PoolExt;
 
+mod auth;
 mod config;
 mod devices;
 mod error;
-mod guards;
-mod sealed;
 mod stats;
 mod templates;
+mod traits;
 mod util;
 
 pub mod routes;
 
 pub use config::Config;
 pub use error::handle_errors;
-pub use sealed::PoolExt;
 
 /// Global application state.
 #[derive(Debug, Clone, FromRef)]

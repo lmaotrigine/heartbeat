@@ -7,10 +7,10 @@
 #[cfg(feature = "webhook")]
 use crate::util::WebhookColour;
 use crate::{
+    auth::{Device as DeviceAuth, Master as MasterAuth},
     config::WebhookLevel,
     devices::{Device, PostDevice},
     error::Error,
-    guards::{DeviceAuth, MasterAuth},
     util::{generate_token, Snowflake, SnowflakeGenerator},
     AppState,
 };
@@ -41,9 +41,6 @@ async fn fire_webhook(state: AppState, title: &str, message: &str, level: Webhoo
             WebhookLevel::LongAbsences => WebhookColour::Orange,
             WebhookLevel::None => return,
         };
-        if !cfg!(feature = "webhook") {
-            return;
-        }
         match state
             .webhook
             .execute(title, message, level, colour, &state.config)

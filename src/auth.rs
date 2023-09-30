@@ -13,13 +13,13 @@ use sqlx::PgPool;
 use tracing::error;
 
 #[derive(Debug)]
-pub struct DeviceAuth {
+pub struct Device {
     pub id: i64,
     pub name: Option<String>,
 }
 
 #[axum::async_trait]
-impl FromRequestParts<AppState> for DeviceAuth {
+impl FromRequestParts<AppState> for Device {
     type Rejection = Error;
 
     async fn from_request_parts(req: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
@@ -43,7 +43,7 @@ impl FromRequestParts<AppState> for DeviceAuth {
             )
         })?;
         sqlx::query_as!(
-            DeviceAuth,
+            Device,
             "SELECT id, name FROM heartbeat.devices WHERE token = $1;",
             token
         )
@@ -62,10 +62,10 @@ impl FromRequestParts<AppState> for DeviceAuth {
 }
 
 #[derive(Debug)]
-pub struct MasterAuth(pub String);
+pub struct Master(pub String);
 
 #[axum::async_trait]
-impl FromRequestParts<AppState> for MasterAuth {
+impl FromRequestParts<AppState> for Master {
     type Rejection = Error;
 
     async fn from_request_parts(req: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
