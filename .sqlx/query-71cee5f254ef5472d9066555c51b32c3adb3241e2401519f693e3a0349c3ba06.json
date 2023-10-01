@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE stats SET longest_absence = $1 WHERE _id = 0;",
+  "query": "UPDATE heartbeat.stats SET longest_absence = $1 WHERE _id = 0;",
   "describe": {
     "columns": [],
     "parameters": {
@@ -10,5 +10,5 @@
     },
     "nullable": []
   },
-  "hash": "500c5b1b7765948c6f622e11556416dd37b23dc9fd8d21e870c4aff69b0258cf"
+  "hash": "71cee5f254ef5472d9066555c51b32c3adb3241e2401519f693e3a0349c3ba06"
 }

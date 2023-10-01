@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT EXTRACT(epoch FROM longest_absence)::BIGINT as longest_absence, total_visits FROM stats;",
+  "query": "SELECT EXTRACT(epoch FROM longest_absence)::BIGINT as longest_absence, total_visits FROM heartbeat.stats;",
   "describe": {
     "columns": [
       {
@@ -22,5 +22,5 @@
       false
     ]
   },
-  "hash": "d56ae0c625da59ac6d7931f9c4e109c7b28e9e07025a0367c4e0850964569472"
+  "hash": "b1f9b9fbfd3ba3a21fb067b82195e5a7b3e1c8d0e2d3623460b841ceb3c3fcbf"
 }

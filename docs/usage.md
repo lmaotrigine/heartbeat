@@ -59,14 +59,20 @@ You can open `localhost:6060` in a browser to see the webpage.
   The service can't connect to the PostgreSQL server. If you're not using Docker, make sure that your PostgreSQL server
   is running and listening at the configured address before running heartbeat.
 
-## Optional features
+## Feature flags
 
-There are some optional features that are enabled by default in automated builds but require the addition of feature
-flags for compilation from source.
+Some functionality is gated behind feature flags, with some enabled by default. You may toggle these using command line
+options at build time. The binary built for Docker enables the default feature set.
 
 [Cargo documentation](https://doc.rust-lang.org/cargo/reference/features.html)
 
-- `badges`: Enables the `/badge/last-seen` and `/badge/total-beats` routes which generate embeddable SVG badges similar
+- `badges` (*default*): Enables the `/badge/last-seen` and `/badge/total-beats` routes which generate embeddable SVG badges similar
   to shields.io.
 
-- `webhook`: Enables logging certain events to a Discord webhook. See the config file comments for more info.
+- `webhook` (*default*): Enables logging certain events to a Discord webhook. See the config file comments for more info.
+
+- `sqlx-tls`: Enables the `tls-rustls` feature of `sqlx`, which allows you to connect to PostgreSQL servers over
+  SSL/TLS.
+
+- `migrate`: Enables the `migrate` feature of `sqlx`. This is required to build/run the embedded migrations binary,
+  which is useful if you don't (want to) have `sqlx-cli` installed globally.

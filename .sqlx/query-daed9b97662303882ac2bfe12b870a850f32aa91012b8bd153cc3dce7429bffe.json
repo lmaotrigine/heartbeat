@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n    WITH discard AS (\n        INSERT INTO heartbeat.beats (time_stamp, device) VALUES ($1, $2)\n    ),\n    discard_this_too AS (\n        UPDATE heartbeat.devices SET num_beats = num_beats + 1 WHERE id = $2\n    ),\n    longest_absence AS (\n        SELECT longest_absence FROM heartbeat.stats\n    )\n    SELECT beats.time_stamp, longest_absence.longest_absence\n    FROM heartbeat.beats beats, longest_absence\n    ORDER BY time_stamp DESC\n    LIMIT 1;\n    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "time_stamp",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 1,
+        "name": "longest_absence",
+        "type_info": "Interval"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "daed9b97662303882ac2bfe12b870a850f32aa91012b8bd153cc3dce7429bffe"
+}

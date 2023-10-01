@@ -1,11 +1,11 @@
-// Copyright (c) 2023 VJ <root@5ht2.me>
+// Copyright (c) 2023 Isis <root@5ht2.me>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use super::Snowflake;
-use base64::prelude::*;
+use base64ct::{Base64Unpadded, Encoding};
 use rand::Rng;
 
 const ENCODE_TABLE: [char; 32] = [
@@ -57,9 +57,9 @@ fn random_string(timestamp: u64) -> String {
 }
 
 pub fn generate(id: Snowflake) -> String {
-    let engine = BASE64_STANDARD_NO_PAD;
+    let mut dst = [0u8; 11];
     let now = chrono::Utc::now();
-    let enc_id = engine.encode(id.id().to_string());
+    let enc_id = Base64Unpadded::encode(&id.id().to_be_bytes(), &mut dst).expect("encoded base64 exceeded 11 bytes");
     let random_string = random_string(u64::try_from(now.timestamp_millis()).expect("It is now the year 292,278,994"));
     format!("{enc_id}.{random_string}")
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2023 VJ <root@5ht2.me>
+// Copyright (c) 2023 Isis <root@5ht2.me>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -6,18 +6,25 @@
 
 use crate::{
     config::Config,
-    models::Stats,
+    stats::Stats,
     util::formats::{format_relative, FormatNum},
 };
 use chrono::{DateTime, Utc};
 use html::{html, Markup, PreEscaped, DOCTYPE};
 
-fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Option<Markup>) -> Markup {
+// We use inline JavaScript here despite the performance hit because it's
+// easier to inspect, and page load times are still under 600ms, which is
+// not great, but not terrible either.
+// If this were a separate file and we load it like we do the stylesheet,
+// cloudflare would minify it, rendering this exercise moot.
+const JAVASCRIPT: &str = include_str!("./script.mjs");
+
+fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Option<Markup>, body: &Markup) -> Markup {
     let title = title.as_ref();
     html! {
         (DOCTYPE)
         (PreEscaped(r#"
-<!-- Copyright 2023 VJ <root@5ht2.me>
+<!-- Copyright 2023 Isis <root@5ht2.me>
    -
    - This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -50,43 +57,43 @@ fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Opti
                 title { (title) }
                 meta property="og:image" content="/favicon.png";
                 link rel="icon" type="image/x-icon" href="/favicon.ico";
-                link rel="stylesheet" href="/grids.min.css";
                 link rel="stylesheet" href="/style.css";
                 @if let Some(extra_head) = extra_head {
                     (extra_head)
                 }
             }
+            (body)
         }
     }
 }
 
-pub fn error(message: impl AsRef<str>, method: &str, path: &str, config: &Config) -> Markup {
+pub fn error(message: impl AsRef<str>, method: &str, path: &str, server_name: &str) -> Markup {
     let message = message.as_ref();
-    html! {
-        (base(format!("{message} - {}", config.server_name), true, None))
+    let body = html! {
         body {
-            div.spacer;
-            div.pure-g.privacy {
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.spacer {}
+            div.privacy {
+                div.grid-cell {}
+                div {
                     p.centre {
                         (message)": " (method) " on " b { (path) }
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
-            div.spacer;
-            div.pure-g.links {
-                div."pure-g-u-0"."pure-u-lg-1-6";
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.spacer {}
+            div.links {
+                div.grid-cell;
+                div {
                     p.centre {
                         a href="/" { "Main Page" }
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
         }
-    }
+    };
+    base(format!("{message} - {server_name}"), true, None, &body)
 }
 
 pub fn index(stats: &Stats, commit: &str, config: &Config) -> Markup {
@@ -103,16 +110,15 @@ pub fn index(stats: &Stats, commit: &str, config: &Config) -> Markup {
 This embed was generated at {now_fmt}.
 Due to caching, you will have to check the website if the embed generation time is old."#));
         meta name="theme-color" content="#6495ed";
-        (PreEscaped(format!(r#"<script type="module">{}</script>"#, include_str!("./script.mjs"))))
+        (PreEscaped(format!(r#"<script type="module">{JAVASCRIPT}</script>"#)))
     });
     let href = format!("{}/tree/{}", config.repo, commit);
-    html! {
-        (base(config.server_name.clone(), true, extra_head))
+    let body = html! {
         body {
             div.spacer {}
-            div.pure-g.preamble {
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-lg-4-6" {
+            div.preamble {
+                div.grid-cell {}
+                div {
                     p.centre {
                         "Welcome to " (config.server_name)"." br;
                         "This page displays the last timestamp that they have unlocked and used any of their devices." br;
@@ -130,11 +136,11 @@ Due to caching, you will have to check the website if the embed generation time 
                         "."
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
-            div.pure-g.times {
-                div."pure-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-1-6" {
+            div.times {
+                div.grid-cell {}
+                div.grid-cell {
                     p.centre {
                         "Last response time:" br;
                         span #last-seen {
@@ -143,16 +149,15 @@ Due to caching, you will have to check the website if the embed generation time 
                         }
                     }
                 }
-                div."pure-u-1"."pure-u-lg-1-6" {
+                div.grid-cell {
                     p.centre {
                         "Time since last response:" br;
                         span #time-difference {
                             (last_seen_relative)
-                            " ago"
                         }
                     }
                 }
-                div."pure-u-1"."pure-u-lg-1-6" {
+                div.grid-cell {
                     p.centre {
                         "Longest absence:" br;
                         span #longest-absence {
@@ -160,7 +165,7 @@ Due to caching, you will have to check the website if the embed generation time 
                         }
                     }
                 }
-                div."pure-u-1"."pure-u-lg-1-6" {
+                div.grid-cell {
                     p.centre {
                         "Total beats received:" br;
                         span #total-beats {
@@ -168,12 +173,12 @@ Due to caching, you will have to check the website if the embed generation time 
                         }
                     }
                 }
-                div."pure-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
             div.spacer {}
-            div.pure-g.links {
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.links {
+                div.grid-cell {}
+                div {
                     p.centre {
                         a href="/stats"{
                             "Stats"
@@ -184,20 +189,20 @@ Due to caching, you will have to check the website if the embed generation time 
                         }
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
         }
-    }
+    };
+    base(config.server_name.clone(), true, extra_head, &body)
 }
 
 pub fn privacy(config: &Config) -> Markup {
-    html! {
-        (base(format!("Privacy Policy - {}", config.server_name), true, None))
+    let body = html! {
         body {
             div.spacer {}
-            div.pure-g.privacy {
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.privacy {
+                div.grid-cell {}
+                div {
                     p.centre {
                         "Heartbeat Privacy Information"
                         br;br;
@@ -221,12 +226,12 @@ pub fn privacy(config: &Config) -> Markup {
                         "Logs are not shared with anybody."
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
-            div.spacer;
-            div.pure-g.links {
-                div."pure-g-u-0"."pure-u-lg-1-6";
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.spacer {}
+            div.links {
+                div.grid-cell;
+                div {
                     p.centre {
                         a href="/" {
                             "Main Page"
@@ -237,10 +242,11 @@ pub fn privacy(config: &Config) -> Markup {
                         }
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
         }
-    }
+    };
+    base(format!("Privacy Policy - {}", config.server_name), true, None, &body)
 }
 
 pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -> Markup {
@@ -249,25 +255,24 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
         meta property="og:site_name" content=(title);
         meta property="og:description" content=(format!("Stats for {}", config.server_name));
         meta name="theme-color" content="#6495ed";
-        (PreEscaped(format!(r#"<script type="module">{}</script>"#, include_str!("./script.mjs"))))
+        (PreEscaped(format!(r#"<script type="module">{JAVASCRIPT}</script>"#)))
     };
     let uptime = server_start_time.signed_duration_since(Utc::now());
-    html! {
-        (base(format!("Stats - {}", config.server_name), true, Some(head)))
+    let body = html! {
         body {
             div.spacer {}
-            div.pure-g.preamble {
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.preamble {
+                div.grid-cell {}
+                div {
                     p.centre {
                         "Statistics for " (config.server_name)
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
-            div.pure-g.times {
-                div."pure-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-1-6" {
+            div.times {
+                div.grid-cell {}
+                div.grid-cell {
                     p.centre {
                         "Total visits:"
                         br;
@@ -276,7 +281,7 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
                         }
                     }
                 }
-                div."pure-u-1"."pure-u-lg-1-6" {
+                div.grid-cell {
                     p.centre {
                         "Total devices:"
                         br;
@@ -285,7 +290,7 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
                         }
                     }
                 }
-                div."pure-u-1"."pure-u-lg-1-6" {
+                div.grid-cell {
                     p.centre {
                         "Total beats received:"
                         br;
@@ -294,7 +299,7 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
                         }
                     }
                 }
-                div."pure-u-1"."pure-u-lg-1-6" {
+                div.grid-cell {
                     p.centre {
                         "Uptime:"
                         br;
@@ -303,12 +308,12 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
                         }
                     }
                 }
-                div."pure-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
             div.spacer {}
-            div.pure-g.links {
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
-                div."pure-u-1"."pure-u-lg-4-6" {
+            div.links {
+                div.grid-cell {}
+                div {
                     p.centre {
                         a href="/" {
                             "Main Page"
@@ -319,8 +324,9 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
                         }
                     }
                 }
-                div."pure-g-u-0"."pure-u-lg-1-6" {}
+                div.grid-cell {}
             }
         }
-    }
+    };
+    base(format!("Stats - {}", config.server_name), true, Some(head), &body)
 }

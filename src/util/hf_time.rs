@@ -1,12 +1,28 @@
-// Copyright (c) 2023 VJ <root@5ht2.me>
+// Copyright (c) 2023 Isis <root@5ht2.me>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use super::plural::{plural, rough as rough_plural};
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use std::borrow::Cow;
+
+macro_rules! plural {
+    ($n:expr, $singular:expr) => {
+        $crate::util::plural::Plural::from($singular).compute($n)
+    };
+}
+
+macro_rules! rough_plural {
+    ($n:expr, $singular:expr, $article:expr) => {
+        $crate::util::plural::Rough::from($singular)
+            .article($article)
+            .compute($n)
+    };
+    ($n:expr, $singular:expr) => {
+        $crate::util::plural::Rough::from($singular).compute($n)
+    };
+}
 
 pub trait HumanFriendly {
     fn human_friendly(&self) -> String;
@@ -92,8 +108,8 @@ impl TimePeriod {
 pub struct HumanTime(Duration);
 
 impl HumanTime {
-    const DAYS_IN_YEAR: i64 = 365;
     const DAYS_IN_MONTH: i64 = 30;
+    const DAYS_IN_YEAR: i64 = 365;
 
     pub fn to_text(self, accuracy: Accuracy, tense: Tense) -> String {
         let mut periods = match accuracy {

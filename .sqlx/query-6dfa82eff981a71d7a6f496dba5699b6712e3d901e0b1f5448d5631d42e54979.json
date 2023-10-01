@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT SUM(num_beats)::BIGINT AS total_beats FROM devices;",
+  "query": "SELECT SUM(num_beats)::BIGINT AS total_beats FROM heartbeat.devices;",
   "describe": {
     "columns": [
       {
@@ -16,5 +16,5 @@
       null
     ]
   },
-  "hash": "a947da46b89572cc4a08d6d62fb1908782b1c36978373f7514a04278bbf6030d"
+  "hash": "6dfa82eff981a71d7a6f496dba5699b6712e3d901e0b1f5448d5631d42e54979"
 }

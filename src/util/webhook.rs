@@ -1,4 +1,4 @@
-// Copyright (c) 2023 VJ <root@5ht2.me>
+// Copyright (c) 2023 Isis <root@5ht2.me>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,8 +31,8 @@ struct WebhookRequest<'a> {
 #[derive(Serialize)]
 struct Embed<'a> {
     author: Author<'a>,
-    title: String,
-    description: String,
+    title: &'a str,
+    description: &'a str,
     color: u32,
 }
 
@@ -53,8 +53,8 @@ impl Webhook {
 
     pub async fn execute(
         &self,
-        title: String,
-        message: String,
+        title: &str,
+        message: &str,
         level: WebhookLevel,
         colour: Colour,
         config: &Config,

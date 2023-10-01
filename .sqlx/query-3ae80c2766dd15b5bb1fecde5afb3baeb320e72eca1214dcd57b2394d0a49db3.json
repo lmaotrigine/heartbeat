@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;",
+  "query": "INSERT INTO heartbeat.devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;",
   "describe": {
     "columns": [
       {
@@ -38,5 +38,5 @@
       false
     ]
   },
-  "hash": "b391443664741aabbdb2121ae4f0b1e7e4327e6a5f004287bc9bb55bdfebe638"
+  "hash": "3ae80c2766dd15b5bb1fecde5afb3baeb320e72eca1214dcd57b2394d0a49db3"
 }

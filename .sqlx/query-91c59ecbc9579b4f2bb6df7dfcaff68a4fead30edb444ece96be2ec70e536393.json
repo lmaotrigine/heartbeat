@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n    WITH b AS (\n        SELECT device, time_stamp FROM beats ORDER BY time_stamp DESC LIMIT 1\n    )\n    SELECT\n        d.num_beats,\n        MAX(b.time_stamp) AS last_beat,\n        d.id,\n        d.name\n    FROM b, beats JOIN devices d ON beats.device = d.id\n    GROUP BY d.id\n    ",
+  "query": "\n    WITH b AS (\n        SELECT device, time_stamp FROM heartbeat.beats ORDER BY time_stamp DESC LIMIT 1\n    )\n    SELECT\n        d.num_beats,\n        MAX(b.time_stamp) AS last_beat,\n        d.id,\n        d.name\n    FROM b, heartbeat.beats beats JOIN heartbeat.devices d ON beats.device = d.id\n    GROUP BY d.id\n    ",
   "describe": {
     "columns": [
       {
@@ -34,5 +34,5 @@
       true
     ]
   },
-  "hash": "50d4216bfb092f9db51fa07059dc08cc351da3884e3cf3f6c4d7388045f5c6dc"
+  "hash": "91c59ecbc9579b4f2bb6df7dfcaff68a4fead30edb444ece96be2ec70e536393"
 }

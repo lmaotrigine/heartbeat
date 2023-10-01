@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH dummy AS (\n                INSERT INTO heartbeat.stats (_id)\n                VALUES (0)\n                ON CONFLICT (_id) DO NOTHING\n            )\n            SELECT server_start_time\n            FROM heartbeat.stats\n            WHERE _id = 0;\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "server_start_time",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "c46c8a6d578ab3b81b617c27b07ef6d863ac25e35892ffa5707c503032fcf02c"
+}

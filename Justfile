@@ -8,7 +8,8 @@ image := "ghcr.io/lmaotrigine/heartbeat"
 
 all: clean build
 
-ci-lint: check test
+ci-lint: check check-forbidden
+  just test --all-features
 
 build *args:
   @just _cargo build {{args}}
@@ -43,3 +44,12 @@ run *args:
 
 pull:
   docker pull {{image}}:latest
+
+migrate:
+  cargo run --bin migrate_db
+
+gensecret:
+  #!/usr/bin/env python3
+  from base64 import b64encode
+  from secrets import token_bytes
+  print(b64encode(token_bytes(48)).decode('ascii'))

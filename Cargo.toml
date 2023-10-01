@@ -4,34 +4,55 @@ version = "0.1.0"
 description = "A service to keep a live heartbeat on multiple devices"
 edition = "2021"
 license = "MPL-2.0"
-authors = ["VJ <root@5ht2.me>"]
+authors = ["Isis <root@5ht2.me>"]
 repository = "https://github.com/lmaotrigine/heartbeat"
 homepage = "https://hb.5ht2.me"
 publish = false
+default-run = "heartbeat"
+rust-version = "1.69"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = { version = "0.4.23", features = ["serde", "std", "clock"], default-features = false }
-tokio = { version = "1.24.2", features = ["macros", "rt-multi-thread", "signal"] }
-serde = { version = "1.0.152", features = ["derive"] }
-sqlx = { version = "0.7", features = ["chrono", "macros", "postgres", "runtime-tokio-rustls"], default-features = false }
-toml = "0.7.6"
-base64 = "0.21.0"
-regex  = { version = "1.7.1", optional = true }
-reqwest = { version = "0.11.13", features = ["json", "rustls-tls"], optional = true, default-features = false }
-axum = { version = "0.6.19", features = ["macros", "tokio", "ws"] }
-html = { git = "https://git.5ht2.me/lmaotrigine/html-rs", version = "0.1.0", features = ["axum"] }
-serde_json = "1.0.104"
-tower-http = { version = "0.4.3", features = ["fs"] }
-tracing-subscriber = "0.3.17"
-tracing = "0.1.37"
+axum = { version = "0.6", features = ["macros", "tokio", "ws"] }
 axum-realip = { git = "https://git.5ht2.me/lmaotrigine/axum-realip", version = "0.1.0" }
-rand = { version = "0.8.5", default-features = false, features = ["getrandom"] }
-hmac = "0.12.1"
-sha2 = "0.10.7"
+axum-shutdown = { git = "https://git.5ht2.me/lmaotrigine/axum-shutdown", version = "0.1.0" }
+badges = { git = "https://github.com/lmaotrigine/badges", version = "0.1.0", optional = true }
+base64ct = "1"
+chrono = { version = "0.4", features = ["serde", "std", "clock"], default-features = false }
+hmac = "0.12"
+html = { git = "https://git.5ht2.me/lmaotrigine/html-rs", version = "0.1.0", features = ["axum"] }
+rand = { version = "0.8", default-features = false, features = ["getrandom"] }
+reqwest = { version = "0.11", features = ["json", "rustls-tls-webpki-roots"], optional = true, default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+sqlx = { version = "0.7", features = ["chrono", "macros", "postgres", "runtime-tokio"], default-features = false }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
+toml = "0.8"
+tower-http = { version = "0.4", features = ["fs", "trace"] }
+tracing-subscriber = "0.3"
+tracing = "0.1"
+parking_lot = { version = "0.12" }
+color-eyre = "0.6.2"
 
 [features]
-default = []
-badges = ["regex"]
+default = ["badges", "webhook"]
+badges = ["dep:badges"]
 webhook = ["reqwest"]
+migrate = ["sqlx/migrate"]
+sqlx-tls = ["sqlx/tls-rustls"]
+
+[[bin]]
+name = "migrate_db"
+required-features = ["migrate"]
+
+[[bin]]
+name = "heartbeat"
+path = "src/bin/web.rs"
+
+[profile.release]
+panic = "abort"
+strip = true
+opt-level = "z"
+lto = true

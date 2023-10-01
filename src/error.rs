@@ -1,19 +1,18 @@
-// Copyright (c) 2023 VJ <root@5ht2.me>
+// Copyright (c) 2023 Isis <root@5ht2.me>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use crate::{config::Config, templates::error, AppState};
+use crate::{templates::error, AppState};
 use axum::{
     extract::State,
-    http::{Method, Request, Response, StatusCode},
+    http::{Method, Request, StatusCode},
     middleware::Next,
-    response::IntoResponse,
+    response::{IntoResponse, Response},
     RequestExt,
 };
 use axum_realip::RealIp;
-use core::fmt;
 use tracing::{error, warn};
 
 #[derive(Debug)]
@@ -22,16 +21,16 @@ pub struct Error {
     method: Method,
     message: &'static str,
     status: StatusCode,
-    config: Config,
+    server_name: String,
 }
 
 impl Error {
-    pub fn new(path: &str, method: &Method, status: StatusCode, config: Config) -> Self {
+    pub fn new(path: &str, method: &Method, status: StatusCode, server_name: &str) -> Self {
         Self {
             path: path.into(),
             method: method.clone(),
             status,
-            config,
+            server_name: server_name.into(),
             message: status.canonical_reason().unwrap_or_default(),
         }
     }
@@ -42,43 +41,41 @@ impl Error {
     }
 }
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let markup = error(self.message, self.method.as_str(), &self.path, &self.config);
-        write!(f, "{}", markup.0)
-    }
-}
-
 impl IntoResponse for Error {
-    fn into_response(self) -> axum::response::Response {
+    fn into_response(self) -> Response {
         if self.path.starts_with("/api") {
             return (self.status, self.message).into_response();
         }
-        let markup = error(self.message, self.method.as_str(), &self.path, &self.config);
-        let res = markup.into_response();
-        Response::builder()
-            .status(self.status)
-            .body(res.into_body())
-            .unwrap_or_else(|e| {
-                error!("Failed to build error response for {self:?}: {e:?}");
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
-            })
+        let markup = error(self.message, self.method.as_str(), &self.path, &self.server_name);
+        (self.status, markup).into_response()
     }
 }
 
+/// An Axum middleware that serves error pages for unhandled client errors.
+/// This also logs the client IP and the attempted request for debugging purposes.
+///
+/// # Errors
+///
+/// This function returns an error if there was an unhandled client error status code,
+/// or if the client IP could not be determined.
 pub async fn handle_errors<B: Send + std::fmt::Debug + 'static>(
     State(state): State<AppState>,
     mut req: Request<B>,
     next: Next<B>,
-) -> impl IntoResponse {
+) -> Result<Response, Error> {
     let path = req.uri().path().to_owned();
     let method = req.method().clone();
-    let config = state.config;
+    let server_name = state.config.server_name;
     let ip = match req.extract_parts::<RealIp>().await {
         Ok(RealIp(ip)) => ip,
         Err(e) => {
             error!("Failed to get Real IP from request: {e:?}\n{req:#?}");
-            return Err(Error::new(&path, &method, StatusCode::INTERNAL_SERVER_ERROR, config));
+            return Err(Error::new(
+                &path,
+                &method,
+                StatusCode::INTERNAL_SERVER_ERROR,
+                &server_name,
+            ));
         }
     };
     let headers = req.headers().clone();
@@ -91,7 +88,7 @@ pub async fn handle_errors<B: Send + std::fmt::Debug + 'static>(
         StatusCode::METHOD_NOT_ALLOWED | StatusCode::NOT_FOUND | StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => {
             let code = status.as_u16();
             warn!("returned {code} to {ip} - tried to {method} {path} with Authorization {auth}");
-            Err(Error::new(&path, &method, status, config))
+            Err(Error::new(&path, &method, status, &server_name))
         }
         _ => Ok(resp),
     }

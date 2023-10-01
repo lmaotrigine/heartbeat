@@ -1,0 +1,17 @@
+msrv = "1.69"
+
+[[disallowed-types]]
+path = "std::sync::Mutex"
+reason = "Use the faster and simpler non-poisonable Mutex from parking_lot instead."
+
+[[disallowed-types]]
+path = "std::sync::RwLock"
+reason = "Use the faster and simpler non-poisonable RwLock from parking_lot instead."
+
+[[disallowed-types]]
+path = "std::collections::LinkedList"
+reason = "LinkedList is slow and almost never the right choice."
+
+[[disallowed-types]]
+path = "ring::digest::SHA1_FOR_LEGACY_USE_ONLY"
+reason = "SHA-1 is cryptographically broken"

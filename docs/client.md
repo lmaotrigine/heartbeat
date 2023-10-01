@@ -21,7 +21,7 @@ This service exposes an API that clients for all platforms are expected to compl
 
     - `Authorization`: The configured secret key for the server.
 
-  **Body**: `application.json`
+  **Body**: `application/json`
 
   A JSON string with a `name` field containing the common name of the device.
 
@@ -31,6 +31,25 @@ This service exposes an API that clients for all platforms are expected to compl
       by any endpoint.
     - `401`: Invalid or no secret key provided.
     - `400`: Invalid JSON body
+
+- `POST /api/devices/:id/token/generate`: (Re)generate a token for a device. This will *not* create a new device.
+
+  **Headers**
+
+    - `Authorization`: The configured secret key for the server.
+  
+  **Path parameters**
+
+    - `id`: The snowflake identifier corresponding to the device
+  
+  **Responses**
+
+    - `200`: A JSON string containing the device ID, name, and the new token. Any previous tokens associated with this
+      device are invalidated.
+    - `401`: Invalid or no secret key provided.
+    - `400`: Invalid snowflake path parameter.
+    - `404`: No device exists with the provided ID.
+
 
 - `GET` `/api/stats`: Retrieves various statistics about the server.
 
