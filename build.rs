@@ -4,9 +4,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#![forbid(
+    unsafe_code,
+    clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::unwrap_in_result,
+    clippy::unwrap_used
+)]
+
 fn main() {
-    let rev = git_revision_hash().unwrap_or("main".into());
-    println!("cargo:rustc-env=HB_GIT_COMMIT={}", rev);
+    let rev = git_revision_hash().unwrap_or_else(|| "main".into());
+    println!("cargo:rustc-env=HB_GIT_COMMIT={rev}");
+    // clippy::let_underscore_untyped was added in 1.69.0 as a pedantic lint. it was changed to restriction in the very
+    // next release, 1.70.0.
+    //
+    // The crate compiles fine with 1.69, and we might as well support it. I am happy with a couple more seconds of
+    // compile time to appease the linter.
     if let Some((major, minor, _)) = get_rustc_version() {
         if (major, minor) < (1, 70) {
             println!("cargo:rustc-cfg=let_underscore_untyped_pedantic");
@@ -30,7 +44,7 @@ fn git_revision_hash() -> Option<String> {
 }
 
 fn get_rustc_version() -> Option<(u8, u8, u8)> {
-    std::process::Command::new(std::env::var("RUSTC").unwrap())
+    std::process::Command::new(std::env::var("RUSTC").ok()?)
         .args(["--version"])
         .output()
         .ok()
