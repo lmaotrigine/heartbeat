@@ -25,6 +25,9 @@ pub mod routes;
 pub use config::Config;
 pub use error::handle_errors;
 
+/// Crate version and git commit hash.
+pub const VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), "-", env!("HB_GIT_COMMIT"));
+
 /// Global application state.
 #[derive(Debug, Clone, FromRef)]
 pub struct AppState {
@@ -64,7 +67,7 @@ impl AppState {
             stats,
             pool,
             config,
-            git_hash: option_env!("HB_GIT_COMMIT").unwrap_or_default(),
+            git_hash: env!("HB_GIT_COMMIT"),
             #[cfg(feature = "webhook")]
             webhook,
             server_start_time,

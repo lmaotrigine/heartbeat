@@ -5,9 +5,8 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 fn main() {
-    if let Some(rev) = git_revision_hash() {
-        println!("cargo:rustc-env=HB_GIT_COMMIT={rev}");
-    }
+    let rev = git_revision_hash().unwrap_or("main".into());
+    println!("cargo:rustc-env=HB_GIT_COMMIT={}", rev);
 }
 
 fn git_revision_hash() -> Option<String> {
