@@ -161,16 +161,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "axum-shutdown"
-version = "0.1.0"
-source = "git+https://git.5ht2.me/lmaotrigine/axum-shutdown#2b5bd90fe4048645b959a3e86fbf7f5517b6c940"
-dependencies = [
- "axum",
- "parking_lot",
- "tokio",
-]
-
-[[package]]
 name = "backtrace"
 version = "0.3.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -703,19 +693,16 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "axum-realip",
- "axum-shutdown",
  "badges",
  "base64ct",
  "chrono",
  "color-eyre",
- "hmac",
  "html",
  "parking_lot",
  "rand",
  "reqwest",
  "serde",
  "serde_json",
- "sha2",
  "sqlx",
  "tokio",
  "toml",

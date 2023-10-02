@@ -26,17 +26,8 @@ pub struct Config {
     pub server_name: String,
     /// The publicly accessible URL of the server.
     pub live_url: String,
-    /// Configuration related to automatic deployment using GitHub
-    /// webhooks.
-    pub github: Option<GitHub>,
     /// The bind address for the server. Must be parsable by [`std::net::ToSocketAddrs`].
     pub bind: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct GitHub {
-    /// The secret used to verify the authenticity of GitHub webhooks.
-    pub webhook_secret: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

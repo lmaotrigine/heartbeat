@@ -32,10 +32,3 @@ url = ""
 # - "long_absences"   log absences longer than 1 hour
 # - "none"            don't log anything
 level = "none"
-
-[github]
-# for hot reloading using GitHub webhooks.
-# if left black, hot reloading is disabled.
-# this may be generated using `openssl rand -base64 45`
-# you should configure your GitHub webhook to use the same secret.
-webhook_secret = ""

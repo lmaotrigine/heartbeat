@@ -13,8 +13,7 @@
     clippy::unwrap_used
 )]
 
-use axum::{middleware, Extension, Server};
-use axum_shutdown::Shutdown;
+use axum::{middleware, Server};
 use color_eyre::eyre::Result;
 use std::net::SocketAddr;
 use tower_http::{
@@ -33,7 +32,6 @@ async fn main() -> Result<()> {
     let bind = config.bind.parse::<SocketAddr>()?;
     let router = router(&config);
     let app_state = AppState::from_config(config).await?;
-    let (shutdown, signal) = Shutdown::new();
     let trace_service = TraceLayer::new_for_http()
         .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
         .on_response(DefaultOnResponse::new().level(Level::INFO));
@@ -41,14 +39,9 @@ async fn main() -> Result<()> {
         .with_state(app_state.clone())
         .fallback_service(ServeDir::new("static/"))
         .layer(middleware::from_fn_with_state(app_state, handle_errors))
-        .layer(trace_service)
-        .layer(Extension(shutdown));
-    #[allow(clippy::redundant_pub_crate)]
+        .layer(trace_service);
     let graceful_shutdown = async {
-        tokio::select! {
-            _ = tokio::signal::ctrl_c() => info!("Interrupt signal received"),
-            _ = signal => info!("Shutdown signal received"),
-        }
+        let _ = tokio::signal::ctrl_c().await;
         warn!("Initiating graceful shutdown");
     };
     let server = Server::bind(&bind).serve(router.into_make_service_with_connect_info::<SocketAddr>());

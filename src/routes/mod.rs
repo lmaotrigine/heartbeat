@@ -23,14 +23,11 @@ use axum::{
 use badge_routes::{last_seen, total_beats};
 use pages::{index_page, privacy_page, stats_page};
 
-use self::shutdown::deploy;
-
 mod api;
 #[cfg(feature = "badges")]
 #[path = "badges.rs"]
 mod badge_routes;
 mod pages;
-mod shutdown;
 
 pub(crate) async fn health_check() -> &'static str {
     "OK"
@@ -41,7 +38,6 @@ pub(crate) async fn health_check() -> &'static str {
 pub fn router(config: &Config) -> Router<AppState> {
     let mut router = Router::new()
         .route("/", get(index_page))
-        .route("/.well-known/deploy", post(deploy))
         .route("/.well-known/health", get(health_check))
         .route("/api/beat", post(handle_beat_req))
         .route("/api/stats", get(get_stats))

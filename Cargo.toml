@@ -16,17 +16,14 @@ rust-version = "1.69"
 [dependencies]
 axum = { version = "0.6", features = ["macros", "tokio", "ws"] }
 axum-realip = { git = "https://git.5ht2.me/lmaotrigine/axum-realip", version = "0.1.0" }
-axum-shutdown = { git = "https://git.5ht2.me/lmaotrigine/axum-shutdown", version = "0.1.0" }
 badges = { git = "https://github.com/lmaotrigine/badges", version = "0.1.0", optional = true }
 base64ct = "1"
 chrono = { version = "0.4", features = ["serde", "std", "clock"], default-features = false }
-hmac = "0.12"
 html = { git = "https://git.5ht2.me/lmaotrigine/html-rs", version = "0.1.0", features = ["axum"] }
 rand = { version = "0.8", default-features = false, features = ["getrandom"] }
 reqwest = { version = "0.11", features = ["json", "rustls-tls-webpki-roots"], optional = true, default-features = false }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-sha2 = "0.10"
 sqlx = { version = "0.7", features = ["chrono", "macros", "postgres", "runtime-tokio"], default-features = false }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
 toml = "0.8"
