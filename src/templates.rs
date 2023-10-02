@@ -12,13 +12,6 @@ use crate::{
 use chrono::{DateTime, Utc};
 use html::{html, Markup, PreEscaped, DOCTYPE};
 
-// We use inline JavaScript here despite the performance hit because it's
-// easier to inspect, and page load times are still under 600ms, which is
-// not great, but not terrible either.
-// If this were a separate file and we load it like we do the stylesheet,
-// cloudflare would minify it, rendering this exercise moot.
-const JAVASCRIPT: &str = include_str!("./script.mjs");
-
 fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Option<Markup>, body: &Markup) -> Markup {
     let title = title.as_ref();
     html! {
@@ -110,7 +103,7 @@ pub fn index(stats: &Stats, commit: &str, config: &Config) -> Markup {
 This embed was generated at {now_fmt}.
 Due to caching, you will have to check the website if the embed generation time is old."#));
         meta name="theme-color" content="#6495ed";
-        (PreEscaped(format!(r#"<script type="module">{JAVASCRIPT}</script>"#)))
+        script type="module" src="/script.mjs" {}
     });
     let href = format!("{}/tree/{}", config.repo, commit);
     let body = html! {
@@ -255,7 +248,7 @@ pub fn stats(stats: &Stats, config: &Config, server_start_time: DateTime<Utc>) -
         meta property="og:site_name" content=(title);
         meta property="og:description" content=(format!("Stats for {}", config.server_name));
         meta name="theme-color" content="#6495ed";
-        (PreEscaped(format!(r#"<script type="module">{JAVASCRIPT}</script>"#)))
+        script type="module" src="/script.mjs" {}
     };
     let uptime = server_start_time.signed_duration_since(Utc::now());
     let body = html! {
