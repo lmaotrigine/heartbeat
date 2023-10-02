@@ -7,10 +7,10 @@
 pub mod ts {
     use chrono::serde::ts_seconds;
 
-    pub fn serialize<S>(ts: &Option<chrono::DateTime<chrono::Utc>>, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
+    pub fn serialize<S: serde::Serializer>(
+        ts: &Option<chrono::DateTime<chrono::Utc>>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
         match ts {
             Some(ts) => ts_seconds::serialize(ts, serializer),
             None => serializer.serialize_none(),

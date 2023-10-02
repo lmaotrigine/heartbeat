@@ -32,7 +32,6 @@ pub trait HumanFriendly {
 pub enum Tense {
     Past,
     Present,
-    Future,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd)]
@@ -116,26 +115,32 @@ impl HumanTime {
             Accuracy::Rough => self.rough_periods(),
             Accuracy::Precise => self.precise_periods(),
         };
+        let to_tense = |text: Cow<'_, str>| match tense {
+            Tense::Past => format!("{text} ago"),
+            Tense::Present => text.into_owned(),
+        };
         let first = periods.remove(0).to_text(accuracy);
         let last = periods.pop().map(|p| p.to_text(accuracy));
+        if periods.is_empty() {
+            if let Some(last) = last {
+                return to_tense(Cow::Owned(format!("{first} and {last}")));
+            }
+            return to_tense(first);
+        }
         let mut text = periods
             .into_iter()
             .fold(first, |acc, p| format!("{}, {}", acc, p.to_text(accuracy)).into());
+        // this is always true, so we could just unwrap/expect
+        // but I'm pretty sure it's optimized out anyway
         if let Some(last) = last {
-            text = format!("{text} and {last}").into();
+            text = format!("{text}, and {last}").into();
         }
-        match tense {
-            Tense::Past => format!("{text} ago"),
-            Tense::Present => text.into_owned(),
-            Tense::Future => format!("in {text}"),
-        }
+        to_tense(text)
     }
 
     fn tense(self, accuracy: Accuracy) -> Tense {
         if accuracy.is_rough() && self.0.num_seconds().abs() < 11 {
             Tense::Present
-        } else if self.0 > Duration::zero() {
-            Tense::Future
         } else if self.0 < Duration::zero() {
             Tense::Past
         } else {
@@ -264,10 +269,7 @@ impl From<Duration> for HumanTime {
     }
 }
 
-impl<TZ> From<DateTime<TZ>> for HumanTime
-where
-    TZ: TimeZone,
-{
+impl<TZ: TimeZone> From<DateTime<TZ>> for HumanTime {
     fn from(value: DateTime<TZ>) -> Self {
         value.signed_duration_since(Utc::now()).into()
     }
@@ -279,10 +281,7 @@ impl HumanFriendly for Duration {
     }
 }
 
-impl<TZ> HumanFriendly for DateTime<TZ>
-where
-    TZ: TimeZone,
-{
+impl<TZ: TimeZone> HumanFriendly for DateTime<TZ> {
     fn human_friendly(&self) -> String {
         format!("{}", HumanTime::from(self.clone()))
     }
