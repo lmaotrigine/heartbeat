@@ -26,6 +26,11 @@ use heartbeat::{handle_errors, routes::router, AppState, Config};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // early exit for --version
+    if matches!(std::env::args().nth(1), Some(arg) if arg == "--version") {
+        println!("Heartbeat v{}", heartbeat::VERSION);
+        return Ok(());
+    }
     tracing_subscriber::fmt::init();
     color_eyre::install()?;
     let config = Config::try_new()?;

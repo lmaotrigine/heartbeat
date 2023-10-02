@@ -3,9 +3,17 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 # Use latest stable as default.
-ARG RUST_VERSION=bullseye
+# When overriding, use the alpine version to ensure
+# no dependency on glibc, libgcc, etc.
+ARG RUST_VERSION=alpine
 
 FROM rust:${RUST_VERSION} AS build
+
+# Install a few essential packages
+#  - musl-dev: C standard library
+#  - bash: slightly more reliable shell, and allows for `-o pipefail` (see below)
+#  - git: required by build.rs
+RUN apk add --no-cache musl-dev=~1 bash=~5 git=~2
 
 # shell options
 #   -e: exit on error
@@ -32,7 +40,7 @@ RUN cargo build --release --features ${FEATURES} --bin heartbeat
 
 ####
 
-FROM gcr.io/distroless/cc-debian11:nonroot
+FROM scratch
 
 # Log level for tracing-subscriber
 ARG RUST_LOG=info
@@ -50,4 +58,7 @@ COPY --from=build /usr/src/app/static /usr/local/share/heartbeat/static
 
 WORKDIR /usr/local/share/heartbeat
 ENV RUST_LOG=${RUST_LOG}
-CMD [ "/usr/local/bin/heartbeat" ]
+
+# test if the binary works
+RUN [ "/usr/local/bin/heartbeat", "--version" ]
+ENTRYPOINT [ "/usr/local/bin/heartbeat" ]
