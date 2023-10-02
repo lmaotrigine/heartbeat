@@ -8,8 +8,19 @@ on:
 
 jobs:
   check:
+    strategy:
+      matrix:
+        include:
+          - build: pinned
+            rust: 1.69.0
+          - build: stable
+            rust: stable
+          - build: beta
+            rust: beta
+          - build: nightly
+            rust: nightly
     runs-on: ubuntu-latest
-    name: "Check rust stable"
+    name: "Check rust ${{ matrix.rust }}"
     steps:
       - uses: actions/checkout@master
         with:
@@ -22,11 +33,11 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: setup latest rust stable
+          key: ${{ runner.os }}-cargo-${{ matrix.build }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: setup rust ${{ matrix.rust }}
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: ${{ matrix.rust }}
           components: clippy, rustfmt
       - name: setup nextest
         uses: lmaotrigine/fetch-crate-action@mistress

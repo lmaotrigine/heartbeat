@@ -12,6 +12,7 @@
     clippy::unwrap_in_result,
     clippy::unwrap_used
 )]
+#![cfg_attr(let_underscore_untyped_pedantic, allow(clippy::let_underscore_untyped))]
 
 use axum::{middleware, Server};
 use color_eyre::eyre::Result;
