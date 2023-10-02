@@ -1,5 +1,11 @@
 #![forbid(unsafe_code)]
-#![deny(clippy::all, clippy::pedantic, clippy::nursery)]
+#![deny(
+    clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::unwrap_in_result,
+    clippy::unwrap_used
+)]
 
 use color_eyre::eyre::Result;
 use serde::Deserialize;

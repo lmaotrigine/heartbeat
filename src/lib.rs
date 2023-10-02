@@ -1,5 +1,12 @@
 #![forbid(unsafe_code)]
-#![deny(missing_docs, clippy::all, clippy::pedantic, clippy::nursery, clippy::unwrap_used)]
+#![deny(
+    missing_docs,
+    clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::unwrap_used,
+    clippy::unwrap_in_result
+)]
 
 //! A server to keep a live heartbeat (ping) of your devices.
 

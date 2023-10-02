@@ -1,3 +1,12 @@
+#![forbid(
+    unsafe_code,
+    clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::unwrap_in_result,
+    clippy::unwrap_used
+)]
+
 use base64ct::{Base64Url, Encoding};
 use rand::{thread_rng, RngCore};
 
