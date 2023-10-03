@@ -17,6 +17,9 @@ secret_key = ""
 # don't change this unless you're using a fork
 repo = "https://github.com/lmaotrigine/heartbeat"
 
+# the path to the directory containing static assets
+static_dir = "static"
+
 [database]
 # this is the default if you're using the docker-compose file
 # otherwise, the format is postgresql://username:password@host/database
