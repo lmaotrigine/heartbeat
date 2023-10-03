@@ -22,7 +22,7 @@ If you know what you're doing, you can edit the compose file to use, say, a data
 
 ### Build from source
 
-You will require a Rust toolchain to build from source. The Minimum Supported Rust Version is 1.69. However, this is
+You will require a Rust toolchain to build from source. The Minimum Supported Rust Version is 1.70. However, this is
 subject to change at any time, so make sure you have the latest stable toolchain installed anyway. This crate is not
 intended for use as a library, so there is no guarantee for the MSRV.
 

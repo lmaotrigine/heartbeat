@@ -7,7 +7,6 @@
     clippy::unwrap_used,
     clippy::unwrap_in_result
 )]
-#![cfg_attr(let_underscore_untyped_pedantic, allow(clippy::let_underscore_untyped))]
 
 //! A server to keep a live heartbeat (ping) of your devices.
 

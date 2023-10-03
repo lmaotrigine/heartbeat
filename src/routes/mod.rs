@@ -44,7 +44,7 @@ pub fn router(config: &Config) -> Router<AppState> {
         .route("/api/stats/ws", get(realtime_stats))
         .route("/privacy", get(privacy_page))
         .route("/stats", get(stats_page));
-    if matches!(config.secret_key, Some(ref s) if !s.is_empty()) {
+    if !config.secret_key.is_empty() {
         router = router
             .route("/api/devices", post(post_device))
             .route("/api/devices/:device_id/token/generate", post(regenerate_device_token));

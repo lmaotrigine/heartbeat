@@ -9,7 +9,7 @@ repository = "https://github.com/lmaotrigine/heartbeat"
 homepage = "https://hb.5ht2.me"
 publish = false
 default-run = "heartbeat"
-rust-version = "1.69"
+rust-version = "1.70"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -19,7 +19,10 @@ axum-realip = { git = "https://git.5ht2.me/lmaotrigine/axum-realip", version = "
 badges = { git = "https://github.com/lmaotrigine/badges", version = "0.1.0", optional = true }
 base64ct = "1"
 chrono = { version = "0.4", features = ["serde", "std", "clock"], default-features = false }
+clap = { version = "4", default-features = false, features = ["derive", "env", "help", "usage"] }
+color-eyre = "0.6"
 html = { git = "https://git.5ht2.me/lmaotrigine/html-rs", version = "0.1.0", features = ["axum"] }
+parking_lot = "0.12"
 rand = { version = "0.8", default-features = false, features = ["getrandom"] }
 reqwest = { version = "0.11", features = ["json", "rustls-tls-webpki-roots"], optional = true, default-features = false }
 serde = { version = "1", features = ["derive"] }
@@ -28,10 +31,8 @@ sqlx = { version = "0.7", features = ["chrono", "macros", "postgres", "runtime-t
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
 toml = "0.8"
 tower-http = { version = "0.4", features = ["fs", "trace"] }
-tracing-subscriber = "0.3"
 tracing = "0.1"
-parking_lot = { version = "0.12" }
-color-eyre = "0.6"
+tracing-subscriber = "0.3"
 
 [features]
 default = ["badges", "webhook"]

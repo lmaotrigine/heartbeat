@@ -71,7 +71,7 @@ impl FromRequestParts<AppState> for Master {
     async fn from_request_parts(req: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
         let config = Config::from_ref(state);
         let expected = config.secret_key;
-        if expected.is_none() {
+        if expected.is_empty() {
             return Err(Error::new(
                 req.uri.path(),
                 &req.method,
@@ -80,20 +80,20 @@ impl FromRequestParts<AppState> for Master {
             )
             .with_reason("Not found."));
         }
-        let token = match req.headers.get("Authorization") {
-            Some(token) => token.to_str().ok(),
-            None => {
+        let token = req.headers.get("Authorization").map_or_else(
+            || {
                 return Err(Error::new(
                     req.uri.path(),
                     &req.method,
                     StatusCode::UNAUTHORIZED,
                     &state.config.server_name,
                 )
-                .with_reason("No token provided."))
-            }
-        };
-        if token == expected.as_deref() {
-            Ok(Self(token.unwrap_or_default().to_string()))
+                .with_reason("No token provided."));
+            },
+            |t| Ok(t.to_str().unwrap_or_default()),
+        )?;
+        if token == expected {
+            Ok(Self(token.to_string()))
         } else {
             Err(Error::new(
                 req.uri.path(),
