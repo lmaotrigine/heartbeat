@@ -14,8 +14,8 @@ All fields in the file have comments explaining what they are for, and how to fi
 Docker images are built and pushed on every commit to the `main` branch. A [`docker-compose.yml`](/docker-compose.yml)
 file is included in the source to quickly get a server set up and running.
 
-```sh
-docker compose up
+```console
+$ docker compose up
 ```
 
 If you know what you're doing, you can edit the compose file to use, say, a database on a different host/network.
@@ -28,10 +28,10 @@ intended for use as a library, so there is no guarantee for the MSRV.
 
 See the [feature flags](./usage.md#feature-flags) section for feature flags.
 
-```sh
-cargo build --release # add --feature flags here
-ln -s target/release/heartbeat ./heartbeat
-./heartbeat
+```console
+$ cargo build --release # add --feature flags here
+$ ln -s target/release/heartbeat ./heartbeat
+$ ./heartbeat
 ```
 
 In addition, you will need access to a [PostgreSQL](https://www.postgresql.org) (of a supported server version). If the

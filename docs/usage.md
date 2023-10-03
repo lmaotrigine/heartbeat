@@ -4,10 +4,9 @@
 
 Ensure [`git`](https://git-scm.com) is installed and in your path.
 
-```sh
-# you can add --depth 1 to this command if you don't care about the commit history
-git clone https://github.com/lmaotrigine/heartbeat
-cd heartbeat
+```console
+$ git clone https://github.com/lmaotrigine/heartbeat # you can add --depth 1 to this command if you don't care about the commit history
+$ cd heartbeat
 ```
 
 ## Setting up
@@ -18,9 +17,9 @@ Refer to the [server setup documentation](./server.md) for instructions to get t
 
 To test locally, you will need to first add a device.
 
-```sh
-# the key set in the secret_key field of your config file
-curl -X POST -H "Authorization: $your_secret_key" -H "Content-Type: application/json" -d '{"name": "Laptop"}' localhost:6060/api/devices
+```console
+$ export $secret_key="the key set in the secret_key field of your config file"
+$ curl -X POST -H "Authorization: $secret_key" -H "Content-Type: application/json" -d '{"name": "Laptop"}' localhost:6060/api/devices
 ```
 
 You should receive a JSON response with the details of your newly registered device. Note the `token` field as this will
@@ -28,8 +27,8 @@ not be shown again.
 
 To test a ping locally:
 
-```sh
-curl -X POST -H "Authorization: $your_device_token" localhost:6060
+```console
+$ curl -X POST -H "Authorization: $your_device_token" localhost:6060
 ```
 
 You should get a response with the Unix timestamp of your ping.
