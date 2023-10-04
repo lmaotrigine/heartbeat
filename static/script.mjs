@@ -15,6 +15,13 @@
  * @property {number} last_seen_relative
  */
 
+/**
+ * @callback GetElementByIdFunction
+ * @param {string} elementId
+ * @returns {HTMLElement | null}
+ */
+
+/** @type {GetElementByIdFunction} */
 const $i = document.getElementById.bind(document);
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October','November','December'];
 const units = {Y: 'year', m: 'month', w: 'week', d: 'day', H: 'hour', M: 'minute', S: 'second'};
