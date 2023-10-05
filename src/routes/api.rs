@@ -56,7 +56,7 @@ async fn fire_webhook(state: AppState, title: &str, message: &str, level: Webhoo
 pub async fn handle_beat_req(State(state): State<AppState>, info: DeviceAuth) -> (StatusCode, String) {
     let now = Utc::now();
     let prev_beat = sqlx::query!(
-        r#"
+        r"
     WITH discard AS (
         INSERT INTO heartbeat.beats (time_stamp, device) VALUES ($1, $2)
     ),
@@ -70,7 +70,7 @@ pub async fn handle_beat_req(State(state): State<AppState>, info: DeviceAuth) ->
     FROM heartbeat.beats beats, longest_absence
     ORDER BY time_stamp DESC
     LIMIT 1;
-    "#,
+    ",
         now,
         info.id
     )
@@ -103,7 +103,7 @@ pub async fn handle_beat_req(State(state): State<AppState>, info: DeviceAuth) ->
             ))
             .expect("We have travelled way too far into the future.");
             let _ = sqlx::query!(
-                r#"UPDATE heartbeat.stats SET longest_absence = $1 WHERE _id = 0;"#,
+                "UPDATE heartbeat.stats SET longest_absence = $1 WHERE _id = 0;",
                 pg_diff
             )
             .execute(&state.pool)
@@ -193,7 +193,7 @@ pub async fn post_device(
     }
     let id = SnowflakeGenerator::default().generate();
     let res = match sqlx::query!(
-        r#"INSERT INTO heartbeat.devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;"#,
+        r"INSERT INTO heartbeat.devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;",
         i64::try_from(id.id()).expect("snowflake out of i64 range. Is it 2089 already?"),
         device.name,
         generate_token(id),

@@ -20,7 +20,7 @@ pub struct Stats {
 impl Stats {
     pub async fn fetch(pool: &PgPool) -> Self {
         let devs = sqlx::query!(
-            r#"
+            r"
     WITH b AS (
         SELECT device, time_stamp FROM heartbeat.beats ORDER BY time_stamp DESC LIMIT 1
     )
@@ -31,7 +31,7 @@ impl Stats {
         d.name
     FROM b, heartbeat.beats beats JOIN heartbeat.devices d ON beats.device = d.id
     GROUP BY d.id
-    "#
+    "
         )
         .fetch_all(pool)
         .await

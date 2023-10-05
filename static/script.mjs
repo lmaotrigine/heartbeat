@@ -7,23 +7,42 @@
  */
 
 /**
+ * @typedef {Object} Device
+ * // this is actually a number, but it's too big for JS to do anything number-y
+ * @property {string} id
+ * @property {string} name
+ * @property {number} last_beat
+ * @property {number} num_beats
+ */
+
+/**
  * @typedef {Object} Stats
  * @property {number} num_visits
  * @property {number} total_beats
  * @property {number} uptime
  * @property {number} last_seen
  * @property {number} last_seen_relative
+ * @property {number} longest_absence
+ * @property {Device[]} devices
  */
 
-/**
- * @callback GetElementByIdFunction
- * @param {string} elementId
- * @returns {HTMLElement | null}
- */
-
-/** @type {GetElementByIdFunction} */
 const $i = document.getElementById.bind(document);
-const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October','November','December'];
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+/** @type {{[key: string]: string}} */
 const units = {Y: 'year', m: 'month', w: 'week', d: 'day', H: 'hour', M: 'minute', S: 'second'};
 
 /**
@@ -32,7 +51,7 @@ const units = {Y: 'year', m: 'month', w: 'week', d: 'day', H: 'hour', M: 'minute
  * @returns {string} The padded number.
  */
 function zeroPad(n) {
-  return n < 10 ? '0' + n : n;
+  return `${n < 10 ? '0' : ''}${n}`;
 }
 
 /**
@@ -75,6 +94,7 @@ function formatRelativeTime(secs) {
   [H, rem] = [Math.floor(rem / 3600), rem % 3600];
   [M, S] = [Math.floor(rem / 60), Math.round(rem % 60)];
   const fmt = { Y, m, w, d, H, M, S };
+  /** @type {string[]} */
   const arr = [];
   Object.entries(fmt).filter(([, v]) => v > 0).forEach(([k, v]) => arr.push(plural(v, units[k])));
   if (arr.length === 0) {
@@ -110,7 +130,7 @@ function Stats(stats) {
  */
 function Index(stats) {
   $i('last-seen').innerText = formatDate(stats.last_seen);
-  $i('time-difference').innerText = formatRelativeTime(stats.last_seen_relative, true);
+  $i('time-difference').innerText = formatRelativeTime(stats.last_seen_relative);
   $i('longest-absence').innerText = formatRelativeTime(stats.longest_absence);
   $i('total-beats').innerText = stats.total_beats.toLocaleString('en-GB');
 }

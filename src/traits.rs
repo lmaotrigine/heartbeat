@@ -22,11 +22,11 @@ pub trait PoolExt {
 impl PoolExt for PgPool {
     async fn incr_visits(&self) -> sqlx::Result<()> {
         sqlx::query!(
-            r#"
+            r"
             UPDATE heartbeat.stats
             SET total_visits = total_visits + 1
             RETURNING total_visits;
-            "#
+            "
         )
         .fetch_one(self)
         .await?;
@@ -36,7 +36,7 @@ impl PoolExt for PgPool {
     async fn server_start_time(&self) -> DateTime<Utc> {
         let now = Utc::now();
         sqlx::query_scalar!(
-            r#"
+            r"
             WITH dummy AS (
                 INSERT INTO heartbeat.stats (_id)
                 VALUES (0)
@@ -45,7 +45,7 @@ impl PoolExt for PgPool {
             SELECT server_start_time
             FROM heartbeat.stats
             WHERE _id = 0;
-            "#
+            "
         )
         .fetch_optional(self)
         .await
