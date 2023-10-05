@@ -1,9 +1,18 @@
 /**
  * Copyright 2023 Isis <root@5ht2.me>
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+/**
+ * @typedef {Object} Device
+ * // this is actually a number, but it's too big for JS to do anything number-y
+ * @property {string} id
+ * @property {string} name
+ * @property {number} last_beat
+ * @property {number} num_beats
  */
 
 /**
@@ -13,26 +22,36 @@
  * @property {number} uptime
  * @property {number} last_seen
  * @property {number} last_seen_relative
+ * @property {number} longest_absence
+ * @property {Device[]} devices
  */
 
-/**
- * @callback GetElementByIdFunction
- * @param {string} elementId
- * @returns {HTMLElement | null}
- */
-
-/** @type {GetElementByIdFunction} */
 const $i = document.getElementById.bind(document);
-const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October','November','December'];
-const units = {Y: 'year', m: 'month', w: 'week', d: 'day', H: 'hour', M: 'minute', S: 'second'};
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+/** @type {{[key: string]: string}} */
+const units = { Y: 'year', m: 'month', w: 'week', d: 'day', H: 'hour', M: 'minute', S: 'second' };
 
 /**
  * Pad a number with a leading zero if it is less than 10.
- * @param {number} n The number to pad. 
+ * @param {number} n The number to pad.
  * @returns {string} The padded number.
  */
 function zeroPad(n) {
-  return n < 10 ? '0' + n : n;
+  return `${n < 10 ? '0' : ''}${n}`;
 }
 
 /**
@@ -75,8 +94,11 @@ function formatRelativeTime(secs) {
   [H, rem] = [Math.floor(rem / 3600), rem % 3600];
   [M, S] = [Math.floor(rem / 60), Math.round(rem % 60)];
   const fmt = { Y, m, w, d, H, M, S };
+  /** @type {string[]} */
   const arr = [];
-  Object.entries(fmt).filter(([, v]) => v > 0).forEach(([k, v]) => arr.push(plural(v, units[k])));
+  Object.entries(fmt)
+    .filter(([, v]) => v > 0)
+    .forEach(([k, v]) => arr.push(plural(v, units[k])));
   if (arr.length === 0) {
     return '0 seconds';
   }
@@ -93,7 +115,7 @@ function formatRelativeTime(secs) {
  * Refresh components on the stats page.
  * This is a lightweight and more retro version of what Preact does.
  * @param {Stats} stats
- * @returns {void} 
+ * @returns {void}
  */
 function Stats(stats) {
   $i('visits').innerText = stats.num_visits.toLocaleString('en-GB');
@@ -106,11 +128,11 @@ function Stats(stats) {
  * Refresh components on the index page.
  * This is a lightweight and more retro version of what Preact does.
  * @param {Stats} stats
- * @returns {void} 
+ * @returns {void}
  */
 function Index(stats) {
   $i('last-seen').innerText = formatDate(stats.last_seen);
-  $i('time-difference').innerText = formatRelativeTime(stats.last_seen_relative, true);
+  $i('time-difference').innerText = formatRelativeTime(stats.last_seen_relative);
   $i('longest-absence').innerText = formatRelativeTime(stats.longest_absence);
   $i('total-beats').innerText = stats.total_beats.toLocaleString('en-GB');
 }

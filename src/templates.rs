@@ -95,13 +95,13 @@ pub fn index(stats: &Stats, commit: &str, config: &Config) -> Markup {
     let last_seen_relative = format_relative(now - last_seen);
     let longest_absence = format_relative(stats.longest_absence);
     let total_beats = stats.total_beats.format();
-    let now_fmt = now.format("%d %B %Y %H:%M:%S");
-    let last_seen_fmt = last_seen.format("%d %B %Y %H:%M:%S");
+    let now_fmt = now.format("%d %B %Y %H:%M:%S UTC");
+    let last_seen_fmt = last_seen.format("%d %B %Y %H:%M:%S UTC");
     let extra_head = Some(html! {
         meta property="og:site_name" content=(config.server_name);
-        meta property="og:description" content=(format!(r#"Last seen at {last_seen_fmt}.
+        meta property="og:description" content=(format!(r"Last seen at {last_seen_fmt}.
 This embed was generated at {now_fmt}.
-Due to caching, you will have to check the website if the embed generation time is old."#));
+Due to caching, you will have to check the website if the embed generation time is old."));
         meta name="theme-color" content="#6495ed";
         script type="module" src="/script.mjs" {}
     });
@@ -138,7 +138,6 @@ Due to caching, you will have to check the website if the embed generation time 
                         "Last response time:" br;
                         span #last-seen {
                             (last_seen_fmt)
-                            " UTC"
                         }
                     }
                 }

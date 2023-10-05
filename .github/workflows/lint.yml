@@ -63,3 +63,38 @@ jobs:
         run: |
           just ci-lint
         shell: bash
+  lint-static:
+    runs-on: ubuntu-latest
+    name: "Lint static assets"
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 2
+      - id: should-check
+        run: |
+          if git diff --exit-code --quiet HEAD^ HEAD -- static/; then
+            echo "status=no" >> $GITHUB_OUTPUT
+          else
+            echo "status=yes" >> $GITHUB_OUTPUT
+          fi
+      - name: setup node
+        if: steps.should-check.outputs.status == 'yes'
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install just
+        if: steps.should-check.outputs.status == 'yes'
+        uses: lmaotrigine/fetch-crate-action@mistress
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          owner: casey
+          name: just
+      - name: install dependencies
+        if: steps.should-check.outputs.status == 'yes'
+        run: |
+          npm install -g stylelint typescript prettier
+      - name: lint static assets
+        if: steps.should-check.outputs.status == 'yes'
+        run: |
+          just lint-static-ci
+        shell: bash

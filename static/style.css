@@ -52,7 +52,7 @@ a:hover::after {
 }
 
 /* large screens */
-@media (min-width: 64em) and (min-height: 25em) {
+@media screen and (min-width: 64em) and (min-height: 25em) {
   .centre {
     text-align: center;
   }
@@ -84,9 +84,7 @@ a:hover::after {
     display: flex;
     justify-content: center;
   }
-}
 
-@media screen and (min-width:64em) {
   .grid-cell {
     display: inline-block;
     letter-spacing: normal;

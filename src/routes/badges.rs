@@ -71,11 +71,11 @@ impl IntoResponse for BadgeResponse {
 #[axum::debug_handler]
 pub async fn last_seen(State(AppState { stats, pool, .. }): State<AppState>) -> BadgeResponse {
     let last_seen = sqlx::query_scalar!(
-        r#"
+        r"
         SELECT
             MAX(time_stamp) AS last_seen
         FROM heartbeat.beats;
-        "#
+        "
     )
     .fetch_one(&pool)
     .await
