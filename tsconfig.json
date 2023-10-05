@@ -1,0 +1,14 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    // please do not use a browser that is 6 years old.
+    "lib": ["ES2017", "DOM"],
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    // we only do getElementById on things we define ourselves while implementing the poor man's React
+    "strictNullChecks": false,
+  },
+  "include": ["static/*.mjs"]
+}

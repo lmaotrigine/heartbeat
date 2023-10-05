@@ -53,3 +53,14 @@ gensecret:
   from base64 import b64encode
   from secrets import token_bytes
   print(b64encode(token_bytes(48)).decode('ascii'))
+
+_lint-static X:
+  {{X}} tsc
+  {{X}} stylelint static/*.css
+  {{X}} prettier --check static/*.{mjs,css}
+
+lint-static:
+  just _lint-static bunx
+
+lint-static-ci:
+  just _lint-static npx

@@ -1,6 +1,6 @@
 /**
  * Copyright 2023 Isis <root@5ht2.me>
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -43,11 +43,11 @@ const months = [
 ];
 
 /** @type {{[key: string]: string}} */
-const units = {Y: 'year', m: 'month', w: 'week', d: 'day', H: 'hour', M: 'minute', S: 'second'};
+const units = { Y: 'year', m: 'month', w: 'week', d: 'day', H: 'hour', M: 'minute', S: 'second' };
 
 /**
  * Pad a number with a leading zero if it is less than 10.
- * @param {number} n The number to pad. 
+ * @param {number} n The number to pad.
  * @returns {string} The padded number.
  */
 function zeroPad(n) {
@@ -96,7 +96,9 @@ function formatRelativeTime(secs) {
   const fmt = { Y, m, w, d, H, M, S };
   /** @type {string[]} */
   const arr = [];
-  Object.entries(fmt).filter(([, v]) => v > 0).forEach(([k, v]) => arr.push(plural(v, units[k])));
+  Object.entries(fmt)
+    .filter(([, v]) => v > 0)
+    .forEach(([k, v]) => arr.push(plural(v, units[k])));
   if (arr.length === 0) {
     return '0 seconds';
   }
@@ -113,7 +115,7 @@ function formatRelativeTime(secs) {
  * Refresh components on the stats page.
  * This is a lightweight and more retro version of what Preact does.
  * @param {Stats} stats
- * @returns {void} 
+ * @returns {void}
  */
 function Stats(stats) {
   $i('visits').innerText = stats.num_visits.toLocaleString('en-GB');
@@ -126,7 +128,7 @@ function Stats(stats) {
  * Refresh components on the index page.
  * This is a lightweight and more retro version of what Preact does.
  * @param {Stats} stats
- * @returns {void} 
+ * @returns {void}
  */
 function Index(stats) {
   $i('last-seen').innerText = formatDate(stats.last_seen);
