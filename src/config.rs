@@ -14,6 +14,7 @@ use std::{
 };
 use toml::{self, de::Error as TomlDeError};
 use tracing::info;
+
 #[derive(Deserialize, Default)]
 struct TomlConfig {
     database: Option<Database>,
@@ -142,6 +143,8 @@ pub enum Error {
     Invalid(TomlDeError),
     /// A field is missing from the configuration.
     MissingField(&'static str),
+    /// The path to the configuration file is invalid.
+    InvalidConfigPath(PathBuf),
 }
 
 impl std::fmt::Display for Error {
@@ -150,6 +153,7 @@ impl std::fmt::Display for Error {
             Self::Io(error) => write!(f, "IO error: {error}"),
             Self::Invalid(error) => write!(f, "TOML error: {error}"),
             Self::MissingField(field) => write!(f, "Missing field: {field}"),
+            Self::InvalidConfigPath(path) => write!(f, "{} is not a file", path.display()),
         }
     }
 }
@@ -219,19 +223,27 @@ impl Merge {
             "postgres://postgres@localhost/postgres".into()
         }
     });
+
     #[cfg(feature = "webhook")]
     config_field!(webhook.url, webhook_url, String);
+
     #[cfg(feature = "webhook")]
     config_field!(webhook.level, webhook_level, WebhookLevel, WebhookLevel::None);
+
     config_field!(secret_key, String, String::new());
+
     config_field!(repo, String, "https://github.com/lmaotrigine/heartbeat".into());
+
     config_field!(server_name, String, "Some person's heartbeat".into());
+
     config_field!(live_url, String, "http://127.0.0.1:6060".into());
+
     config_field!(
         bind,
         SocketAddr,
         SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6060))
     );
+
     config_field!(static_dir, PathBuf, PathBuf::from("./static"));
 
     pub fn try_into(self) -> Result<Config, Error> {
@@ -263,18 +275,25 @@ impl Config {
     ///
     /// # Errors
     ///
-    /// This function will return an error if the file could not be read from (if it exists), is not valid TOML, or
-    /// the required fields are not provided by any of the sources.
+    /// This function will return an error if a path was explicitly specified and doesn't point to a regular file, the
+    /// file could not be read from (if it exists), is not valid TOML, or the required fields are not provided by
+    /// any of the sources.
     pub fn try_new() -> Result<Self, Error> {
+        let mut fail_on_not_exists = true;
         let cli = Cli::parse();
-        let config_path = cli
-            .config_file
-            .as_ref()
-            .map_or_else(|| Path::new("config.toml"), |p| p.as_path());
-        let toml_config = if config_path.exists() {
+        let config_path = cli.config_file.as_ref().map_or_else(
+            || {
+                fail_on_not_exists = false;
+                Path::new("config.toml")
+            },
+            |p| p.as_path(),
+        );
+        let toml_config = if config_path.is_file() {
             info!("Reading configuration from {}", config_path.display());
             let config_str = read_to_string(config_path).map_err(Into::<Error>::into)?;
             toml::from_str(&config_str)?
+        } else if fail_on_not_exists {
+            return Err(Error::InvalidConfigPath(config_path.to_path_buf()));
         } else {
             TomlConfig::default()
         };
