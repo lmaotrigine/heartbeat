@@ -5,9 +5,7 @@
 Configuration for the server is hierarchical and read from the following sources.
 
 - A TOML configuration file located at `config.toml` in the current working directory, or the location specified by the
-  environment varable `HEARTBEAT_CONFIG_FILE` or the command line option `-c`/`--config-file`. If the file does not
-  exist at the location, even if explicitly specified, it is ignored and no attempt is made to read configuration from
-  it.
+  environment varable `HEARTBEAT_CONFIG_FILE` or the command line option `-c`/`--config-file`.
 - Environment variables prefixed with `HEARTBEAT_`.
 - Command line options.
 
