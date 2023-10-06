@@ -9,7 +9,7 @@ repository = "https://github.com/lmaotrigine/heartbeat"
 homepage = "https://hb.5ht2.me"
 publish = false
 default-run = "heartbeat"
-rust-version = "1.69"
+rust-version = "1.70"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -19,6 +19,7 @@ axum-realip = { git = "https://git.5ht2.me/lmaotrigine/axum-realip", version = "
 badges = { git = "https://github.com/lmaotrigine/badges", version = "0.1.0", optional = true }
 base64ct = "1"
 chrono = { version = "0.4", features = ["serde", "std", "clock"], default-features = false }
+clap = { version = "4", default-features = false, features = ["derive", "env", "help", "std", "usage"] }
 color-eyre = "0.6"
 html = { git = "https://git.5ht2.me/lmaotrigine/html-rs", version = "0.1.0", features = ["axum"] }
 parking_lot = "0.12"

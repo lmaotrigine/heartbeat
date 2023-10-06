@@ -2,10 +2,40 @@
 
 ## Configuration
 
-Configuration for the server is read from a `config.toml` file in the working directory. An example configuration is
-[distributed with the source](/config.example.toml).
+Configuration for the server is hierarchical and read from the following sources.
+
+- A TOML configuration file located at `config.toml` in the current working directory, or the location specified by the
+  environment varable `HEARTBEAT_CONFIG_FILE` or the command line option `-c`/`--config-file`.
+- Environment variables prefixed with `HEARTBEAT_`.
+- Command line options.
+
+In case of conflicting options, command line options take precedence over environment variables, which in turn take
+precedence over TOML configuration fields.
+
+An example configuration file is [distributed with the source](/config.example.toml).
 
 All fields in the file have comments explaining what they are for, and how to fill them out.
+
+Help for the options is also available the obvious way:
+
+```console
+$ cargo run -q --bin heartbeat -- --help # cut below: version and author information
+Usage: heartbeat [OPTIONS]
+
+Options:
+  -d, --database-dsn <DATABASE_DSN>    A PostgreSQL connection string [env: HEARTBEAT_DATABASE_URL=]
+      --webhook-url <WEBHOOK_URL>      The URL of the Discord webhook [env: HEARTBEAT_WEBHOOK_URL=]
+      --webhook-level <WEBHOOK_LEVEL>  The minimum level of events that triggers a webhook [env: HEARTBEAT_WEBHOOK_LEVEL=]
+  -s, --secret-key <SECRET_KEY>        A random URL-safe string used as a master Authorization header for adding new devices [env: HEARTBEAT_SECRET_KEY=]
+  -r, --repo <REPO>                    The GitHub repository URL of the project [env: HEARTBEAT_REPO=]
+      --server-name <SERVER_NAME>      A human-readable name for the server used in <title> tags and other metadata [env: HEARTBEAT_SERVER_NAME=]
+  -u, --live-url <LIVE_URL>            The publicly accessible URL of the server [env: HEARTBEAT_LIVE_URL=]
+  -b, --bind <BIND>                    The bind address for the server. Must be parsable by [`std::net::ToSocketAddrs`] [env: HEARTBEAT_BIND=]
+      --static-dir <STATIC_DIR>        Path to the directory containing static files. [default: ./static] [env: HEARTBEAT_STATIC_DIR=]
+  -c, --config-file <CONFIG_FILE>      The path to the configuration file. [default: ./config.toml] [env: HEARTBEAT_CONFIG_FILE=]
+  -h, --help                           Print help
+  -V, --version                        Print version
+```
 
 ## Running
 
@@ -22,7 +52,7 @@ If you know what you're doing, you can edit the compose file to use, say, a data
 
 ### Build from source
 
-You will require a Rust toolchain to build from source. The Minimum Supported Rust Version is 1.69. However, this is
+You will require a Rust toolchain to build from source. The Minimum Supported Rust Version is 1.70. However, this is
 subject to change at any time, so make sure you have the latest stable toolchain installed anyway. This crate is not
 intended for use as a library, so there is no guarantee for the MSRV.
 

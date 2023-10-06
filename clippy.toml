@@ -1,4 +1,4 @@
-msrv = "1.69"
+msrv = "1.70"
 
 [[disallowed-types]]
 path = "std::sync::Mutex"
