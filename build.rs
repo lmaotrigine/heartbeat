@@ -14,7 +14,7 @@
 )]
 
 fn main() {
-    let rev = git_revision_hash().unwrap_or_else(|| "main".into());
+    let rev = git_revision_hash().unwrap_or_else(|| "<unknown>".into());
     println!("cargo:rustc-env=HB_GIT_COMMIT={rev}");
 }
 
