@@ -7,8 +7,6 @@
     "checkJs": true,
     "noEmit": true,
     "strict": true,
-    // we only do getElementById on things we define ourselves while implementing the poor man's React
-    "strictNullChecks": false,
   },
   "include": ["static/*.mjs"]
 }

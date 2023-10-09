@@ -26,6 +26,8 @@
  * @property {Device[]} devices
  */
 
+/** @type {(elementId: string) => HTMLElement} */
+// @ts-expect-error - We only use this for IDs that exist.
 const $i = document.getElementById.bind(document);
 const months = [
   'January',
