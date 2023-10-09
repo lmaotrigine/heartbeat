@@ -92,7 +92,7 @@ impl FromRequestParts<AppState> for Master {
             },
             |t| Ok(t.to_str().unwrap_or_default()),
         )?;
-        if token == expected {
+        if token == *expected {
             Ok(Self(token.to_string()))
         } else {
             Err(Error::new(

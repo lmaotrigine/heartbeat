@@ -5,6 +5,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use clap::Parser;
+use erased_debug::Erased;
 use serde::Deserialize;
 use std::{
     fs::read_to_string,
@@ -82,7 +83,7 @@ pub struct Config {
     pub webhook: Webhook,
     /// A random URL-safe string used as a master Authorization header
     /// for adding new devices.
-    pub secret_key: String,
+    pub secret_key: Erased<String>,
     /// The GitHub repository URL of the project.
     pub repo: String,
     /// A human-readable name for the server used in <title> tags
@@ -256,7 +257,7 @@ impl Merge {
                 url: self.webhook_url()?,
                 level: self.webhook_level()?,
             },
-            secret_key: self.secret_key()?,
+            secret_key: self.secret_key()?.into(),
             repo: self.repo()?,
             server_name: self.server_name()?,
             live_url: self.live_url()?,

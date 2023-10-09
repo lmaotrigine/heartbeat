@@ -21,6 +21,7 @@ base64ct = "1"
 chrono = { version = "0.4", features = ["serde", "std", "clock"], default-features = false }
 clap = { version = "4", default-features = false, features = ["derive", "env", "help", "std", "usage"] }
 color-eyre = "0.6"
+erased-debug = { git = "https://git.5ht2.me/lmaotrigine/erased-debug", version = "0.1.0", features = ["serde"] }
 html = { git = "https://git.5ht2.me/lmaotrigine/html-rs", version = "0.1.0", features = ["axum"] }
 parking_lot = "0.12"
 rand = { version = "0.8", default-features = false, features = ["getrandom"] }
