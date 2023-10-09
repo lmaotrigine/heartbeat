@@ -31,7 +31,7 @@ test *args:
   RUST_BACKTRACE=1 just _cargo nextest run {{args}}
 
 _docker *args:
-  TAG={{tag}} docker buildx {{args}}
+  TAG={{tag}} IMAGE={{image}} docker buildx {{args}}
 
 bake:
   @just _docker bake
