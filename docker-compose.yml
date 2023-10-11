@@ -14,7 +14,7 @@ services:
     pull_policy: always
 
   db:
-    image: postgres:15
+    image: postgres:16
     volumes:
       - ./db_data/postgres:/var/lib/postgresql/data
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
