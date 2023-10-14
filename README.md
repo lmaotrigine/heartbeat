@@ -17,8 +17,7 @@ implemented soon.
 - Token-per-device
 - Persistence improvements with a more robust database
 - Built-in support for SVG badge generation (using dynamic badges from shields.io leads to long and clunky URLs).
-- Simpler configuration without using environment variables, eliminating command-line parsing (I might add this back if
-  only to allow for custom config file location)
+- Hierarchical configuration.
 
 ## Compatibility
 
