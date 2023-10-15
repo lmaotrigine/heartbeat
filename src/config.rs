@@ -62,7 +62,7 @@ pub struct Cli {
     /// The publicly accessible URL of the server.
     #[clap(long, short = 'u', env = "HEARTBEAT_LIVE_URL")]
     pub live_url: Option<String>,
-    /// The bind address for the server. Must be parsable by [`std::net::ToSocketAddrs`].
+    /// The bind address for the server.
     #[clap(long, short, env = "HEARTBEAT_BIND")]
     pub bind: Option<SocketAddr>,
     /// Path to the directory containing static files. [default: ./static]
@@ -91,7 +91,7 @@ pub struct Config {
     pub server_name: String,
     /// The publicly accessible URL of the server.
     pub live_url: String,
-    /// The bind address for the server. Must be parsable by [`std::net::ToSocketAddrs`].
+    /// The bind address for the server.
     pub bind: SocketAddr,
     /// Path to the directory containing static files.
     pub static_dir: PathBuf,

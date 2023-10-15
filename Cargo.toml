@@ -19,7 +19,7 @@ axum-realip = { git = "https://git.5ht2.me/lmaotrigine/axum-realip", version = "
 badges = { git = "https://github.com/lmaotrigine/badges", version = "0.1.0", optional = true }
 base64ct = "1"
 chrono = { version = "0.4", features = ["serde", "std", "clock"], default-features = false }
-clap = { version = "4", default-features = false, features = ["derive", "env", "help", "std", "usage"] }
+clap = { version = "4", default-features = false, features = ["derive", "env", "error-context", "help", "std", "usage"] }
 color-eyre = "0.6"
 erased-debug = { git = "https://git.5ht2.me/lmaotrigine/erased-debug", version = "0.1.0", features = ["serde"] }
 html = { git = "https://git.5ht2.me/lmaotrigine/html-rs", version = "0.1.0", features = ["axum"] }
