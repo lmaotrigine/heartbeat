@@ -38,7 +38,7 @@ struct TomlConfig {
 {all-args}")]
 pub struct Cli {
     /// A PostgreSQL connection string.
-    #[clap(long, short, env = "HEARTBEAT_DATABASE_URL")]
+    #[clap(long, short, env = "HEARTBEAT_DATABASE_DSN")]
     pub database_dsn: Option<String>,
     #[cfg(feature = "webhook")]
     #[clap(long, env = "HEARTBEAT_WEBHOOK_URL")]
