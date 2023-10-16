@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   ws.onmessage = (ev) => {
     /** @type {Stats} */
-    let json = JSON.parse(ev.data);
+    const json = JSON.parse(ev.data);
     component(json);
   };
 });
