@@ -5,22 +5,27 @@
 # Use latest stable as default.
 # When overriding, use the alpine version to ensure
 # no dependency on glibc, libgcc, etc.
+# Although my license is GPL-compatible, which means
+# I could technically statically link against GPL-3
+# code, fuck that shit.
+# I refuse to bow down to the morons at FSF.
 ARG RUST_VERSION=alpine
 
 FROM rust:${RUST_VERSION} AS build
 
 # Install a few essential packages
+# POSIX has now standardized `-o pipefail`, and
+# ash has already added support for it.
 #  - musl-dev: C standard library
-#  - bash: slightly more reliable shell, and allows for `-o pipefail` (see below)
 #  - git: required by build.rs
-RUN apk add --no-cache musl-dev=~1 bash=~5 git=~2
+RUN apk add --no-cache musl-dev=~1 git=~2
 
 # shell options
 #   -e: exit on error
 #   -u: error on unset variables
 #   -x: print each command
 #   -o pipefail: fail if any command in a pipe fails
-SHELL [ "/bin/bash", "-euxo", "pipefail", "-c" ]
+SHELL [ "/bin/ash", "-euxo", "pipefail", "-c" ]
 
 WORKDIR /usr/src/app
 
