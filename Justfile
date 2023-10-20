@@ -5,6 +5,7 @@ _default:
 
 tag := `git rev-parse --short HEAD`
 image := "ghcr.io/lmaotrigine/heartbeat"
+dsn := "postgres://heartbeat@db/heartbeat"
 
 all: clean build
 
@@ -46,7 +47,7 @@ pull:
   docker pull {{image}}:latest
 
 migrate:
-  cargo run --bin migrate_db
+  SQLX_OFFLINE=1 cargo run --bin migrate_db --features migrate -- --database-dsn {{dsn}}
 
 gensecret:
   #!/usr/bin/env python3
@@ -57,7 +58,7 @@ gensecret:
 _lint-static X:
   {{X}} tsc
   {{X}} stylelint static/*.css
-  {{X}} prettier --check static/*.{mjs,css}
+  {{X}} eslint static/*.mjs
 
 lint-static:
   just _lint-static bunx

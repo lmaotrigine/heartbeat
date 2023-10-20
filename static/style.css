@@ -31,8 +31,10 @@ body {
   max-width: 100vw;
 }
 
+
+
 a {
-  color: cornflowerblue;
+  color: #23e5ff;
   text-decoration: none;
   position: relative;
 }
@@ -43,7 +45,7 @@ a::after {
   bottom: 0;
   left: 0;
   width: 0;
-  border-bottom: 2px solid cornflowerblue;
+  border-bottom: 2px solid #23e5ff;
   transition: 0.4s;
 }
 
@@ -92,5 +94,20 @@ a:hover::after {
     vertical-align: top;
     text-rendering: auto;
     width: 16.6667%;
+  }
+}
+
+@media screen and (prefers-color-scheme: light) {
+  body {
+    color: #000;
+    background-color: #f6f6f6;
+  }
+  
+  a {
+    color: #00e;
+  }
+
+  a::after {
+    border-bottom: 2px solid #00e;
   }
 }

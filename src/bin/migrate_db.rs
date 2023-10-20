@@ -7,35 +7,48 @@
     clippy::unwrap_used
 )]
 
+use clap::Parser;
 use color_eyre::eyre::Result;
 use serde::Deserialize;
 use sqlx::PgPool;
-use std::{env, fs::read_to_string};
+use std::{fs::read_to_string, path::PathBuf};
 use tracing::info;
 
-#[derive(Deserialize)]
+#[derive(Parser)]
 struct Config {
-    database: Dsn,
-}
-
-#[derive(Deserialize)]
-struct Dsn {
-    dsn: String,
+    #[clap(short, long, env = "HEARTBEAT_CONFIG_FILE")]
+    config_file: Option<PathBuf>,
+    #[clap(short, long, env = "HEARTBEAT_DATABASE_DSN")]
+    database_dsn: Option<String>,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
     color_eyre::install()?;
-    let dsn = if let Ok(dsn) = env::var("DATABASE_URL") {
+    let conf = Config::parse();
+    let dsn = if let Some(dsn) = conf.database_dsn {
         dsn
     } else {
-        let conf_file = read_to_string("config.toml")?;
-        let config: Config = toml::from_str(&conf_file)?;
-        config.database.dsn
+        read_toml(conf)?
     };
     info!("Using DSN: {dsn}");
     let pool = PgPool::connect(&dsn).await?;
     info!("Running migrations...");
     Ok(sqlx::migrate!().run(&pool).await?)
+}
+
+fn read_toml(conf: Config) -> Result<String> {
+    #[derive(Deserialize)]
+    struct Toml {
+        database: Database,
+    }
+    #[derive(Deserialize)]
+    struct Database {
+        dsn: String,
+    }
+    let c: Toml = toml::from_str(&read_to_string(
+        conf.config_file.unwrap_or_else(|| "config.toml".into()),
+    )?)?;
+    Ok(c.database.dsn)
 }

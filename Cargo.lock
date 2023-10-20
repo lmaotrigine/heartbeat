@@ -751,6 +751,7 @@ dependencies = [
  "color-eyre",
  "erased-debug",
  "html",
+ "itoa",
  "parking_lot",
  "rand",
  "reqwest",

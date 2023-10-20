@@ -47,6 +47,8 @@ fn base(title: impl AsRef<str>, include_original_license: bool, extra_head: Opti
         (PreEscaped("\n-->\n"))
         html lang="en" {
             head {
+                meta charset="utf-8";
+                meta name="viewport" content="width=device-width, initial-scale=1";
                 title { (title) }
                 meta property="og:image" content="/favicon.png";
                 link rel="icon" type="image/x-icon" href="/favicon.ico";

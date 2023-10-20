@@ -6,8 +6,6 @@
 
 CREATE SCHEMA IF NOT EXISTS heartbeat;
 
-BEGIN;
 ALTER TABLE devices SET SCHEMA heartbeat;
 ALTER TABLE beats SET SCHEMA heartbeat;
 ALTER TABLE stats SET SCHEMA heartbeat;
-END;

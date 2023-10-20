@@ -9,12 +9,17 @@ use std::str::from_utf8;
 use super::hf_time::{Accuracy, HumanTime, Tense};
 
 pub fn format_relative(dur: chrono::Duration) -> String {
-    HumanTime::from(dur).to_text(Accuracy::Precise, Tense::Present)
+    if dur.num_seconds() == 0 {
+        "just now".into()
+    } else {
+        HumanTime::from(dur).to_text(Accuracy::Precise, Tense::Present)
+    }
 }
 
-pub trait FormatNum: ToString {
+pub trait FormatNum: itoa::Integer {
     fn format(&self) -> String {
-        self.to_string()
+        itoa::Buffer::new()
+            .format(*self)
             .as_bytes()
             .rchunks(3)
             .rev()

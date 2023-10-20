@@ -44,8 +44,8 @@ const months = [
   'December',
 ];
 
-/** @type {{[key: string]: string}} */
-const units = { Y: 'year', m: 'month', w: 'week', d: 'day', H: 'hour', M: 'minute', S: 'second' };
+/** @type {{[key: string]: number}} */
+const units = { year: 31536000, month: 2592000, week: 604800, day: 86400, hour: 3600, minute: 60, second: 1 };
 
 /**
  * Pad a number with a leading zero if it is less than 10.
@@ -88,21 +88,17 @@ function formatDate(secs) {
  * @returns {string} The formatted duration.
  */
 function formatRelativeTime(secs) {
-  let Y, m, w, d, H, M, S, rem;
-  [Y, rem] = [Math.floor(secs / 31536000), secs % 31536000];
-  [m, rem] = [Math.floor(rem / 2592000), rem % 2592000];
-  [w, rem] = [Math.floor(rem / 604800), rem % 604800];
-  [d, rem] = [Math.floor(rem / 86400), rem % 86400];
-  [H, rem] = [Math.floor(rem / 3600), rem % 3600];
-  [M, S] = [Math.floor(rem / 60), Math.round(rem % 60)];
-  const fmt = { Y, m, w, d, H, M, S };
   /** @type {string[]} */
   const arr = [];
-  Object.entries(fmt)
-    .filter(([, v]) => v > 0)
-    .forEach(([k, v]) => arr.push(plural(v, units[k])));
+  for (const [ k, v ] of Object.entries(units)) {
+    const n = Math.floor(secs / v);
+    if (n > 0) {
+      arr.push(plural(n, k));
+      secs -= n * v;
+    }
+  }
   if (arr.length === 0) {
-    return '0 seconds';
+    return 'just now';
   }
   if (arr.length === 1) {
     return arr[0];
@@ -110,7 +106,7 @@ function formatRelativeTime(secs) {
   if (arr.length === 2) {
     return `${arr[0]} and ${arr[1]}`;
   }
-  return arr.slice(0, -1).join(', ') + ', and ' + arr.slice(-1);
+  return `${arr.slice(0, -1).join(', ')}, and ${arr.slice(-1)}`;
 }
 
 /**

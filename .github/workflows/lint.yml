@@ -92,7 +92,7 @@ jobs:
       - name: install dependencies
         if: steps.should-check.outputs.status == 'yes'
         run: |
-          npm install -g stylelint typescript prettier
+          npm install -g stylelint typescript eslint
       - name: lint static assets
         if: steps.should-check.outputs.status == 'yes'
         run: |
