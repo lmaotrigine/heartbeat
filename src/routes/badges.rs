@@ -49,7 +49,8 @@ impl BadgeResponse {
                 .logo(B64_IMG)
                 .colour(colour)
                 .build()
-                .render(),
+                .render()
+                .into(),
         }
     }
 }
