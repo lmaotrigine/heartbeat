@@ -175,7 +175,7 @@ dependencies = [
 [[package]]
 name = "badges"
 version = "0.1.0"
-source = "git+https://github.com/lmaotrigine/badges#fe5f8f6f406cffcc10ced1bb005056216c8017c8"
+source = "git+https://github.com/lmaotrigine/badges#3e42321ac444a085dcd9c4f0d80fa3da518c84c7"
 dependencies = [
  "badges-codegen",
  "ryu",
@@ -184,7 +184,7 @@ dependencies = [
 [[package]]
 name = "badges-codegen"
 version = "0.1.0"
-source = "git+https://github.com/lmaotrigine/badges#fe5f8f6f406cffcc10ced1bb005056216c8017c8"
+source = "git+https://github.com/lmaotrigine/badges#3e42321ac444a085dcd9c4f0d80fa3da518c84c7"
 
 [[package]]
 name = "base64"
