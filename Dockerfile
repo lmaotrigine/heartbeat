@@ -36,7 +36,7 @@ ARG FEATURES=default
 ENV SQLX_OFFLINE=1 FEATURES=${FEATURES}
 ## Build dependencies separately to cache them
 RUN mkdir -p src/bin; \
-  echo 'fn main(){println!("If you see this, the build broke.")}' \
+  echo 'fn main(){panic!("If you see this, the build broke.")}' \
     | tee src/bin/web.rs src/bin/migrate_db.rs > src/bin/generate_secret.rs; \
   cargo build --release --features ${FEATURES} --bin heartbeat
 ## Build the actual binary
