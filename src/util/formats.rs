@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+use crate::traits::IteratorExt;
 use std::str::from_utf8;
 
 use super::hf_time::{Accuracy, HumanTime, Tense};
@@ -24,9 +25,12 @@ pub trait FormatNum: itoa::Integer {
             .rchunks(3)
             .rev()
             .map(from_utf8)
-            .collect::<Result<Vec<_>, _>>()
-            .unwrap_or_default()
-            .join(",")
+            .reduce_result(String::new(), |mut acc, s| {
+                acc.push_str(s);
+                acc.push(',');
+                acc
+            })
+            .expect("Invalid UTF-8 in itoa::Buffer::format")
     }
 }
 
