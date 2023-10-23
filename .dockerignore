@@ -14,3 +14,20 @@ config.toml
 
 # volumes
 db_data/
+
+# Useless things
+.eslintrc*
+.stylelintrc*
+clippy.toml
+config.example.toml
+docker-compose.yml
+docker-bake.hcl
+Justfile
+rustfmt.toml
+tsconfig.json
+migrations
+.github
+/docs/
+docker-entrypoint-initdb.d
+/man/
+/bin/
