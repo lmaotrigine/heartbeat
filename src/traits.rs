@@ -53,20 +53,3 @@ impl PoolExt for PgPool {
         .unwrap_or(now)
     }
 }
-
-pub trait IteratorExt: Iterator {
-    fn reduce_result<A, E, B, F: FnMut(B, A) -> B>(&mut self, mut start: B, mut f: F) -> Result<B, E>
-    where
-        Self: Iterator<Item = Result<A, E>>,
-    {
-        for elem in self {
-            match elem {
-                Ok(elem) => start = f(start, elem),
-                Err(err) => return Err(err),
-            }
-        }
-        Ok(start)
-    }
-}
-
-impl<I: Iterator> IteratorExt for I {}

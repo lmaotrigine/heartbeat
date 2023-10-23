@@ -101,13 +101,13 @@ pub async fn total_beats(State(AppState { stats, pool, .. }): State<AppState>) -
         .fetch_one(&pool)
         .await
         .unwrap_or_default()
-        .unwrap_or_default()
-        .format();
+        .unwrap_or_default();
+
     tokio::spawn(async move {
         stats.lock().num_visits += 1;
         let _ = pool.incr_visits().await;
     });
-    BadgeResponse::new("Total Beats", &total_beats, Colour::CORNFLOWER_BLUE)
+    BadgeResponse::new("Total Beats", total_beats.format().as_str(), Colour::CORNFLOWER_BLUE)
 }
 
 #[cfg(test)]

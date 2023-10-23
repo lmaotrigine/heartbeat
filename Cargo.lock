@@ -754,6 +754,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
+ "unsafe_formatting",
 ]
 
 [[package]]
@@ -2382,6 +2383,14 @@ name = "unicode_categories"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
+
+[[package]]
+name = "unsafe_formatting"
+version = "0.1.0"
+source = "git+https://git.5ht2.me/lmaotrigine/unsafe_formatting#1103a3b48d8ae51bf5f7167292229a3ecdecce03"
+dependencies = [
+ "itoa",
+]
 
 [[package]]
 name = "untrusted"

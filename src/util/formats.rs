@@ -4,9 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use crate::traits::IteratorExt;
-use std::str::from_utf8;
-
 use super::hf_time::{Accuracy, HumanTime, Tense};
 
 pub fn format_relative(dur: chrono::Duration) -> String {
@@ -17,20 +14,11 @@ pub fn format_relative(dur: chrono::Duration) -> String {
     }
 }
 
-pub trait FormatNum: itoa::Integer {
-    fn format(&self) -> String {
-        itoa::Buffer::new()
-            .format(*self)
-            .as_bytes()
-            .rchunks(3)
-            .rev()
-            .map(from_utf8)
-            .reduce_result(String::new(), |mut acc, s| {
-                acc.push_str(s);
-                acc.push(',');
-                acc
-            })
-            .expect("Invalid UTF-8 in itoa::Buffer::format")
+pub trait FormatNum: unsafe_formatting::Integer {
+    fn format(&self) -> unsafe_formatting::Buffer {
+        let mut buf = unsafe_formatting::Buffer::new();
+        buf.write(self);
+        buf
     }
 }
 
