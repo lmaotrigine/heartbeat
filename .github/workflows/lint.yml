@@ -24,7 +24,14 @@ jobs:
     steps:
       - uses: actions/checkout@master
         with:
-          fetch-depth: 1
+          fetch-depth: 2
+      - id: should-check
+        run: |
+          if git diff --exit-code --quiet HEAD^ HEAD -- src/ build.rs; then
+            echo "status=no" >> $GITHUB_OUTPUT
+          else
+            echo "status=yes" >> $GITHUB_OUTPUT
+          fi
       - uses: actions/cache@v3
         with:
           path: |
@@ -35,11 +42,13 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ matrix.build }}-${{ hashFiles('**/Cargo.lock') }}
       - name: setup rust ${{ matrix.rust }}
+        if: steps.should-check.outputs.status == 'yes'
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
           components: clippy, rustfmt
       - name: setup nextest
+        if: steps.should-check.outputs.status == 'yes'
         uses: lmaotrigine/fetch-crate-action@mistress
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -47,12 +56,14 @@ jobs:
           name: nextest
           bin: cargo-nextest
       - name: setup just
+        if: steps.should-check.outputs.status == 'yes'
         uses: lmaotrigine/fetch-crate-action@mistress
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           owner: casey
           name: just
       - name: setup ripgrep
+        if: steps.should-check.outputs.status == 'yes'
         uses: lmaotrigine/fetch-crate-action@mistress
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -60,6 +71,7 @@ jobs:
           name: ripgrep
           bin: rg
       - name: check and test
+        if: steps.should-check.outputs.status == 'yes'
         run: |
           just ci-lint
         shell: bash
