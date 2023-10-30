@@ -16,19 +16,6 @@ use std::{
 use toml::{self, de::Error as TomlDeError};
 use tracing::info;
 
-#[derive(Deserialize, Default)]
-struct TomlConfig {
-    database: Option<Database>,
-    #[cfg(feature = "webhook")]
-    webhook: Option<Webhook>,
-    secret_key: Option<String>,
-    repo: Option<String>,
-    server_name: Option<String>,
-    live_url: Option<String>,
-    bind: Option<SocketAddr>,
-    static_dir: Option<PathBuf>,
-}
-
 #[derive(Debug, Parser)]
 #[clap(about, author, version = crate::VERSION)]
 #[clap(help_template = r"{name} {version}
@@ -173,14 +160,28 @@ impl From<TomlDeError> for Error {
     }
 }
 
+// this is a bit of a cluster fuck
+// but this handles all the lookup bits in the right order
+// so it goes CLI -> env vars -> profile-specific overrides -> bare values in TOML -> hardcoded fallback
 macro_rules! config_field {
     ($first:ident.$second:ident, $field:ident, $type:ty$(, $default:expr)?) => {
         pub fn $field(&self) -> Result<$type, Error> {
             let value: Result<_, Error> = if let Some(ref $field) = self.cli.$field {
                 Ok($field.to_owned())
             } else {
-                if let Some(ref outer) = self.toml.$first {
-                    Ok(outer.$second.to_owned())
+                if let Some(profile) = self.profile_toml {
+                    if let Some(ref outer) = profile.get(stringify!($first)) {
+                        if let Some(inner) = outer.get(stringify!($second)) {
+                            return Ok(<$type>::deserialize(inner.clone())?);
+                        }
+                    }
+                }
+                if let Some(ref outer) = self.default_toml.get(stringify!($first)) {
+                    let value = outer.get(stringify!($second)).ok_or_else(|| {
+                        Error::MissingField(concat!(stringify!($first), ".", stringify!($second)))
+                    })?;
+                    let as_type = <$type>::deserialize(value.clone())?;
+                    Ok(as_type)
                 } else {
                     Err(Error::MissingField(stringify!($first)))?
                 }
@@ -191,10 +192,17 @@ macro_rules! config_field {
     ($field:ident, $type:ty$(, $default:expr)?) => {
         pub fn $field(&self) -> Result<$type, Error> {
             let value = if let Some(ref $field) = self.cli.$field {
-                Ok($field.to_owned())
+                Ok::<_, Error>($field.to_owned())
             } else {
-                if let Some(ref $field) = self.toml.$field {
-                    Ok($field.to_owned())
+                if let Some(profile) = self.profile_toml {
+                    if let Some($field) = profile.get(stringify!($field)) {
+                        return Ok(<$type>::deserialize($field.clone())?);
+                    }
+                }
+
+                if let Some($field) = self.default_toml.get(stringify!($field)) {
+                    let value = <$type>::deserialize($field.clone())?;
+                    Ok(value)
                 } else {
                     Err(Error::MissingField(stringify!($field)))
                 }
@@ -204,9 +212,10 @@ macro_rules! config_field {
     };
 }
 
-struct Merge {
+struct Merge<'a> {
     cli: Cli,
-    toml: TomlConfig,
+    default_toml: &'a toml::Value,
+    profile_toml: Option<&'a toml::Value>,
 }
 
 #[inline]
@@ -216,7 +225,7 @@ fn is_docker() -> bool {
     dockerenv.exists() || (read_to_string(path).map_or(false, |s| s.lines().any(|l| l.contains("docker"))))
 }
 
-impl Merge {
+impl<'a> Merge<'a> {
     config_field!(database.dsn, database_dsn, String, {
         if is_docker() {
             "postgres://heartbeat@db/heartbeat".into()
@@ -296,9 +305,19 @@ impl Config {
         } else if fail_on_not_exists {
             return Err(Error::InvalidConfigPath(config_path.to_path_buf()));
         } else {
-            TomlConfig::default()
+            // just an empty table
+            toml::Value::Table(toml::map::Map::new())
         };
-        let config = Merge { cli, toml: toml_config };
+        let profile_override = if cfg!(debug_assertions) {
+            toml_config.get("debug")
+        } else {
+            toml_config.get("release")
+        };
+        let config = Merge {
+            cli,
+            default_toml: &toml_config,
+            profile_toml: profile_override,
+        };
         config.try_into()
     }
 }

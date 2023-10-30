@@ -35,3 +35,13 @@ url = ""
 # - "long_absences"   log absences longer than 1 hour
 # - "none"            don't log anything
 level = "none"
+
+# override some values for debug builds for easier testing.
+
+[debug]
+bind = "127.0.0.1:6061"
+live_url = "http://localhost:6061"
+
+# nested keys work as expected
+[debug.database]
+dsn = "postgresql://heartbeat@localhost/heartbeat"

@@ -6,6 +6,9 @@ Configuration for the server is hierarchical and read from the following sources
 
 - A TOML configuration file located at `config.toml` in the current working directory, or the location specified by the
   environment varable `HEARTBEAT_CONFIG_FILE` or the command line option `-c`/`--config-file`.
+  This configuration can have "profile" overloads. For example `release.foo` takes precedence over `foo` in release
+  builds and `debug.foo` takes precendence over `foo` in debug builds. This is checked using `cfg(debug_assertions)` so
+  if you fiddle with that, your mileage may vary.
 - Environment variables prefixed with `HEARTBEAT_`.
 - Command line options.
 
