@@ -33,7 +33,7 @@ pub use config::Config;
 pub use error::handle_errors;
 
 /// Crate version and git commit hash.
-pub const VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), "-", env!("HB_GIT_COMMIT"));
+pub const VERSION: &str = env!("HB_VERSION");
 
 /// Global application state.
 #[derive(Debug, Clone, FromRef)]

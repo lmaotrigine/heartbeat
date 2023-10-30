@@ -8,6 +8,7 @@ use crate::{
     config::Config,
     stats::Stats,
     util::formats::{format_relative, FormatNum},
+    VERSION,
 };
 use chrono::{DateTime, Utc};
 use html::{html, Markup, PreEscaped, DOCTYPE};
@@ -121,7 +122,7 @@ Due to caching, you will have to check the website if the embed generation time 
                         "This website is running on version "
                         a href=(href) {
                             code {
-                                (commit)
+                                (VERSION)
                             }
                         }
                         " of "
