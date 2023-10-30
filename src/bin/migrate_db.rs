@@ -24,7 +24,7 @@ struct Config {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt::init();
+    heartbeat::init_logging();
     color_eyre::install()?;
     let conf = Config::parse();
     let dsn = if let Some(dsn) = conf.database_dsn {

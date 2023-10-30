@@ -26,7 +26,7 @@ use heartbeat::{handle_errors, routes::router, AppState, Config};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt::init();
+    heartbeat::init_logging();
     color_eyre::install()?;
     let config = Config::try_new()?;
     info!(config = ?config, "Loaded config");

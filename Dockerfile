@@ -47,9 +47,6 @@ RUN cargo build --release --features ${FEATURES} --bin heartbeat
 
 FROM scratch
 
-# Log level for tracing-subscriber
-ARG RUST_LOG=info
-
 # Labels
 # Reference: https://github.com/opencontainers/image-spec/blob/main/annotations.md
 LABEL org.opencontainers.image.source "https://github.com/lmaotrigine/heartbeat"
@@ -62,7 +59,6 @@ COPY --from=build /usr/src/app/target/release/heartbeat /usr/local/bin/heartbeat
 COPY --from=build /usr/src/app/static /usr/local/share/heartbeat/static
 
 WORKDIR /usr/local/share/heartbeat
-ENV RUST_LOG=${RUST_LOG}
 
 # test if the binary works
 RUN [ "/usr/local/bin/heartbeat", "--version" ]

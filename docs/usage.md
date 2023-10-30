@@ -45,7 +45,7 @@ You can open `localhost:6060` in a browser to see the webpage.
 - Can't connect when running the binary directly
 
   If running the binary is not throwing any errors, make sure you are connecting to the correct address and port as
-  configured in Rocket.toml.
+  configured.
 
 - Can't read the config file in Docker
 

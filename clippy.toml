@@ -15,3 +15,7 @@ reason = "LinkedList is slow and almost never the right choice."
 [[disallowed-types]]
 path = "ring::digest::SHA1_FOR_LEGACY_USE_ONLY"
 reason = "SHA-1 is cryptographically broken"
+
+[[disallowed-methods]]
+path = "tracing_subscriber::fmt::init"
+reason = "Use heartbeat::init_logging instead."

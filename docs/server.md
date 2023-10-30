@@ -76,6 +76,12 @@ docs](https://github.com/launchbadge/sqlx/blob/v0.7.1/sqlx-cli/README.md).
 For starting fresh, you can simple use the [`init.sql`](/docker-entrypoint-initdb.d/init.sql) script to create the
 necessary tables and indexes in your database.
 
+## Logging
+
+By default, the library emits `tracing` spans with `INFO` and lower verbosity on release builds and `DEBUG` and lower on
+debug builds. This can be configured using the `RUST_LOG` environment variable. See the
+[documentation](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/fmt/index.html#filtering-events-with-environment-variables)
+for more information.
 
 ## Running in production
 
