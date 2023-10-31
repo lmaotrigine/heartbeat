@@ -39,6 +39,6 @@ case "$OS" in
   windows-latest)
     ARCHIVE=$DIST/heartbeat-$VERSION-$TARGET.zip
     7z a "$ARCHIVE" ./*
-    echo "archive=$ARCHIVE" >> "$GITHUB_OUTPUT"
+    echo "archive=$(pwd -W)/heartbeat-$VERSION-$TARGET.zip" >> "$GITHUB_OUTPUT"
     ;;
 esac
