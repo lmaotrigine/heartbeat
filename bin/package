@@ -26,7 +26,7 @@ EXES=(target/"$TARGET"/release/{heartbeat,generate_secret,migrate_db}"$EXE_SUFFI
 echo "Copying release files..."
 mkdir "$DIST"
 cp -r docs "$DIST/docs"
-cp LICENSE README.md "${EXES[@]}" "$DIST"
+cp LICENSE README.md config.example.toml "${EXES[@]}" "$DIST"
 
 cd "$DIST"
 echo "Creating release archive..."
