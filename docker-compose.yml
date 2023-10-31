@@ -26,6 +26,7 @@ services:
       - heartbeat-net
     expose:
       - 5432
+    restart: unless-stopped
 
 networks:
   heartbeat-net:
