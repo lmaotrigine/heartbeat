@@ -731,6 +731,7 @@ dependencies = [
  "color-eyre",
  "erased-debug",
  "html",
+ "include_dir",
  "itoa",
  "parking_lot",
  "rand",
@@ -925,6 +926,25 @@ checksum = "7d20d6b07bfbc108882d88ed8e37d39636dcc260e15e30c45e6ba089610b917c"
 dependencies = [
  "unicode-bidi",
  "unicode-normalization",
+]
+
+[[package]]
+name = "include_dir"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18762faeff7122e89e0857b02f7ce6fcc0d101d5e9ad2ad7846cc01d61b7f19e"
+dependencies = [
+ "include_dir_macros",
+]
+
+[[package]]
+name = "include_dir_macros"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b139284b5cf57ecfa712bcc66950bb635b31aff41c188e8a4cfc758eca374a3f"
+dependencies = [
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]
@@ -2185,11 +2205,10 @@ dependencies = [
 
 [[package]]
 name = "tower-http"
-version = "0.4.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61c5bb1d698276a2443e5ecfabc1008bf15a36c12e6a7176e7bf089ea9131140"
+version = "0.3.5"
+source = "git+https://github.com/lmaotrigine/tower-http?branch=serve-dir-backend#b41a1d3172b509173c1e080bc52b10006f751773"
 dependencies = [
- "bitflags 2.4.1",
+ "bitflags 1.3.2",
  "bytes",
  "futures-core",
  "futures-util",
@@ -2197,6 +2216,7 @@ dependencies = [
  "http-body",
  "http-range-header",
  "httpdate",
+ "include_dir",
  "mime",
  "mime_guess",
  "percent-encoding",

@@ -32,14 +32,13 @@ async fn main() -> Result<()> {
     info!(config = ?config, "Loaded config");
     let bind = config.bind;
     let router = router(&config);
-    let static_dir = config.static_dir.clone();
     let app_state = AppState::from_config(config).await?;
     let trace_service = TraceLayer::new_for_http()
         .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
         .on_response(DefaultOnResponse::new().level(Level::INFO));
     let router = router
         .with_state(app_state.clone())
-        .fallback_service(ServeDir::new(static_dir))
+        .fallback_service(ServeDir::from_include_dir(&heartbeat::ASSETS))
         .layer(middleware::from_fn_with_state(app_state, handle_errors))
         .layer(trace_service);
     let graceful_shutdown = async {

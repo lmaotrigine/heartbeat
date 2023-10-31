@@ -36,6 +36,8 @@ pub use error::handle_errors;
 
 /// Crate version and git commit hash.
 pub const VERSION: &str = env!("HB_VERSION");
+/// Embedded static assets.
+pub const ASSETS: include_dir::Dir = include_dir::include_dir!("static");
 
 /// Like [`tracing_subscriber::fmt::init`], but defaults to DEBUG on
 /// debug builds.
