@@ -17,3 +17,6 @@ db_data/
 
 # soon:tm:
 contrib/
+
+# packages
+dist/

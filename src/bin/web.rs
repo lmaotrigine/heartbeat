@@ -16,7 +16,13 @@
 use axum::{middleware, Server};
 use color_eyre::eyre::Result;
 use std::net::SocketAddr;
+#[cfg(not(feature = "embed"))]
 use tower_http::{
+    services::ServeDir,
+    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
+};
+#[cfg(feature = "embed")]
+use tower_http_include_dir::{
     services::ServeDir,
     trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
 };
@@ -31,6 +37,10 @@ async fn main() -> Result<()> {
     let config = Config::try_new()?;
     info!(config = ?config, "Loaded config");
     let bind = config.bind;
+    #[cfg(feature = "embed")]
+    let serve_dir = ServeDir::from_include_dir(&heartbeat::ASSETS);
+    #[cfg(not(feature = "embed"))]
+    let serve_dir = ServeDir::new(&config.static_dir);
     let router = router(&config);
     let app_state = AppState::from_config(config).await?;
     let trace_service = TraceLayer::new_for_http()
@@ -38,7 +48,7 @@ async fn main() -> Result<()> {
         .on_response(DefaultOnResponse::new().level(Level::INFO));
     let router = router
         .with_state(app_state.clone())
-        .fallback_service(ServeDir::from_include_dir(&heartbeat::ASSETS))
+        .fallback_service(serve_dir)
         .layer(middleware::from_fn_with_state(app_state, handle_errors))
         .layer(trace_service);
     let graceful_shutdown = async {
