@@ -53,6 +53,10 @@ pub struct Cli {
     /// The bind address for the server.
     #[clap(long, short, env = "HEARTBEAT_BIND")]
     pub bind: Option<SocketAddr>,
+    /// Path to the directory containing static assets. [default: ./static]
+    #[cfg(not(feature = "embed"))]
+    #[cfg_attr(not(feature = "embed"), clap(long, env = "HEARTBEAT_STATIC_DIR"))]
+    pub static_dir: Option<PathBuf>,
     /// The path to the configuration file. [default: ./config.toml]
     #[clap(long, short = 'c', env = "HEARTBEAT_CONFIG_FILE")]
     pub config_file: Option<PathBuf>,
@@ -78,6 +82,9 @@ pub struct Config {
     pub live_url: String,
     /// The bind address for the server.
     pub bind: SocketAddr,
+    /// Path to the directory containing static files.
+    #[cfg(not(feature = "embed"))]
+    pub static_dir: PathBuf,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -297,6 +304,8 @@ impl<'a> Merge<'a> {
             server_name: self.server_name()?,
             live_url: self.live_url()?,
             bind: self.bind()?,
+            #[cfg(not(feature = "embed"))]
+            static_dir: self.static_dir()?,
         })
     }
 }
