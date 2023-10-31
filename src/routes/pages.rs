@@ -15,7 +15,7 @@ use html::Markup;
 pub async fn index_page(
     State(AppState {
         stats,
-        git_hash,
+        git_revision,
         config,
         pool,
         ..
@@ -29,7 +29,7 @@ pub async fn index_page(
     tokio::spawn(async move {
         let _ = pool.incr_visits().await;
     });
-    (StatusCode::OK, index(&stats, git_hash, &config))
+    (StatusCode::OK, index(&stats, git_revision, &config))
 }
 
 #[axum::debug_handler]

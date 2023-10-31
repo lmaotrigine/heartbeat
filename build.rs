@@ -15,7 +15,7 @@
 
 fn main() {
     let mut version = env!("CARGO_PKG_VERSION").to_owned();
-    let rev = git_revision_hash().unwrap_or_else(|| "main".into());
+    let rev = git_revision().unwrap_or_else(|| "main".into());
     if ["a", "b", "rc"].iter().any(|s| version.ends_with(s)) {
         if let Some(count) = git_commit_count() {
             version.push('.');
@@ -24,12 +24,12 @@ fn main() {
         version.push_str(&format!("+g{rev}"));
     }
     println!("cargo:rustc-env=HB_VERSION={version}");
-    println!("cargo:rustc-env=HB_GIT_COMMIT={rev}");
+    println!("cargo:rustc-env=HB_GIT_REVISION={rev}");
 }
 
-fn git_revision_hash() -> Option<String> {
+fn git_revision() -> Option<String> {
     std::process::Command::new("git")
-        .args(["rev-parse", "--short", "HEAD"])
+        .args(["describe", "--tags", "--exact-match"])
         .output()
         .ok()
         .and_then(|output| {
@@ -39,6 +39,20 @@ fn git_revision_hash() -> Option<String> {
             } else {
                 Some(v)
             }
+        })
+        .or_else(|| {
+            std::process::Command::new("git")
+                .args(["rev-parse", "--short", "HEAD"])
+                .output()
+                .ok()
+                .and_then(|output| {
+                    let v = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                    if v.is_empty() {
+                        None
+                    } else {
+                        Some(v)
+                    }
+                })
         })
 }
 

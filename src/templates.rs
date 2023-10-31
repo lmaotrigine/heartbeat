@@ -92,7 +92,7 @@ pub fn error(message: impl AsRef<str>, method: &str, path: &str, server_name: &s
     base(format!("{message} - {server_name}"), true, None, &body)
 }
 
-pub fn index(stats: &Stats, commit: &str, config: &Config) -> Markup {
+pub fn index(stats: &Stats, revision: &str, config: &Config) -> Markup {
     let now = Utc::now();
     let last_seen = stats.last_seen.unwrap_or_else(|| std::time::UNIX_EPOCH.into());
     let last_seen_relative = format_relative(now - last_seen);
@@ -108,7 +108,7 @@ Due to caching, you will have to check the website if the embed generation time 
         meta name="theme-color" content="#6495ed";
         script type="module" src="/script.mjs" {}
     });
-    let href = format!("{}/tree/{}", config.repo, commit);
+    let href = format!("{}/tree/{}", config.repo, revision);
     let body = html! {
         body {
             div.spacer {}

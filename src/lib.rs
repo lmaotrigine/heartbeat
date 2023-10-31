@@ -59,7 +59,7 @@ pub struct AppState {
     stats: Arc<Mutex<stats::Stats>>,
     pool: PgPool,
     config: Config,
-    git_hash: &'static str,
+    git_revision: &'static str,
     #[cfg(feature = "webhook")]
     webhook: util::Webhook,
     server_start_time: DateTime<Utc>,
@@ -92,7 +92,7 @@ impl AppState {
             stats,
             pool,
             config,
-            git_hash: env!("HB_GIT_COMMIT"),
+            git_revision: env!("HB_GIT_REVISION"),
             #[cfg(feature = "webhook")]
             webhook,
             server_start_time,
