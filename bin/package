@@ -13,8 +13,10 @@ echo "Building heartbeat..."
 # for ring
 export CC_aarch64_unknown_linux_musl=clang
 export CC_armv7_unknown_linux_musleabihf=clang
+export CC_x86_64_unknown_linux_musl=clang
 export AR_aarch64_unknown_linux_musl=llvm-ar
 export AR_armv7_unknown_linux_musleabihf=llvm-ar
+export AR_x86_64_unknown_linux_musl=llvm-ar
 
 RUSTFLAGS="-D warnings -C target-feature=+crt-static $TARGET_RUSTFLAGS" \
   cargo build --target "$TARGET" --release --all-features --locked
