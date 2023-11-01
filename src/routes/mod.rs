@@ -24,6 +24,7 @@ use badge_routes::{last_seen, total_beats};
 use pages::{index_page, privacy_page, stats_page};
 
 mod api;
+mod assets;
 #[cfg(feature = "badges")]
 #[path = "badges.rs"]
 mod badge_routes;
@@ -36,6 +37,10 @@ pub(crate) async fn health_check() -> &'static str {
 /// Creates and returns a [`Router`] with only the routes determined by
 /// crate features and the provided [`Config`].
 pub fn router(config: &Config) -> Router<AppState> {
+    __router(config).route("/*file", get(assets::serve_static_file))
+}
+
+fn __router(config: &Config) -> Router<AppState> {
     let mut router = Router::new()
         .route("/", get(index_page))
         .route("/.well-known/health", get(health_check))

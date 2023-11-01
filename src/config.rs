@@ -53,20 +53,6 @@ pub struct Cli {
     /// The bind address for the server.
     #[clap(long, short, env = "HEARTBEAT_BIND")]
     pub bind: Option<SocketAddr>,
-    // Not gating this behind `not(feature = "embed")` because rust-analyzer
-    // doesn't understand it.
-    // probably because of https://github.com/rust-lang/rust-analyzer/issues/8434
-    // instead we just explain that it does nothing in the help text.
-    #[cfg_attr(
-        not(feature = "embed"),
-        doc = "Path to the directory containing static assets. [default: ./static]"
-    )]
-    #[cfg_attr(
-        feature = "embed",
-        doc = "This option is ignored because this binary has static assets embedded in it."
-    )]
-    #[clap(long, env = "HEARTBEAT_STATIC_DIR")]
-    pub static_dir: Option<PathBuf>,
     /// The path to the configuration file. [default: ./config.toml]
     #[clap(long, short = 'c', env = "HEARTBEAT_CONFIG_FILE")]
     pub config_file: Option<PathBuf>,
@@ -92,9 +78,6 @@ pub struct Config {
     pub live_url: String,
     /// The bind address for the server.
     pub bind: SocketAddr,
-    /// Path to the directory containing static files.
-    #[cfg(not(feature = "embed"))]
-    pub static_dir: PathBuf,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -246,9 +229,6 @@ impl<'a> Merge<'a> {
         SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6060))
     );
 
-    #[cfg(not(feature = "embed"))]
-    config_field!(static_dir, PathBuf, PathBuf::from("./static"));
-
     fn profile_value<T: Debug + Deserialize<'a>>(&self, field: &'a str) -> Option<T> {
         let value = self
             .toml
@@ -315,8 +295,6 @@ impl<'a> Merge<'a> {
             server_name: self.server_name()?,
             live_url: self.live_url()?,
             bind: self.bind()?,
-            #[cfg(not(feature = "embed"))]
-            static_dir: self.static_dir()?,
         })
     }
 }

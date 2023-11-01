@@ -25,28 +25,24 @@ erased-debug = { git = "https://git.5ht2.me/lmaotrigine/erased-debug", version =
 html = { git = "https://git.5ht2.me/lmaotrigine/html-rs", version = "0.1.0", features = ["axum"] }
 include_dir = { version = "0.7", optional = true }
 itoa = "1"
+mime_guess = { version = "2.0.4", default-features = false }
 parking_lot = "0.12"
+percent-encoding = { version = "2.3.0", default-features = false }
 rand = { version = "0.8", default-features = false, features = ["getrandom"] }
 reqwest = { version = "0.11", features = ["json", "rustls-tls-webpki-roots"], optional = true, default-features = false }
+rust-embed = "8"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sqlx = { version = "0.7", features = ["chrono", "macros", "postgres", "runtime-tokio"], default-features = false }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
 toml = "0.8"
+tower-http = { version = "0.4", features = ["trace"] }
 tracing = "0.1"
 tracing-subscriber = "0.3"
 unsafe_formatting = { git = "https://git.5ht2.me/lmaotrigine/unsafe_formatting", version = "0.1.0" }
 
-[dependencies.tower-http]
-git = "https://github.com/lmaotrigine/tower-http"
-branch = "serve-dir-backend"
-version = "0.4"
-features = ["fs", "trace"]
-package = "tower-http"
-
 [features]
 default = ["badges", "webhook"]
-embed = ["tower-http/include-dir", "include_dir"]
 badges = ["dep:badges"]
 webhook = ["reqwest"]
 migrate = ["sqlx/migrate"]
