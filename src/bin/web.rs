@@ -16,13 +16,7 @@
 use axum::{middleware, Server};
 use color_eyre::eyre::Result;
 use std::net::SocketAddr;
-#[cfg(not(feature = "embed"))]
 use tower_http::{
-    services::ServeDir,
-    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
-};
-#[cfg(feature = "embed")]
-use tower_http_include_dir::{
     services::ServeDir,
     trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
 };
