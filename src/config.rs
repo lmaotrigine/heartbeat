@@ -206,6 +206,36 @@ impl<'a> Merge<'a> {
     #[cfg(not(debug_assertions))]
     const PROFILE: &'static str = "release";
 
+    config_field!(database.dsn, database_dsn, String, {
+        if is_docker() {
+            String::from("postgres://heartbeat@db/heartbeat")
+        } else {
+            String::from("postgres://postgres@localhost/postgres")
+        }
+    });
+
+    #[cfg(feature = "webhook")]
+    config_field!(webhook.url, webhook_url, String);
+
+    #[cfg(feature = "webhook")]
+    config_field!(webhook.level, webhook_level, WebhookLevel, WebhookLevel::None);
+
+    config_field!(secret_key, String, String::new());
+
+    config_field!(repo, String, String::from("https://github.com/lmaotrigine/heartbeat"));
+
+    config_field!(server_name, String, String::from("Some person's heartbeat"));
+
+    config_field!(live_url, String, String::from("http://127.0.0.1:6060"));
+
+    config_field!(
+        bind,
+        SocketAddr,
+        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6060))
+    );
+
+    config_field!(static_dir, PathBuf, PathBuf::from("./static"));
+
     fn profile_value<T: Debug + Deserialize<'a>>(&self, field: &'a str) -> Option<T> {
         let value = self
             .toml
@@ -256,36 +286,6 @@ impl<'a> Merge<'a> {
             value
         })
     }
-
-    config_field!(database.dsn, database_dsn, String, {
-        if is_docker() {
-            String::from("postgres://heartbeat@db/heartbeat")
-        } else {
-            String::from("postgres://postgres@localhost/postgres")
-        }
-    });
-
-    #[cfg(feature = "webhook")]
-    config_field!(webhook.url, webhook_url, String);
-
-    #[cfg(feature = "webhook")]
-    config_field!(webhook.level, webhook_level, WebhookLevel, WebhookLevel::None);
-
-    config_field!(secret_key, String, String::new());
-
-    config_field!(repo, String, String::from("https://github.com/lmaotrigine/heartbeat"));
-
-    config_field!(server_name, String, String::from("Some person's heartbeat"));
-
-    config_field!(live_url, String, String::from("http://127.0.0.1:6060"));
-
-    config_field!(
-        bind,
-        SocketAddr,
-        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6060))
-    );
-
-    config_field!(static_dir, PathBuf, PathBuf::from("./static"));
 
     pub fn try_into(self) -> Result<Config, Error> {
         Ok(Config {
