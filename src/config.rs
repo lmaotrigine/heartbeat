@@ -53,9 +53,19 @@ pub struct Cli {
     /// The bind address for the server.
     #[clap(long, short, env = "HEARTBEAT_BIND")]
     pub bind: Option<SocketAddr>,
-    /// Path to the directory containing static assets. [default: ./static]
-    #[cfg(not(feature = "embed"))]
-    #[cfg_attr(not(feature = "embed"), clap(long, env = "HEARTBEAT_STATIC_DIR"))]
+    // Not gating this behind `not(feature = "embed")` because rust-analyzer
+    // doesn't understand it.
+    // probably because of https://github.com/rust-lang/rust-analyzer/issues/8434
+    // instead we just explain that it does nothing in the help text.
+    #[cfg_attr(
+        not(feature = "embed"),
+        doc = "Path to the directory containing static assets. [default: ./static]"
+    )]
+    #[cfg_attr(
+        feature = "embed",
+        doc = "This option is ignored because this binary has static assets embedded in it."
+    )]
+    #[clap(long, env = "HEARTBEAT_STATIC_DIR")]
     pub static_dir: Option<PathBuf>,
     /// The path to the configuration file. [default: ./config.toml]
     #[clap(long, short = 'c', env = "HEARTBEAT_CONFIG_FILE")]
