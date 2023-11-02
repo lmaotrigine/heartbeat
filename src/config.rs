@@ -25,32 +25,32 @@ use tracing::{debug, info};
 
 {all-args}")]
 pub struct Cli {
-    /// A PostgreSQL connection string.
+    /// A PostgreSQL connection string. [default: postgres://heartbeat@db/heartbeat if running in Docker, postgres://postgres@localhost/postgres otherwise]
     #[clap(long, short, env = "HEARTBEAT_DATABASE_DSN")]
     pub database_dsn: Option<String>,
     #[cfg(feature = "webhook")]
     #[clap(long, env = "HEARTBEAT_WEBHOOK_URL")]
-    /// The URL of the Discord webhook.
+    /// The URL of the Discord webhook. [default: none]
     pub webhook_url: Option<String>,
     #[cfg(feature = "webhook")]
     #[clap(long, env = "HEARTBEAT_WEBHOOK_LEVEL")]
-    /// The minimum level of events that triggers a webhook.
+    /// The minimum level of events that triggers a webhook. [default: none]
     pub webhook_level: Option<WebhookLevel>,
     /// A random URL-safe string used as a master Authorization header
     /// for adding new devices.
     #[clap(long, short = 's', env = "HEARTBEAT_SECRET_KEY")]
     pub secret_key: Option<String>,
-    /// The GitHub repository URL of the project.
+    /// The GitHub repository URL of the project. [default: https://github.com/lmaotrigine/heartbeat]
     #[clap(long, short = 'r', env = "HEARTBEAT_REPO")]
     pub repo: Option<String>,
     /// A human-readable name for the server used in <title> tags
-    /// and other metadata.
+    /// and other metadata. [default: Some person's heartbeat]
     #[clap(long, env = "HEARTBEAT_SERVER_NAME")]
     pub server_name: Option<String>,
-    /// The publicly accessible URL of the server.
+    /// The publicly accessible URL of the server. [default: http://127.0.0.1:6060]
     #[clap(long, short = 'u', env = "HEARTBEAT_LIVE_URL")]
     pub live_url: Option<String>,
-    /// The bind address for the server.
+    /// The bind address for the server. [default: 127.0.0.1:6060]
     #[clap(long, short, env = "HEARTBEAT_BIND")]
     pub bind: Option<SocketAddr>,
     /// Path to the directory containing static files. [default: ./static]
