@@ -215,7 +215,7 @@ impl<'a> Merge<'a> {
     });
 
     #[cfg(feature = "webhook")]
-    config_field!(webhook.url, webhook_url, String);
+    config_field!(webhook.url, webhook_url, String, String::new());
 
     #[cfg(feature = "webhook")]
     config_field!(webhook.level, webhook_level, WebhookLevel, WebhookLevel::None);
