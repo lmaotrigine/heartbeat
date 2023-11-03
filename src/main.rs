@@ -70,7 +70,7 @@ async fn migrate(cli: heartbeat::MigrateCli) -> Result<()> {
         let maybe_dsn = config
             .get("database")
             .and_then(|v| v.get("dsn"))
-            .and_then(|v| v.as_str())
+            .and_then(toml::Value::as_str)
             .map(String::from);
         maybe_dsn.ok_or_else(|| color_eyre::eyre::eyre!("Database DSN not provided."))
     };
