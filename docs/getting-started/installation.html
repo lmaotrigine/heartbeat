@@ -227,9 +227,9 @@ $ cd heartbeat
 <li><code>badges</code>: Enables support for the <code>/badge/*</code> routes. This enables generation of SVG badges in the style of
 <a href="https://shields.io">shields.io</a>, without having to write long URLs for the dynamic badges that shields.io provides. Enabled by default.</li>
 <li><code>webhook</code>: Enables logging selected events to a Discord webhook. Enabled by default.</li>
-<li><code>migrate</code>: Required to build the <code>migrate_db</code> executable, which contains embedded database migrations. You will need
-to run this if the database schema is changed at some point. Such changes will be considered breaking and backwards
-incompatible. The migrations will help you to upgrade from previous versions of the schema.</li>
+<li><code>migrate</code>: Required to run the embedded database migrations. You will need to run this if the database schema is
+changed at some point. Such changes will be considered breaking and backwards incompatible. The migrations will help
+you to upgrade from previous versions of the schema.</li>
 <li><code>sqlx-tls</code>: Allows you to connect to a PostgreSQL server over TLS. Such a setup is not necessary if your database
 instance is running on a local network and is not exposed publicly.</li>
 </ul>

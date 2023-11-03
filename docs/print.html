@@ -238,9 +238,9 @@ $ cd heartbeat
 <li><code>badges</code>: Enables support for the <code>/badge/*</code> routes. This enables generation of SVG badges in the style of
 <a href="https://shields.io">shields.io</a>, without having to write long URLs for the dynamic badges that shields.io provides. Enabled by default.</li>
 <li><code>webhook</code>: Enables logging selected events to a Discord webhook. Enabled by default.</li>
-<li><code>migrate</code>: Required to build the <code>migrate_db</code> executable, which contains embedded database migrations. You will need
-to run this if the database schema is changed at some point. Such changes will be considered breaking and backwards
-incompatible. The migrations will help you to upgrade from previous versions of the schema.</li>
+<li><code>migrate</code>: Required to run the embedded database migrations. You will need to run this if the database schema is
+changed at some point. Such changes will be considered breaking and backwards incompatible. The migrations will help
+you to upgrade from previous versions of the schema.</li>
 <li><code>sqlx-tls</code>: Allows you to connect to a PostgreSQL server over TLS. Such a setup is not necessary if your database
 instance is running on a local network and is not exposed publicly.</li>
 </ul>
@@ -264,8 +264,8 @@ explaining the various fields.</p>
 <p>And visit http://127.0.0.1:6060 in a browser to check if everything went well.</p>
 <h2 id="registering-your-first-device"><a class="header" href="#registering-your-first-device">Registering your first device</a></h2>
 <p>Assuming that you set a value for the <code>secret_key</code> parameter – there are several ways to generate one, one of which is to
-run the <code>generate_secret</code> binary, which is distributed in release artifacts and can also be built from source – you can
-now hit the <code>/api/devices</code> endpoint to register your first device.</p>
+run <code>heartbeat gen-key</code>, which is distributed in release artifacts and can also be built from source – you can now hit
+the <code>/api/devices</code> endpoint to register your first device.</p>
 <p>First, you’ll need a name for your device, let’s call it <code>Laptop</code> (but you can get creative!)</p>
 <p>Using the command line, with <code>curl</code> installed (it should be by default on Windows and any sane Linux distro, and on
 macOS will prompt you to install Xcode command line tools), you can just run</p>
