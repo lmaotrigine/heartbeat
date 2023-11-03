@@ -56,8 +56,6 @@ LABEL org.opencontainers.image.description "A service to show a live digital hea
 LABEL org.opencontainers.image.licenses "MPL-2.0"
 
 COPY --from=build /usr/src/app/target/release/heartbeat /usr/local/bin/heartbeat
-COPY --from=build /usr/src/app/static /usr/local/share/heartbeat/static
-
 WORKDIR /usr/local/share/heartbeat
 
 # test if the binary works

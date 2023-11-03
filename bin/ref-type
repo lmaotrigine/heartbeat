@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+which rg  > /dev/null
+
+if echo "$1" | rg -q '^refs/tags/[[:digit:]]+[.][[:digit:]]+[.][[:digit:]]+$'; then
+  echo "value=release"
+else
+  echo "value=other"
+fi

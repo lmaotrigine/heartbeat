@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+VERSION=${REF#"refs/tags/"}
+DIST=$(pwd)/dist
+
+echo "Packaging heartbeat $VERSION for $TARGET..."
+
+test -f Cargo.lock || cargo generate-lockfile
+
+echo "Building heartbeat..."
+# for ring
+if [[ "$OS" = ubuntu-latest ]]; then
+  export TARGET_CC=clang
+  export TARGET_AR=llvm-ar
+fi
+RUSTFLAGS="-D warnings -C target-feature=+crt-static $TARGET_RUSTFLAGS" \
+  cargo build --target "$TARGET" --release --all-features --locked
+if [[ "$OS" = windows-latest ]]; then
+  EXE_SUFFIX=.exe
+else
+  EXE_SUFFIX=
+fi
+EXES=(target/"$TARGET"/release/{heartbeat,generate_secret,migrate_db}"$EXE_SUFFIX")
+echo "Copying release files..."
+mkdir "$DIST"
+cp -r docs "$DIST/docs"
+cp LICENSE README.md config.example.toml "${EXES[@]}" "$DIST"
+
+cd "$DIST"
+echo "Creating release archive..."
+case "$OS" in
+  ubuntu-latest | macos-latest)
+    ARCHIVE=$DIST/heartbeat-$VERSION-$TARGET.tar.xz
+    tar cJf "$ARCHIVE" ./*
+    echo "archive=$ARCHIVE" >> "$GITHUB_OUTPUT"
+    ;;
+  windows-latest)
+    ARCHIVE=$DIST/heartbeat-$VERSION-$TARGET.zip
+    7z a "$ARCHIVE" ./*
+    echo "archive=$(pwd -W)/heartbeat-$VERSION-$TARGET.zip" >> "$GITHUB_OUTPUT"
+    ;;
+esac
