@@ -1,0 +1,37 @@
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  gh-pages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@master
+      - name: setup mdbook
+        uses: lmaotrigine/fetch-crate-action@mistress
+        with:
+          owner: rust-lang
+          name: mdBook
+          bin: mdbook
+      - name: setup mdbook-linkcheck
+        uses: lmaotrigine/fetch-crate-action@mistress
+        with:
+          owner: Michael-F-Bryan
+          name: mdbook-linkcheck
+      - name: build book
+        run: mdbook build book
+      - name: deploy to github pages
+        uses: lmaotrigine/deploy-gh-pages-action@mistress
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: www

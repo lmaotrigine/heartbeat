@@ -8,7 +8,6 @@ authors = ["Isis <root@5ht2.me>"]
 repository = "https://github.com/lmaotrigine/heartbeat"
 homepage = "https://hb.5ht2.me"
 publish = false
-default-run = "heartbeat"
 rust-version = "1.70"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -46,14 +45,6 @@ badges = ["dep:badges"]
 webhook = ["reqwest"]
 migrate = ["sqlx/migrate"]
 sqlx-tls = ["sqlx/tls-rustls"]
-
-[[bin]]
-name = "migrate_db"
-required-features = ["migrate"]
-
-[[bin]]
-name = "heartbeat"
-path = "src/bin/web.rs"
 
 [profile.release]
 panic = "abort"

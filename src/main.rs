@@ -14,18 +14,29 @@
 )]
 
 use axum::{middleware, Server};
+use base64ct::{Base64Url, Encoding};
+use clap::Parser;
 use color_eyre::eyre::Result;
+use heartbeat::{handle_errors, routes::router, AppState, Cli, Config, Subcmd, WebCli};
 use std::net::SocketAddr;
 use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
 use tracing::{info, span, warn, Instrument, Level};
-
-use heartbeat::{handle_errors, routes::router, AppState, Config};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     heartbeat::init_logging();
     color_eyre::install()?;
-    let config = Config::try_new()?;
+    let cli = Cli::parse();
+    match cli.subcommand.unwrap_or_default() {
+        Subcmd::Run(cli) => web(cli).await,
+        #[cfg(feature = "migrate")]
+        Subcmd::Migrate(cli) => migrate(cli).await,
+        Subcmd::GenKey => gen_key(),
+    }
+}
+
+async fn web(cli: WebCli) -> Result<()> {
+    let config = Config::try_new(cli)?;
     info!(config = ?config, "Loaded config");
     let bind = config.bind;
     let router = router(&config);
@@ -47,4 +58,40 @@ async fn main() -> Result<()> {
         .with_graceful_shutdown(graceful_shutdown)
         .instrument(span!(Level::INFO, "server"))
         .await?)
+}
+
+#[cfg(feature = "migrate")]
+async fn migrate(cli: heartbeat::MigrateCli) -> Result<()> {
+    use sqlx::PgPool;
+    let from_toml = || {
+        let config = toml::from_str::<toml::Table>(&std::fs::read_to_string(
+            cli.config_file.unwrap_or_else(|| "config.toml".into()),
+        )?)?;
+        let maybe_dsn = config
+            .get("database")
+            .and_then(|v| v.get("dsn"))
+            .and_then(|v| v.as_str())
+            .map(String::from);
+        maybe_dsn.ok_or_else(|| color_eyre::eyre::eyre!("Database DSN not provided."))
+    };
+    let dsn = if let Some(dsn) = cli.database_dsn {
+        dsn
+    } else {
+        from_toml()?
+    };
+    info!("Using DSN: {dsn}");
+    let pool = PgPool::connect(&dsn).await?;
+    info!("Running migrations...");
+    Ok(sqlx::migrate!().run(&pool).await?)
+}
+
+fn gen_key() -> color_eyre::Result<()> {
+    use rand::RngCore;
+    const NUM_BYTES: usize = 48;
+    const STR_LEN: usize = 64;
+    let mut buf = [0u8; NUM_BYTES];
+    rand::thread_rng().fill_bytes(&mut buf);
+    let mut s = [0u8; STR_LEN];
+    println!("{}", Base64Url::encode(&buf, &mut s).map_err(color_eyre::Report::msg)?);
+    Ok(())
 }

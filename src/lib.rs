@@ -31,7 +31,9 @@ mod util;
 
 pub mod routes;
 
-pub use config::Config;
+#[cfg(feature = "migrate")]
+pub use config::MigrateCli;
+pub use config::{Cli, Config, Subcmd, WebCli};
 pub use error::handle_errors;
 
 /// Crate version and git commit hash.

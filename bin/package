@@ -17,16 +17,15 @@ if [[ "$OS" = ubuntu-latest ]]; then
 fi
 RUSTFLAGS="-D warnings -C target-feature=+crt-static $TARGET_RUSTFLAGS" \
   cargo build --target "$TARGET" --release --all-features --locked
+EXECUTABLE=target/$TARGET/release/heartbeat
+
 if [[ "$OS" = windows-latest ]]; then
-  EXE_SUFFIX=.exe
-else
-  EXE_SUFFIX=
+  EXECUTABLE=$EXECUTABLE.exe
 fi
-EXES=(target/"$TARGET"/release/{heartbeat,generate_secret,migrate_db}"$EXE_SUFFIX")
+
 echo "Copying release files..."
 mkdir "$DIST"
-cp -r docs "$DIST/docs"
-cp LICENSE README.md config.example.toml "${EXES[@]}" "$DIST"
+cp "$EXECUTABLE" LICENSE README.md config.example.toml conf/nginx.conf conf/Caddyfile "$DIST"
 
 cd "$DIST"
 echo "Creating release archive..."
