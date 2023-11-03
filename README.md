@@ -29,3 +29,5 @@ be compatible with this server.
 
 Documentation for this project is available as a book, and can be viewed [online][book] or in the [`book`](book) directory
 in the source tree.
+
+[book]: https://lmaotrigine.github.io/heartbeat/docs
