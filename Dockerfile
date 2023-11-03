@@ -34,7 +34,8 @@ COPY Cargo.toml Cargo.lock ./
 ARG FEATURES=default
 ENV SQLX_OFFLINE=1 FEATURES=${FEATURES}
 ## Build dependencies separately to cache them
-RUN echo 'fn main(){panic!("If you see this, the build broke.")}' > src/main.rs && \
+RUN mkdir src && \
+  echo 'fn main(){panic!("If you see this, the build broke.")}' > src/main.rs && \
   cargo build --release --features ${FEATURES}
 ## Build the actual binary
 COPY . .
