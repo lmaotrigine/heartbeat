@@ -1,0 +1,18 @@
+[book]
+author = "Isis Ebsen"
+language = "en"
+multilingual = false
+src = "src"
+title = "Heartbeat"
+
+[build]
+build-dir = "build"
+
+[output.html]
+curly-quotes = true
+git-repository-url = "https://github.com/lmaotrigine/heartbeat/tree/main/book/src"
+edit-url-template = "https://github.com/lmaotrigine/heartbeat/edit/main/book/{path}"
+search.use-boolean-and = true
+site-url = "/book/"
+
+[output.linkcheck]

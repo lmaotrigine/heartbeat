@@ -24,8 +24,7 @@ RUN apk add --no-cache musl-dev=~1 git=~2
 #   -e: exit on error
 #   -u: error on unset variables
 #   -x: print each command
-#   -o pipefail: fail if any command in a pipe fails
-SHELL [ "/bin/ash", "-euxo", "pipefail", "-c" ]
+SHELL [ "/bin/sh", "-eux", "-c" ]
 
 WORKDIR /usr/src/app
 
@@ -35,13 +34,11 @@ COPY Cargo.toml Cargo.lock ./
 ARG FEATURES=default
 ENV SQLX_OFFLINE=1 FEATURES=${FEATURES}
 ## Build dependencies separately to cache them
-RUN mkdir -p src/bin; \
-  echo 'fn main(){panic!("If you see this, the build broke.")}' \
-    | tee src/bin/web.rs src/bin/migrate_db.rs > src/bin/generate_secret.rs; \
-  cargo build --release --features ${FEATURES} --bin heartbeat
+RUN echo 'fn main(){panic!("If you see this, the build broke.")}' > src/main.rs && \
+  cargo build --release --features ${FEATURES}
 ## Build the actual binary
 COPY . .
-RUN cargo build --release --features ${FEATURES} --bin heartbeat
+RUN cargo build --release --features ${FEATURES}
 
 ####
 

@@ -47,7 +47,7 @@ pull:
   docker pull {{image}}:latest
 
 migrate:
-  SQLX_OFFLINE=1 cargo run --bin migrate_db --features migrate -- --database-dsn {{dsn}}
+  SQLX_OFFLINE=1 cargo run --features migrate -- migrate --database-dsn {{dsn}}
 
 gensecret:
   #!/usr/bin/env python3
@@ -57,7 +57,7 @@ gensecret:
 
 _lint-static X:
   {{X}} tsc
-  {{X}} stylelint static/*.css
+  {{X}} stylelint {static,www}/*.css
   {{X}} eslint static/*.mjs
 
 lint-static:
@@ -65,3 +65,6 @@ lint-static:
 
 lint-static-ci:
   just _lint-static npx
+
+build-book:
+  mdbook build book

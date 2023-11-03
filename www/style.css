@@ -1,0 +1,69 @@
+:root {
+  --width-target: calc(100vw / 7);
+  --height-target: calc(100vh / 3);
+  --size: min(var(--width-target), var(--height-target));
+  --margin-vertical: calc((100vh - var(--size) * 2) / 2);
+  --margin-horizontal: calc((100vw - var(--size) * 5) / 2);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background-color: black;
+  color: white;
+  overflow: hidden;
+  text-align: center;
+  font-family: monospace;
+  font-size: var(--size);
+  line-height: var(--size);
+}
+
+a {
+  color: white;
+  text-decoration: none;
+}
+
+a:hover {
+  text-shadow: 0 0 5px white;
+}
+
+body {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin: var(--margin-vertical) var(--margin-horizontal);
+}
+
+body > * {
+  width: var(--size);
+}
+
+body > div {
+  height: var(--size);
+  text-shadow: 0 0 5px white;
+}
+
+body > img {
+  height: var(--size);
+  width: var(--size);
+}
+
+body > a:nth-child(n+6) {
+  align-items: center;
+  display: flex;
+  font-size: calc(var(--size) / 9);
+  height: calc(var(--size) / 2);
+  justify-content: center;
+  line-height: calc(var(--size) / 9);
+}
+
+#b::after { content: 'b'; }
+#b:hover::after { content: ':'; }
+#e::after { content: 'e'; }
+#e:hover::after { content: '~'; }
+#a::after { content: 'a'; }
+#a:hover::after { content: '@'; }
+#t::after { content: 't'; }
+#t:hover::after { content: '='; }

@@ -27,5 +27,7 @@ be compatible with this server.
 
 ## Usage
 
-See [`docs/usage.md`](docs/usage.md) for compilation and usage instructions, and [`docs/client.md`](docs/client.md) for
-API reference and client information.
+Documentation for this project is available as a book, and can be viewed [online][book] or in the [`book`](book) directory
+in the source tree.
+
+[book]: https://lmaotrigine.github.io/heartbeat/docs

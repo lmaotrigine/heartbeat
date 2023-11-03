@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use erased_debug::Erased;
 use serde::Deserialize;
 use std::{
@@ -17,6 +17,7 @@ use std::{
 use toml::{self, de::Error as TomlDeError};
 use tracing::{debug, info};
 
+#[doc = env!("CARGO_PKG_DESCRIPTION")]
 #[derive(Debug, Parser)]
 #[clap(about, author, version = crate::VERSION)]
 #[clap(help_template = r"{name} {version}
@@ -25,6 +26,44 @@ use tracing::{debug, info};
 
 {all-args}")]
 pub struct Cli {
+    /// The subcommand to run.
+    #[clap(subcommand)]
+    pub subcommand: Option<Subcmd>,
+}
+
+/// Commands
+#[derive(Debug, Subcommand)]
+pub enum Subcmd {
+    /// Run the web server.
+    Run(WebCli),
+    /// Generate a new secret key.
+    GenKey,
+    /// Migrate the database.
+    #[cfg(feature = "migrate")]
+    Migrate(MigrateCli),
+}
+
+impl Default for Subcmd {
+    fn default() -> Self {
+        Self::Run(WebCli::parse())
+    }
+}
+
+/// Apply database migrations.
+#[cfg(feature = "migrate")]
+#[derive(Debug, Parser)]
+pub struct MigrateCli {
+    /// The path to the configuration file. [default: ./config.toml]
+    #[clap(long, short = 'c', env = "HEARTBEAT_CONFIG_FILE")]
+    pub config_file: Option<PathBuf>,
+    /// The PostgreSQL connection string. [default: postgres://heartbeat@db/heartbeat if running in Docker, postgres://postgres@localhost/postgres otherwise]
+    #[clap(long, short, env = "HEARTBEAT_DATABASE_DSN")]
+    pub database_dsn: Option<String>,
+}
+
+/// Run the web server.
+#[derive(Debug, Parser)]
+pub struct WebCli {
     /// A PostgreSQL connection string. [default: postgres://heartbeat@db/heartbeat if running in Docker, postgres://postgres@localhost/postgres otherwise]
     #[clap(long, short, env = "HEARTBEAT_DATABASE_DSN")]
     pub database_dsn: Option<String>,
@@ -184,7 +223,7 @@ macro_rules! config_field {
 }
 
 struct Merge<'a> {
-    cli: Cli,
+    cli: WebCli,
     toml: &'a toml::Value,
 }
 
@@ -311,9 +350,8 @@ impl Config {
     /// This function will return an error if a path was explicitly specified and doesn't point to a regular file, the
     /// file could not be read from (if it exists), is not valid TOML, or the required fields are not provided by
     /// any of the sources.
-    pub fn try_new() -> Result<Self, Error> {
+    pub fn try_new(cli: WebCli) -> Result<Self, Error> {
         let mut fail_on_not_exists = true;
-        let cli = Cli::parse();
         let config_path = cli.config_file.as_ref().map_or_else(
             || {
                 fail_on_not_exists = false;
