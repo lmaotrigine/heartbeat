@@ -1,0 +1,721 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Heartbeat</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="getting-started/index.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting-started/installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="getting-started/running.html"><strong aria-hidden="true">1.2.</strong> Running</a></li></ol></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">2.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="clients/index.html"><strong aria-hidden="true">3.</strong> Clients</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="clients/api.html"><strong aria-hidden="true">3.1.</strong> API Reference</a></li></ol></li><li class="chapter-item expanded "><a href="troubleshooting.html"><strong aria-hidden="true">4.</strong> Troubleshooting</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Heartbeat</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/lmaotrigine/heartbeat/tree/main/book/src" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="heartbeat"><a class="header" href="#heartbeat">Heartbeat</a></h1>
+<p>Heartbeat is a service that helps keep track of your digital heartbeat. It works by keeping track of pings from your
+devices (or, clients) and keeping track of how long it has been since you last used a device.</p>
+<p>Well-behaved clients would normally ping the server only while they are still active (not being used or idle, the
+specifics depend on the device), usually once every minute.</p>
+<p>This book aims to be a one-stop resource to get your own instance of the heartbeat server and clients up and running.
+You can contribute to this book on <a href="https://github.com/lmaotrigine/heartbeat/tree/main/book">GitHub</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="getting-started"><a class="header" href="#getting-started">Getting Started</a></h1>
+<p>To get started with Heartbeat, you will need to install Heartbeat, setup a database, and configure the server.</p>
+<ul>
+<li><a href="getting-started/installation.html">Installation</a></li>
+<li><a href="getting-started/running.html">Running the Server</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
+<h2 id="installing-heartbeat"><a class="header" href="#installing-heartbeat">Installing Heartbeat</a></h2>
+<p>The easiest way to install heartbeat is by obtaining the latest release archive from the <a href="https://github.com/lmaotrigine/heartbeat/releases">releases</a>. These release
+binaries are statically linked and require no runtime dependencies. You may simply download the archive corresponding to
+your platform and extract it.</p>
+<h3 id="docker"><a class="header" href="#docker">Docker</a></h3>
+<p>First-party tagged and annotated Docker images are built on every commit to the <code>main</code> branch and on every tag and can
+be pulled from the GitHub Container Registry.</p>
+<pre><code class="language-console">$ docker pull ghcr.io/lmaotrigine/heartbeat:latest
+</code></pre>
+<p>Valid tags are:</p>
+<ul>
+<li><code>latest</code>: Always points to the tip of <code>main</code>. Breaking changes may occur unannounced.</li>
+<li>The first 7 characters of a commit on <code>main</code> (corresponding to the output of <code>git rev-parse --short</code>).</li>
+<li>Any tag corresponding to a tagged release (e.g. <code>0.1.0</code>)</li>
+</ul>
+<h4 id="customizing-the-image"><a class="header" href="#customizing-the-image">Customizing the Image</a></h4>
+<p>You may optionally pass these additional <a href="https://docs.docker.com/build/guide/build-args/">build arguments</a> while
+building the Heartbeat Docker image yourself:</p>
+<ul>
+<li><code>RUST_VERSION</code>: defaults to <code>alpine</code>, which is the latest stable. Please make sure to use an Alpine base since it
+allows the C runtime to be linked statically. <code>glibc</code>-based distros like Debian will make the final image a lot
+bigger. However, Heartbeat’s <a href="https://github.com/lmaotrigine/blob/main/LICENSE">license</a> is GPL-compatible, should you wish to statically link against <code>glibc</code>.</li>
+<li><code>FEATURES</code>: the features to enable in the resultant binary. By default, only the default feature set is enabled. The
+only relevant setting for overriding this is <code>sqlx-tls</code>, which allows you to connect to your PostgreSQL database over
+TLS.</li>
+</ul>
+<h3 id="build-and-install-heartbeat-from-source"><a class="header" href="#build-and-install-heartbeat-from-source">Build and Install Heartbeat from Source</a></h3>
+<p>Alternatively, you can build heartbeat from source.</p>
+<h4 id="requirements"><a class="header" href="#requirements">Requirements</a></h4>
+<p>Heartbeat requires the following tools and packages to build:</p>
+<ul>
+<li><code>cargo</code> and <code>rustc</code></li>
+<li>A C compiler <a href="https://github.com/rust-lang/cc-rs#compile-time-requirements">for your platform</a></li>
+<li><code>git</code> (to clone this repository and also to attach some build metadata to the resulting library)</li>
+</ul>
+<h4 id="compiling"><a class="header" href="#compiling">Compiling</a></h4>
+<p>First, you’ll want to check out this repository:</p>
+<pre><code class="language-console">$ git clone https://github.com/lmaotrigine/heartbeat.git
+$ cd heartbeat
+</code></pre>
+<p>With <code>cargo</code> installed, you can simply run:</p>
+<pre><code class="language-console">$ cargo build --release
+</code></pre>
+<h4 id="features"><a class="header" href="#features">Features</a></h4>
+<p>Some functionality is gated behind <a href="https://doc.rust-lang.org/stable/cargo/reference/features.html">feature flags</a>. All features are enabled in the pre-built binaries.</p>
+<ul>
+<li><code>badges</code>: Enables support for the <code>/badge/*</code> routes. This enables generation of SVG badges in the style of
+<a href="https://shields.io">shields.io</a>, without having to write long URLs for the dynamic badges that shields.io provides. Enabled by default.</li>
+<li><code>webhook</code>: Enables logging selected events to a Discord webhook. Enabled by default.</li>
+<li><code>migrate</code>: Required to build the <code>migrate_db</code> executable, which contains embedded database migrations. You will need
+to run this if the database schema is changed at some point. Such changes will be considered breaking and backwards
+incompatible. The migrations will help you to upgrade from previous versions of the schema.</li>
+<li><code>sqlx-tls</code>: Allows you to connect to a PostgreSQL server over TLS. Such a setup is not necessary if your database
+instance is running on a local network and is not exposed publicly.</li>
+</ul>
+<h2 id="setting-up-the-database"><a class="header" href="#setting-up-the-database">Setting up the Database</a></h2>
+<p>Heartbeat uses a <a href="https://www.postgresql.org">PostgreSQL</a> database to store statistics, device information and beat history. This was chosen due to
+it being battle-tested and robust and scalable. There are no immediate plans to make the storage backend configurable.</p>
+<p>A first-party <code>docker-compose.yml</code> file is provided to run Heartbeat alongside Postgres on the same docker network on
+the same host. Any other setup requires that you bring your own database. Please consult the PostgreSQL documentation
+for the same.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="running"><a class="header" href="#running">Running</a></h1>
+<p>Heartbeat requires some configuration information at runtime to communicate with the database, set up routing, and
+finally to listen and serve. Sensible defaults for the various options are picked if not provided. Detailed information
+on configuring the server are provided in a <a href="getting-started/../configuration.html">separate section</a>.</p>
+<p>A sample configuration file is distributed with the source, and in release archives. You can view the latest version
+online on <a href="https://github.com/lmaotrigine/heartbeat/blob/main/config.example.toml">GitHub</a>. This file has comments
+explaining the various fields.</p>
+<p>After configuring the server, it can be simply started in the background.</p>
+<p>The quickest way to get started by using Docker is to clone the repository and run</p>
+<pre><code class="language-console">$ docker compose up
+</code></pre>
+<p>And visit http://127.0.0.1:6060 in a browser to check if everything went well.</p>
+<h2 id="registering-your-first-device"><a class="header" href="#registering-your-first-device">Registering your first device</a></h2>
+<p>Assuming that you set a value for the <code>secret_key</code> parameter – there are several ways to generate one, one of which is to
+run the <code>generate_secret</code> binary, which is distributed in release artifacts and can also be built from source – you can
+now hit the <code>/api/devices</code> endpoint to register your first device.</p>
+<p>First, you’ll need a name for your device, let’s call it <code>Laptop</code> (but you can get creative!)</p>
+<p>Using the command line, with <code>curl</code> installed (it should be by default on Windows and any sane Linux distro, and on
+macOS will prompt you to install Xcode command line tools), you can just run</p>
+<pre><code class="language-console">$ curl -XPOST -H 'Authorization: &lt;my_secret_key&gt;' -H 'Content-Type: application/json' -d '{&quot;name&quot;: &quot;Laptop&quot;}' http://127.0.0.1:6060/api/devices
+</code></pre>
+<p>That’s a long one! You will probably want to make a convenience wrapper for this. We don’t provide one out of the box
+because various users might have multiple very creative ways to store their secrets and we leave it to them to tailor it
+to their needs.</p>
+<p>Once you’ve registered a device, you will get a response back with a <code>token</code> field in it. Note this down because you
+cannot retrieve it from the server at any other time. You can then use this token as the <code>Authorization</code> header when you
+send your first beat.</p>
+<p>Use this token wherever appropriate when you set up the <a href="getting-started/../clients/index.html">client</a> for your device, and test it out
+by sending your first beat. If all goes well, the homepage should refresh with new statistics.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="configuration"><a class="header" href="#configuration">Configuration</a></h1>
+<p>This document explains how Heartbeat’s configuration system works, as well as available keys or configuration.</p>
+<h2 id="hierarchical-structure"><a class="header" href="#hierarchical-structure">Hierarchical structure</a></h2>
+<p>Heartbeat allows configuration to be specified through a file, through environment variables, or in the command line
+during invocation. If a key is specified in multiple locations, the value in the location with highest priority will
+take precedence. The locations in decreasing order of priority are:</p>
+<ul>
+<li>Command line</li>
+<li>Environment variables</li>
+<li>Config file fields</li>
+</ul>
+<h2 id="specifying-the-configuration-file"><a class="header" href="#specifying-the-configuration-file">Specifying the configuration file</a></h2>
+<p>By default, Heartbeat looks for a configuration file called <code>config.toml</code> in the directory it was invoked from. If the
+file doesn’t exist, it silently moves on. This can be overridden by the environment variable <code>HEARTBEAT_CONFIG_FILE</code>, or
+the command line flag <code>-c</code>/<code>--config-file</code>. If a regular file is not found at the location pointed to by the value of
+this parameter, an error will be printed and Heartbeat will exit.</p>
+<h2 id="configuration-format"><a class="header" href="#configuration-format">Configuration format</a></h2>
+<p>Configuration files are written in the <a href="https://toml.io">TOML format</a>, with simple key-value pairs and sections (tables). Values
+can be specified based on <a href="https://doc.rust-lang.org/stable/cargo/reference/profiles.html">profiles</a> using the <code>debug</code>
+or <code>release</code> tables, both of which are optional. An example config file with all fields filled out is given below:</p>
+<pre><code class="language-toml"># the address to bind to
+# this will be parsed as a `std::net::SocketAddr`
+bind = &quot;0.0.0.0:6060&quot;
+
+# this is used for &lt;title&gt; tags
+# and some headings
+server_name = &quot;Some person's heartbeat&quot;
+
+# the full url to the server
+live_url = &quot;http://127.0.0.1:6060&quot;
+
+# a random URL-safe string.
+# if left blank, addition of devices is disabled.
+# this may be generated using `openssl rand -base64 45`
+secret_key = &quot;&quot;
+
+# don't change this unless you're using a fork
+repo = &quot;https://github.com/lmaotrigine/heartbeat&quot;
+
+[database]
+# this is the default if you're using the docker-compose file
+# otherwise, the format is postgresql://username:password@host/database
+dsn = &quot;postgresql://heartbeat@db/heartbeat&quot;
+
+[webhook]
+# leave this blank to disable webhooks
+url = &quot;&quot;
+
+# one of:
+# - &quot;all&quot;             log each beat + the below
+# - &quot;new_devices&quot;     log new devices + the below
+# - &quot;long_absences&quot;   log absences longer than 1 hour
+# - &quot;none&quot;            don't log anything
+level = &quot;none&quot;
+
+# override some values for debug builds for easier testing.
+
+[debug]
+bind = &quot;127.0.0.1:6061&quot;
+live_url = &quot;http://localhost:6061&quot;
+
+# nested keys work as expected
+[debug.database]
+dsn = &quot;postgresql://heartbeat@localhost/heartbeat&quot;
+</code></pre>
+<h2 id="environment-variables"><a class="header" href="#environment-variables">Environment variables</a></h2>
+<p>Heartbeat can be configured through environment variables in addition to the TOML configuration file. Environment
+variable names take the form of <code>HEARTBEAT_&lt;KEY&gt;</code> where <code>&lt;KEY&gt;</code> is the full path to the key in the TOML configuration,
+in uppercase, with dots (<code>.</code>) replaced with underscores (<code>_</code>). For example, the <code>database.dsn</code> config value can be
+specified through the environment variable <code>HEARTBEAT_DATABASE_DSN</code>. Environment variables will override the values in
+the TOML configuration file, regardless of profile. Environment variable names must not contain the profile key.</p>
+<h2 id="command-line-arguments"><a class="header" href="#command-line-arguments">Command line arguments</a></h2>
+<p>Heartbeat can be configured by passing configuration values as command line parameters. Command line flags are formatted
+as per the POSIX standard, with two leading dashes (<code>--</code>) and dots (<code>.</code>) and underscores (<code>_</code>) replaced with dashes
+(<code>-</code>). For example, the <code>database.dsn</code> config value can be passed via the command line argument <code>--database-dsn=</code>. The
+equals sign is optional. For a full list of available configuration values, their usage, default values, and available
+shorthands, run <code>heartbeat --help</code>.</p>
+<p>If any required configuration parameter is not specified (all parameters with no defaults are considered required),
+Heartbeat will print an error message and exit.</p>
+<h2 id="configuration-keys"><a class="header" href="#configuration-keys">Configuration keys</a></h2>
+<p>This section documents all configuration keys.</p>
+<h3 id="database"><a class="header" href="#database"><code>[database]</code></a></h3>
+<p>the <code>[database]</code> table contains configuration related to the PostgreSQL database</p>
+<h4 id="databasedsn"><a class="header" href="#databasedsn"><code>database.dsn</code></a></h4>
+<ul>
+<li>Type: string</li>
+<li>Default: <code>postgresql://heartbeat@db/heartbeat</code> if running within Docker, <code>postgresql://postgres@localhost/postgres</code>
+otherwise.</li>
+<li>Enviroment: <code>HEARTBEAT_DATABASE_DSN</code></li>
+<li>Command line: <code>-d</code>/<code>--database-dsn</code></li>
+</ul>
+<p>The PostgreSQL connection string for the database that Heartbeat should use. The database must exist and the user must
+have at least <code>CREATE SCHEMA</code> privileges on it.</p>
+<h3 id="webhook"><a class="header" href="#webhook"><code>[webhook]</code></a></h3>
+<p>The <code>[webhook]</code> table deals with configuration related to logging events to Discord webhooks. This is only relevant if
+the <code>webhooks</code> feature is enabled, which is the default.</p>
+<h4 id="webhookurl"><a class="header" href="#webhookurl"><code>webhook.url</code></a></h4>
+<ul>
+<li>Type: string</li>
+<li>Default: empty</li>
+<li>Environment: <code>HEARTBEAT_WEBHOOK_URL</code></li>
+<li>Command line: <code>--webhook-url</code></li>
+</ul>
+<p>The URL to the Discord webhook to log events to. If empty, logging is disabled.</p>
+<h4 id="webhooklevel"><a class="header" href="#webhooklevel"><code>webhook.level</code></a></h4>
+<ul>
+<li>Type: string, one of <code>all</code>, <code>new_devices</code>, <code>long_absences</code>, <code>none</code></li>
+<li>Default: <code>none</code></li>
+<li>Environment: <code>HEARTBEAT_WEBHOOK_LEVEL</code></li>
+<li>Command line: <code>--webhook-level</code></li>
+</ul>
+<p>The maximum level of events to log to the webhook. The possible values in descending order of level are:</p>
+<ul>
+<li><code>all</code>: logs beats, along with all of the below</li>
+<li><code>new_devices</code>: logs when a new device is added, along with all of the below</li>
+<li><code>long_absences</code>: logs when an absence longer than 1 hour has ended.</li>
+<li><code>none</code>: No events are logs.</li>
+</ul>
+<h3 id="secret_key"><a class="header" href="#secret_key"><code>secret_key</code></a></h3>
+<ul>
+<li>Type: string</li>
+<li>Default: none</li>
+<li>Environment: <code>HEARTBEAT_SECRET_KEY</code></li>
+<li>Command line: <code>-s</code>/<code>--secret-key</code></li>
+</ul>
+<p>A random, header value safe string (&lt;=256 bytes) that will be the master authentication token for administrative actions
+like adding devices or regenerating their tokens. If this value is empty, administrative actions are disabled.</p>
+<h3 id="repo"><a class="header" href="#repo"><code>repo</code></a></h3>
+<ul>
+<li>Type: string</li>
+<li>Default: <code>https://github.com/lmaotrigine/heartbeat</code></li>
+<li>Environment: <code>HEARTBEAT_REPO</code></li>
+<li>Command line: <code>-r</code>/<code>--repo</code></li>
+</ul>
+<p>The URL to the repository of the Heartbeat source. This should be left unchanged unless you are running a fork.</p>
+<h3 id="server_name"><a class="header" href="#server_name"><code>server_name</code></a></h3>
+<ul>
+<li>Type: string</li>
+<li>Default: <code>Some person's heartbeat</code></li>
+<li>Environment: <code>HEARTBEAT_SERVER_NAME</code></li>
+<li>Command line: <code>--server-name</code></li>
+</ul>
+<p>A human-readable name for the server. Used in <code>&lt;title&gt;</code> tags and other metadata.</p>
+<h3 id="live_url"><a class="header" href="#live_url"><code>live_url</code></a></h3>
+<ul>
+<li>Type: string</li>
+<li>Default <code>http://127.0.0.1:6060</code></li>
+<li>Environment: <code>HEARTBEAT_LIVE_URL</code></li>
+<li>Command line: <code>-u</code>/<code>--live-url</code></li>
+</ul>
+<p>The publicly accessibly base URL for the Heartbeat server. This is used to format URLs in webhook logs so that they
+resolve to the right routes. When running in production, this must be overridden.</p>
+<h3 id="bind"><a class="header" href="#bind"><code>bind</code></a></h3>
+<ul>
+<li>Type: string, must be a valid socket address (either <code>&lt;host&gt;:&lt;port&gt;</code>, or a UDS).</li>
+<li>Default: <code>127.0.0.1:6060</code></li>
+<li>Environment: <code>HEARTBEAT_BIND</code></li>
+<li>Command line: <code>-b</code>/<code>--bind</code></li>
+</ul>
+<p>The socket address for the server to bind to and listen on.</p>
+<h3 id="config_file"><a class="header" href="#config_file"><code>config_file</code></a></h3>
+<ul>
+<li>Type: string, must be a path to a valid file</li>
+<li>Default: <code>./config.toml</code></li>
+<li>Environment: <code>HEARTBEAT_CONFIG_FILE</code></li>
+<li>Command line: <code>-c</code>/<code>--config-file</code></li>
+</ul>
+<p>This value obviously cannot be specified in the TOML configuration file. It can be set in the environment or provided in
+the command line to override the default config file location.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="clients"><a class="header" href="#clients">Clients</a></h1>
+<p>First-party clients are available for a variety of platforms. The future of these implementations and the possibility of
+new ones being added depend entirely on the bandwidth of the maintainers and the possibility of testing them, including
+access to relevant hardware and software. Currently, supported client platforms are:</p>
+<ul>
+<li>Linux: via <a href="https://github.com/lmaotrigine/heartbeat-unix"><code>heartbeat-unix</code></a>, only supports <code>X.org</code> with <code>kscreenlocker</code>. Support for other desktop environments,
+screensavers, and display servers is planned, and help in this area would be appreciated.</li>
+<li>MacOS: via <a href="https://github.com/lmaotrigine/heartbeat-unix"><code>heartbeat-unix</code></a>.</li>
+<li>Android: A <a href="https://tasker.joaoapps.com/">Tasker</a> project bundle is available on <a href="https://taskernet.com/shares/?user=AS35m8lYWmKlKnpucO4NKAF5nrvpAAJ9k0B16Xq4oGo55MJi%2Fne5EtkyyRTuOR565VRqEmzf468J&amp;id=Project%3AHeartbeat">TaskerNet</a>. An Android app is currently under development, but
+there is no ETA.</li>
+<li>Windows: via <a href="https://github.com/lmaotrigine/heartbeat-windows"><code>heartbeat-windows</code></a>, tested on the latest stable build of Windows 10 and latest insiders build of
+Windows 11.</li>
+</ul>
+<p>Implementing your own client to support other platforms is a straightforward process. You must implement the
+<a href="clients/./api.html">API</a>, specifically for the <code>/api/beat</code> endpoint, and hit it every so often while the device is actively being
+used. This can be determined by various factors such as the last time an input device was used, last time the screen was
+unlocked, the last time the device was awakened from an idle state, etc. At the very least you will need to make network
+requests, so devices without this capability cannot be supported.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="api-reference"><a class="header" href="#api-reference">API Reference</a></h1>
+<p>This document is a hand-crafted reference of the entire public API exposed by the server. Care must be taken to keep
+this document up-to-date whenever changes are made to the request or response types, or new routes are added or existing
+routes removed.</p>
+<h2 id="devices"><a class="header" href="#devices">Devices</a></h2>
+<p>Actions relating to devices. These routes are non-existent if the <code>secret_key</code> configuration parameter is left empty.</p>
+<h3 id="post-apidevices"><a class="header" href="#post-apidevices"><code>POST /api/devices</code></a></h3>
+<p>Register a new device.</p>
+<ul>
+<li>Authentication: <code>Authorization</code> header with the same value as the <code>secret_key</code> configuration parameter of the server.</li>
+<li>Request body:
+<ul>
+<li>Content Type: <code>application/json</code></li>
+<li>Schema: <code>{name: string}</code></li>
+<li>Example: <code>{&quot;name&quot;: &quot;Laptop&quot;}</code></li>
+</ul>
+</li>
+<li>Response:
+<ul>
+<li>Content Type: <code>application/json</code></li>
+<li>Schema: 
+<pre><code class="language-ts">{
+  id: number,
+  name: string,
+  token: string
+}
+</code></pre>
+</li>
+<li>Example:
+<pre><code class="language-json">{
+  &quot;id&quot;: 0,
+  &quot;name&quot;: &quot;Laptop&quot;,
+  &quot;token&quot;: &quot;barfooed&quot;
+}
+</code></pre>
+</li>
+</ul>
+</li>
+<li>Errors
+<ul>
+<li><code>400</code>: Invalid request body</li>
+<li><code>401</code>: Invalid or missing Authorization header</li>
+<li><code>405</code>: Not a POST request</li>
+</ul>
+</li>
+</ul>
+<h3 id="post-apidevicesidtokengenerate"><a class="header" href="#post-apidevicesidtokengenerate"><code>POST /api/devices/:id/token/generate</code></a></h3>
+<p>(Re)generate the token for a registered device.</p>
+<ul>
+<li>Authentication: <code>Authorization</code> header with the same value as the <code>secret_key</code> configuration parameter of the server.</li>
+<li>Path parameters:
+<ul>
+<li><code>id</code>: The ID of the device to regenerate the token for</li>
+</ul>
+</li>
+<li>Response:
+<ul>
+<li>Content Type: <code>application/json</code></li>
+<li>Schema: 
+<pre><code class="language-ts">{
+  id: number,
+  name: string,
+  token: string
+}
+</code></pre>
+</li>
+<li>Example:
+<pre><code class="language-json">{
+  &quot;id&quot;: 0,
+  &quot;name&quot;: &quot;Laptop&quot;,
+  &quot;token&quot;: &quot;barfooed&quot;
+}
+</code></pre>
+</li>
+</ul>
+</li>
+<li>Errors:
+<ul>
+<li><code>401</code>: Invalid or missing Authorization header</li>
+<li><code>404</code>: Device with the provided ID does not exist</li>
+<li><code>405</code>: Not a POST request</li>
+</ul>
+</li>
+</ul>
+<h2 id="beats"><a class="header" href="#beats">Beats</a></h2>
+<p>Actions that a <a href="clients/./index.html">client</a> will have to implement.</p>
+<h3 id="post-apibeat"><a class="header" href="#post-apibeat"><code>POST /api/beat</code></a></h3>
+<ul>
+<li>Authentication: <code>Authorization</code> header with the device token which was obtained during registration. If regenerated,
+old values of the token are no longer considered valid.</li>
+<li>Response:
+<ul>
+<li>Content Type: <code>text/plain</code></li>
+<li>Schema: A Unix timestamp corresponding the the time the beat was acknowledged.</li>
+<li>Example: <code>1698915036</code></li>
+</ul>
+</li>
+<li>Errors:
+<ul>
+<li><code>401</code>: Invalid or missing Authorization header</li>
+<li><code>405</code>: Not a POST request</li>
+</ul>
+</li>
+</ul>
+<h2 id="statistics"><a class="header" href="#statistics">Statistics</a></h2>
+<p>Operations to retrieve statistics about the server.</p>
+<h3 id="get-apistats"><a class="header" href="#get-apistats"><code>GET /api/stats</code></a></h3>
+<ul>
+<li>Authentication: none</li>
+<li>Response:
+<ul>
+<li>Content Type: <code>application/json</code></li>
+<li>Schema:
+<pre><code class="language-ts">{
+  last_seen: number, // Unix timestamp of last beat
+  last_seen_relative: number, // number of whole seconds since last beat
+  longest_absence: number, // duration of longest absence ever (in seconds)
+  num_visits: number, // number of visits to the site (not including API calls)
+  total_beats: number, // number of beats since the server started operating
+  devices: Device[], // array of devices, see type definition below.
+  uptime: number, // number of whole seconds since the server was first set up
+}
+/////
+type Device = {
+  id: number,
+  name: string,
+  num_beats: number,  // number of beats by this device since the server started operating
+}
+</code></pre>
+</li>
+<li>Example:
+<pre><code class="language-json">{
+  &quot;last_seen&quot;: 1698915320,
+  &quot;last_seen_relative&quot;: 41,
+  &quot;longest_absence&quot;: 84898,
+  &quot;num_visits&quot;: 1628,
+  &quot;total_beats&quot;: 120062,
+  &quot;devices&quot;: [
+    {
+      &quot;id&quot;: 0,
+      &quot;name&quot;: &quot;Laptop&quot;,
+      &quot;last_beat&quot;: 1698825626,
+      &quot;num_beats&quot;: 36308
+    },
+    {
+      &quot;id&quot;: 1,
+      &quot;name&quot;: &quot;Phone&quot;,
+      &quot;last_beat&quot;: 1698825626,
+      &quot;num_beats&quot;: 639
+    },
+    {
+      &quot;id&quot;: 2,
+      &quot;name&quot;: &quot;Workstation&quot;,
+      &quot;last_beat&quot;: 1698915320,
+      &quot;num_beats&quot;: 83115
+    }
+  ],
+  &quot;uptime&quot;: 8082297
+}
+</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="get-apistatsws"><a class="header" href="#get-apistatsws"><code>GET /api/stats/ws</code></a></h3>
+<p>A WebSocket endpoint to stream statistics. Responses are JSON strings in the same schema as above, and are streamed at
+the rate of 1/second.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h1>
+<p>The first step to debugging issues with your installation is to look at the logs. To make it less of a privacy law
+hassle, all logs exist ephemerally only in the console I/O. i.e. they are streamed to stdout/stderr depending on their
+origin and severity. Fortunately, inspecting them is easy enough. If you are simply running the server in the background
+using screen/tmux you can switch to the appropriate windows to see them. If you are using Docker, you can view them
+using <code>docker logs</code>, or <code>docker compose logs</code> if you are using <code>docker-compose</code>. If you are using a process manager like
+systemd or pm2, you can check your journal, or whatever logging facility it provides. The pertinent error messages will
+most likely be helpful enough to find out and fix your problem.</p>
+<p>By default, the maximum log level is <code>INFO</code> for release builds and <code>DEBBUG</code> for debug builds. You should be using
+release builds in production. To control the log level, set the <code>RUST_LOG</code> environment variable to an acceptable value.
+Consult <a href="https://docs.rs/tracing-subscriber/latest/tracing_subscriber/fmt/index.html#filtering-events-with-environment-variables">this documentation</a> for more information.</p>
+<p>Some common pitfalls are documented here, with suggested debugging solutions. If your issue is not listed here and you
+cannot figure it out, we’re happy to help. Open an issue or discussion on GitHub, provide us with the relevant logs and
+reproduction steps and we will do our best to help you out</p>
+<h2 id="frequent-problems"><a class="header" href="#frequent-problems">Frequent Problems</a></h2>
+<h3 id="cant-connect-using-docker"><a class="header" href="#cant-connect-using-docker">Can’t connect using Docker</a></h3>
+<p>The default port is <code>6060</code>. You should map this port to a host port (preferably the same one). If you still cannot
+access it from <code>localhost</code>, check <code>docker logs</code> or <code>docker compose logs</code> to verify that the server is listening where
+you expect it to, and that the configuration is laoded correctly.</p>
+<h3 id="cant-connect-while-not-using-docker"><a class="header" href="#cant-connect-while-not-using-docker">Can’t connect while not using Docker</a></h3>
+<p>Without Docker’s networking shenanigans, you should be able to access the server on <code>localhost</code> always. Ensure that the
+server hasn’t prematurely exited due to an error or signal. If not, please check that the bind address is the same one
+that you are trying to access.</p>
+<h3 id="401-errors-on-apibeat"><a class="header" href="#401-errors-on-apibeat">401 errors on /api/beat</a></h3>
+<p>When you believe you have the right token but the server is rejecting it, it is likely that the token was regenerated at
+some point. Regenerate it once more to ensure that you note it down this time.</p>
+<h3 id="401-errors-on-apidevice-routes"><a class="header" href="#401-errors-on-apidevice-routes">401 errors on /api/device routes</a></h3>
+<p>If the secret key isn’t being recognized as valid by the server, try temporarily overriding it using environment
+variables or command line flags, and see if the issue persists. This will likely help identify the cause of the issue if
+it isn’t just a typo.</p>
+<h3 id="config-values-from-toml-file-not-being-read-on-docker"><a class="header" href="#config-values-from-toml-file-not-being-read-on-docker">Config values from TOML file not being read on Docker</a></h3>
+<p>Make sure your <code>config.toml</code> file is mounted at <code>/usr/local/share/heartbeat/config.toml</code>. This is where the executable
+looks for the config file by default. If you overrode this, make sure the mount location matches with the override.</p>
+<h3 id="error-communicating-with-database-failed-to-lookup-address-information-name-or-service-not-known"><a class="header" href="#error-communicating-with-database-failed-to-lookup-address-information-name-or-service-not-known"><code>error communicating with database: failed to lookup address information: Name or service not known</code></a></h3>
+<p>Heartbeat could not establish a connection to the PostgreSQL server. Make sure that the server is online and reachable
+from the network Heartbeat is running on. If there is another message indicating secure connection failure, ensure that
+the <code>sqlx-tls</code> feature is enabled in your binary. In release archives, this is always the case, but in Docker, it
+requires passing it to the <code>FEATURES</code> build argument.</p>
+<h3 id="pool-timed-out-while-waiting-for-an-open-connection"><a class="header" href="#pool-timed-out-while-waiting-for-an-open-connection"><code>pool timed out while waiting for an open connection</code></a></h3>
+<p>Your PostgreSQL server is possibly at capacilty for maximum connections. Check the server logs or try again after some
+time. Failing that, enable debug logging</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>
