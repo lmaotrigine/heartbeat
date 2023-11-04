@@ -3,51 +3,110 @@
 _default:
   just --list
 
+alias t := test
+alias c := check
+
+log := "info"
+
+export RUST_LOG := log
+export SQLX_OFFLINE := "1"
+
 tag := `git rev-parse --short HEAD`
 image := "ghcr.io/lmaotrigine/heartbeat"
 dsn := "postgres://heartbeat@db/heartbeat"
+release := `git describe --tags --exact-match 2>/dev/null || echo`
 
-all: clean build
+all: clean (build "--release") (test "--all-features")
 
-ci-lint: check check-forbidden
-  just test --all-features
+update *args:
+  cargo update --all {{args}}
+
+refresh *features="--all-features":
+  cargo generate-lockfile
+  cargo sqlx prepare -- {{features}}
+
+ci: build-book lint-static-ci (test "--all-features")
+  cargo fmt --all -- --check
+  cargo clippy --all-targets --all-features -- -D warnings
+  ./bin/forbid
+  cargo update --locked --package heartbeat
 
 build *args:
-  @just _cargo build {{args}}
+  cargo build {{args}}
 
-_cargo *args:
-  SQLX_OFFLINE=1 cargo {{args}}
+fmt:
+  cargo fmt --all
 
-check:
-  cargo fmt --all -- --check
-  @just _cargo clippy --all --all-features -- -D warnings
+check: fmt clippy (test "--all-features") forbid lint-static
+  cargo sqlx --check -- --all-features
+  git diff --no-ext-diff --quiet --exit-code
 
-check-forbidden:
-  @bin/forbid
+publish:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  rm -rf tmp/release
+  git clone git@github.com:lmaotrigine/heartbeat.git tmp/release
+  cd tmp/release
+  VERSION=$(sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1)
+  git tag -a $VERSION -m "Release $VERSION"
+  git push origin $VERSION
+  cd ../..
+  rm -rf tmp/release
+
+push: check
+  ! git branch | grep '* main'
+  git push origin
+
+pr: push
+  gh pr create --web
+
+# Clean up feature branch BRANCH
+done branch=`git rev-parse --abbrev-ref HEAD`:
+  git checkout main
+  git diff --no-ext-diff --quiet --exit-code
+  git pull --rebase origin main
+  git diff --no-ext-diff --quiet --exit-code {{branch}}
+  git branch -D {{branch}}
+
+clippy:
+  cargo clippy --all-targets --all-features
+
+forbid:
+  ./bin/forbid
+
+sloc:
+  @cat src/*.rs | sed '/^\s*$/d' | wc -l
 
 clean:
   cargo clean
 
 test *args:
-  RUST_BACKTRACE=1 just _cargo nextest run {{args}}
+  RUST_BACKTRACE=1 cargo nextest run {{args}}
 
-_docker *args:
-  TAG={{tag}} IMAGE={{image}} docker buildx {{args}}
+bake *args:
+  TAG={{tag}} IMAGE_NAME={{image}} RELEASE={{release}} docker buildx bake {{args}}
 
-bake:
-  @just _docker bake
-
-push:
-  @just _docker bake --push
+docker-push:
+  @just bake --push
 
 run *args:
   docker compose up -d {{args}}
 
-pull:
+docker-pull:
   docker pull {{image}}:latest
 
-migrate:
-  SQLX_OFFLINE=1 cargo run --features migrate -- migrate --database-dsn {{dsn}}
+migrate dsn=dsn:
+  cargo run --features migrate -- migrate --database-dsn {{dsn}}
+
+new-migration name:
+  cargo sqlx migrate add {{name}}
+
+install-dev-deps:
+  rustup install nightly
+  rustup update nightly
+  cargo install cargo-sqlx
+  cargo install cargo-nextest
+  cargo install mdbook mdbook-linkcheck
 
 gensecret:
   #!/usr/bin/env python3
