@@ -141,16 +141,17 @@ if [ "$extension" = "zip" ]; then
   curl --proto =https --tlsv1.2 -fsSL "$archive" > "$td"/heartbeat.zip
   unzip -d "$td" "$td"/heartbeat.zip
 else
-  curl --proto =https --tlsv1.2 -fsSL "$archive" | tar -C "$td" -xz
+  curl --proto =https --tlsv1.2 -fsSL "$archive" | tar -C "$td" -xJ
 fi
 
 for f in "$td"/*; do
-  test -x "$td/$f" || continue
-  if [ -e "$dest/$f" ] && [ $force = 0 ]; then
-    err "$f already exists in $dest"
+  name=$(basename "$f")
+  test -x "$f" || continue
+  if [ -e "$dest/$name" ] && [ $force = 0 ]; then
+    err "$name already exists in $dest"
   else
     mkdir -p "$dest"
-    install -m 755 "$td/$f" "$dest"
+    install -m 755 "$f" "$dest"
   fi
 done
 
