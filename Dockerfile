@@ -7,15 +7,15 @@
 # no dependency on glibc, libgcc, etc.
 # Although my license is GPL-compatible, which means
 # I could technically statically link against GPL-3
-# code, fuck that shit.
+# code, fuck that shit. It uses dlopen to load *itself*
+# at runtime so you essentially end up with two libc's
+# in memory, which.. yeah no.
 # I refuse to bow down to the morons at FSF.
 ARG RUST_VERSION=alpine
 
 FROM rust:${RUST_VERSION} AS build
 
 # Install a few essential packages
-# POSIX has now standardized `-o pipefail`, and
-# ash has already added support for it.
 #  - musl-dev: C standard library
 #  - git: required by build.rs
 RUN apk add --no-cache musl-dev=~1 git=~2
