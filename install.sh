@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-
+#!/bin/sh
+# shellcheck shell=ash
 set -euo pipefail
 
 if [ -n "${GITHUB_ACTIONS-}" ]; then
@@ -94,7 +94,7 @@ if [ -z "${target-}" ]; then
 fi
 
 if [ -z "${dest-}" ]; then
-  dest=$HOME/.local/bin
+  dest=${HEARTBEAT_HOME:-HOME/.heartbeat}/bin
 fi
 
 if [ -z "${tag-}" ]; then
@@ -146,7 +146,6 @@ fi
 
 for f in "$td"/*; do
   name=$(basename "$f")
-  test -x "$f" || continue
   if [ -e "$dest/$name" ] && [ $force = 0 ]; then
     err "$name already exists in $dest"
   else

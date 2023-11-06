@@ -291,10 +291,11 @@ take precedence. The locations in decreasing order of priority are:</p>
 <li>Config file fields</li>
 </ul>
 <h2 id="specifying-the-configuration-file"><a class="header" href="#specifying-the-configuration-file">Specifying the configuration file</a></h2>
-<p>By default, Heartbeat looks for a configuration file called <code>config.toml</code> in the directory it was invoked from. If the
-file doesn’t exist, it silently moves on. This can be overridden by the environment variable <code>HEARTBEAT_CONFIG_FILE</code>, or
-the command line flag <code>-c</code>/<code>--config-file</code>. If a regular file is not found at the location pointed to by the value of
-this parameter, an error will be printed and Heartbeat will exit.</p>
+<p>By default, Heartbeat looks for a configuration file called <code>config.toml</code> in the heartbeat home folder. This is usually
+<code>~/.heartbeat</code> on Unix platforms and <code>%USERPROFILE%\.heartbeat</code> on Windows. This can be overridden by the
+<code>HEARTBEAT_HOME</code> environment variable. If the file doesn’t exist, it silently moves on. This can be overridden by the
+environment variable <code>HEARTBEAT_CONFIG_FILE</code>, or the command line flag <code>-c</code>/<code>--config-file</code>. If a regular file is not
+found at the location pointed to by the value of this parameter, an error will be printed and Heartbeat will exit.</p>
 <h2 id="configuration-format"><a class="header" href="#configuration-format">Configuration format</a></h2>
 <p>Configuration files are written in the <a href="https://toml.io">TOML format</a>, with simple key-value pairs and sections (tables). Values
 can be specified based on <a href="https://doc.rust-lang.org/stable/cargo/reference/profiles.html">profiles</a> using the <code>debug</code>
@@ -442,7 +443,7 @@ resolve to the right routes. When running in production, this must be overridden
 <h3 id="config_file"><a class="header" href="#config_file"><code>config_file</code></a></h3>
 <ul>
 <li>Type: string, must be a path to a valid file</li>
-<li>Default: <code>./config.toml</code></li>
+<li>Default: <code>$HEARTBEAT_HOME/config.toml</code> (see <a href="configuration.html#specifying-the-configuration-file">above</a> for more information)</li>
 <li>Environment: <code>HEARTBEAT_CONFIG_FILE</code></li>
 <li>Command line: <code>-c</code>/<code>--config-file</code></li>
 </ul>
@@ -664,8 +665,8 @@ some point. Regenerate it once more to ensure that you note it down this time.</
 variables or command line flags, and see if the issue persists. This will likely help identify the cause of the issue if
 it isn’t just a typo.</p>
 <h3 id="config-values-from-toml-file-not-being-read-on-docker"><a class="header" href="#config-values-from-toml-file-not-being-read-on-docker">Config values from TOML file not being read on Docker</a></h3>
-<p>Make sure your <code>config.toml</code> file is mounted at <code>/usr/local/share/heartbeat/config.toml</code>. This is where the executable
-looks for the config file by default. If you overrode this, make sure the mount location matches with the override.</p>
+<p>Make sure your <code>config.toml</code> file is mounted at <code>/.heartbeat/config.toml</code>. This is where the executable looks for the
+config file by default. If you overrode this, make sure the mount location matches with the override.</p>
 <h3 id="error-communicating-with-database-failed-to-lookup-address-information-name-or-service-not-known"><a class="header" href="#error-communicating-with-database-failed-to-lookup-address-information-name-or-service-not-known"><code>error communicating with database: failed to lookup address information: Name or service not known</code></a></h3>
 <p>Heartbeat could not establish a connection to the PostgreSQL server. Make sure that the server is online and reachable
 from the network Heartbeat is running on. If there is another message indicating secure connection failure, ensure that
