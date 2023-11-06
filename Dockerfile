@@ -53,9 +53,9 @@ LABEL org.opencontainers.image.title "heartbeat"
 LABEL org.opencontainers.image.description "A service to show a live digital heartbeat (ping) on multiple devices."
 LABEL org.opencontainers.image.licenses "MPL-2.0"
 
-COPY --from=build /usr/src/app/target/release/heartbeat /usr/local/bin/heartbeat
-WORKDIR /usr/local/share/heartbeat
+COPY --from=build /usr/src/app/target/release/heartbeat /.heartbeat/bin/heartbeat
+ENV HEARTBEAT_HOME=/.heartbeat
 
 # test if the binary works
-RUN [ "/usr/local/bin/heartbeat", "--version" ]
-ENTRYPOINT [ "/usr/local/bin/heartbeat" ]
+RUN [ "/.heartbeat/bin/heartbeat", "--version" ]
+ENTRYPOINT [ "/.heartbeat/bin/heartbeat" ]

@@ -62,10 +62,22 @@ async fn web(cli: WebCli) -> Result<()> {
 
 #[cfg(feature = "migrate")]
 async fn migrate(cli: heartbeat::MigrateCli) -> Result<()> {
+    use std::io;
+
+    use heartbeat_sys::heartbeat_home;
     use sqlx::PgPool;
     let from_toml = || {
+        let default = || {
+            let mut path = heartbeat_home().ok()?;
+            path.push("config.toml");
+            Some(path)
+        };
         let config = toml::from_str::<toml::Table>(&std::fs::read_to_string(
-            cli.config_file.unwrap_or_else(|| "config.toml".into()),
+            cli.config_file
+                .as_ref()
+                .cloned()
+                .or_else(default)
+                .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "could not determine heartbeat home dir"))?,
         )?)?;
         let maybe_dsn = config
             .get("database")

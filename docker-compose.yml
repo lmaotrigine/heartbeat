@@ -3,7 +3,7 @@ services:
   server:
     image: ghcr.io/lmaotrigine/heartbeat:latest
     volumes:
-      - ./config.toml:/usr/local/share/heartbeat/config.toml
+      - ./config.toml:/.heartbeat/config.toml
     networks:
       - heartbeat-net
     ports:

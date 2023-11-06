@@ -730,6 +730,7 @@ dependencies = [
  "clap",
  "color-eyre",
  "erased-debug",
+ "heartbeat-sys",
  "html",
  "itoa",
  "mime_guess",
@@ -747,6 +748,14 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "unsafe_formatting",
+]
+
+[[package]]
+name = "heartbeat-sys"
+version = "0.1.0"
+source = "git+https://git.5ht2.me/lmaotrigine/heartbeat-sys#67d67602a862dbdd97e8ac7366202f2f49892a7b"
+dependencies = [
+ "windows-sys",
 ]
 
 [[package]]

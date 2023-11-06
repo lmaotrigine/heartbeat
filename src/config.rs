@@ -4,8 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-use clap::{Parser, Subcommand};
+use clap::{Arg, Args, FromArgMatches, Parser, Subcommand};
 use erased_debug::Erased;
+use heartbeat_sys::heartbeat_home;
 use serde::Deserialize;
 use std::{
     fmt::Debug,
@@ -13,6 +14,7 @@ use std::{
     io::Error as IoError,
     net::{Ipv4Addr, SocketAddr, SocketAddrV4},
     path::{Path, PathBuf},
+    sync::OnceLock,
 };
 use toml::{self, de::Error as TomlDeError};
 use tracing::{debug, info};
@@ -53,9 +55,9 @@ impl Default for Subcmd {
 #[cfg(feature = "migrate")]
 #[derive(Debug, Parser)]
 pub struct MigrateCli {
-    /// The path to the configuration file. [default: ./config.toml]
-    #[clap(long, short = 'c', env = "HEARTBEAT_CONFIG_FILE")]
-    pub config_file: Option<PathBuf>,
+    /// The path to the configuration file.
+    #[command(flatten)]
+    pub config_file: __ConfigFile,
     /// The PostgreSQL connection string. [default: postgres://heartbeat@db/heartbeat if running in Docker, postgres://postgres@localhost/postgres otherwise]
     #[clap(long, short, env = "HEARTBEAT_DATABASE_DSN")]
     pub database_dsn: Option<String>,
@@ -92,9 +94,83 @@ pub struct WebCli {
     /// The bind address for the server. [default: 127.0.0.1:6060]
     #[clap(long, short, env = "HEARTBEAT_BIND")]
     pub bind: Option<SocketAddr>,
-    /// The path to the configuration file. [default: ./config.toml]
-    #[clap(long, short = 'c', env = "HEARTBEAT_CONFIG_FILE")]
-    pub config_file: Option<PathBuf>,
+    /// The path to the configuration file.
+    #[command(flatten)]
+    pub config_file: __ConfigFile,
+}
+
+#[derive(Debug, Clone)]
+pub struct __ConfigFile {
+    path: Option<PathBuf>,
+}
+
+impl std::ops::Deref for __ConfigFile {
+    type Target = Option<PathBuf>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.path
+    }
+}
+
+impl FromArgMatches for __ConfigFile {
+    fn from_arg_matches(matches: &clap::ArgMatches) -> Result<Self, clap::Error> {
+        Ok(Self {
+            path: matches.get_one::<PathBuf>("config-file").cloned(),
+        })
+    }
+
+    fn update_from_arg_matches(&mut self, matches: &clap::ArgMatches) -> Result<(), clap::Error> {
+        self.path = matches.get_one::<PathBuf>("config-file").cloned();
+        Ok(())
+    }
+}
+
+impl __ConfigFile {
+    fn default() -> &'static str {
+        // we need to specify the default in a 'static because we've painted clap
+        // into a corner. we've told it that every string we give it will be
+        // 'static, but we need to build the default path for the config file
+        // dynamically. We can fake the 'static lifetime like so:
+        static DEFAULT: OnceLock<String> = OnceLock::new();
+        let default = DEFAULT.get_or_init(|| {
+            heartbeat_home()
+                .unwrap_or_else(|_| PathBuf::from("."))
+                .join("config.toml")
+                .to_string_lossy()
+                .into_owned()
+        });
+        default
+    }
+}
+
+impl Args for __ConfigFile {
+    fn augment_args(cmd: clap::Command) -> clap::Command {
+        cmd.arg(
+            Arg::new("config-file")
+                .short('c')
+                .long("config-file")
+                .required(false)
+                .help(format!(
+                    "The path to the configuration file [default: {}]",
+                    Self::default()
+                ))
+                .env("HEARTBEAT_CONFIG_FILE"),
+        )
+    }
+
+    fn augment_args_for_update(cmd: clap::Command) -> clap::Command {
+        cmd.arg(
+            Arg::new("config-file")
+                .short('c')
+                .long("config-file")
+                .required(false)
+                .help(format!(
+                    "The path to the configuration file [default: {}]",
+                    Self::default()
+                ))
+                .env("HEARTBEAT_CONFIG_FILE"),
+        )
+    }
 }
 
 /// The configuration for the server.
@@ -342,8 +418,8 @@ impl Config {
     /// Tries to parse a [`Config`] from the command line arguments, environment variables,
     /// and a TOML configuration file.
     ///
-    /// The TOML configuration file is located at `./config.toml` by default, but can be
-    /// changed with the `--config-file` command line argument.
+    /// The TOML configuration file is located at `$HEARTBEAT_HOME/config.toml` by default, but can be
+    /// changed with the `--config-file` command line argument. `$HEARTBEAT_HOME` is ~/.heartbeat by default.
     ///
     /// # Errors
     ///
@@ -355,7 +431,7 @@ impl Config {
         let config_path = cli.config_file.as_ref().map_or_else(
             || {
                 fail_on_not_exists = false;
-                Path::new("config.toml")
+                Path::new(__ConfigFile::default())
             },
             |p| p.as_path(),
         );

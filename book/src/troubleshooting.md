@@ -43,8 +43,8 @@ it isn't just a typo.
 
 ### Config values from TOML file not being read on Docker
 
-Make sure your `config.toml` file is mounted at `/usr/local/share/heartbeat/config.toml`. This is where the executable
-looks for the config file by default. If you overrode this, make sure the mount location matches with the override.
+Make sure your `config.toml` file is mounted at `/.heartbeat/config.toml`. This is where the executable looks for the
+config file by default. If you overrode this, make sure the mount location matches with the override.
 
 ### `error communicating with database: failed to lookup address information: Name or service not known`
 

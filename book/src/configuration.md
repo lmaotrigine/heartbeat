@@ -14,10 +14,11 @@ take precedence. The locations in decreasing order of priority are:
 
 ## Specifying the configuration file
 
-By default, Heartbeat looks for a configuration file called `config.toml` in the directory it was invoked from. If the
-file doesn't exist, it silently moves on. This can be overridden by the environment variable `HEARTBEAT_CONFIG_FILE`, or
-the command line flag `-c`/`--config-file`. If a regular file is not found at the location pointed to by the value of
-this parameter, an error will be printed and Heartbeat will exit.
+By default, Heartbeat looks for a configuration file called `config.toml` in the heartbeat home folder. This is usually
+`~/.heartbeat` on Unix platforms and `%USERPROFILE%\.heartbeat` on Windows. This can be overridden by the
+`HEARTBEAT_HOME` environment variable. If the file doesn't exist, it silently moves on. This can be overridden by the
+environment variable `HEARTBEAT_CONFIG_FILE`, or the command line flag `-c`/`--config-file`. If a regular file is not
+found at the location pointed to by the value of this parameter, an error will be printed and Heartbeat will exit.
 
 ## Configuration format
 
@@ -188,7 +189,7 @@ The socket address for the server to bind to and listen on.
 ### `config_file`
 
 - Type: string, must be a path to a valid file
-- Default: `./config.toml`
+- Default: `$HEARTBEAT_HOME/config.toml` (see [above](#specifying-the-configuration-file) for more information)
 - Environment: `HEARTBEAT_CONFIG_FILE`
 - Command line: `-c`/`--config-file`
 
