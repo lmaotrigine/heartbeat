@@ -24,14 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
         with:
-          fetch-depth: 2
-      - id: should-check
-        run: |
-          if git diff --exit-code --quiet HEAD^ HEAD -- src/ build.rs; then
-            echo "status=no" >> $GITHUB_OUTPUT
-          else
-            echo "status=yes" >> $GITHUB_OUTPUT
-          fi
+          fetch-depth: 1
       - uses: actions/cache@v3
         with:
           path: |
@@ -42,13 +35,11 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ matrix.build }}-${{ hashFiles('**/Cargo.lock') }}
       - name: setup rust ${{ matrix.rust }}
-        if: steps.should-check.outputs.status == 'yes'
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
           components: clippy, rustfmt
       - name: setup nextest
-        if: steps.should-check.outputs.status == 'yes'
         uses: lmaotrigine/fetch-crate-action@mistress
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -56,57 +47,39 @@ jobs:
           name: nextest
           bin: cargo-nextest
       - name: setup just
-        if: steps.should-check.outputs.status == 'yes'
         uses: lmaotrigine/fetch-crate-action@mistress
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           owner: casey
           name: just
       - name: setup ripgrep
-        if: steps.should-check.outputs.status == 'yes'
         uses: lmaotrigine/fetch-crate-action@mistress
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           owner: BurntSushi
           name: ripgrep
           bin: rg
-      - name: check and test
-        if: steps.should-check.outputs.status == 'yes'
-        run: |
-          just ci-lint
-        shell: bash
-  lint-static:
-    runs-on: ubuntu-latest
-    name: "Lint static assets"
-    steps:
-      - uses: actions/checkout@master
-        with:
-          fetch-depth: 2
-      - id: should-check
-        run: |
-          if git diff --exit-code --quiet HEAD^ HEAD -- static/; then
-            echo "status=no" >> $GITHUB_OUTPUT
-          else
-            echo "status=yes" >> $GITHUB_OUTPUT
-          fi
-      - name: setup node
-        if: steps.should-check.outputs.status == 'yes'
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - name: Install just
-        if: steps.should-check.outputs.status == 'yes'
+      - name: setup mdbook
         uses: lmaotrigine/fetch-crate-action@mistress
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          owner: casey
-          name: just
+          owner: rust-lang
+          name: mdBook
+          bin: mdbook
+      - name: setup mdbook-linkcheck
+        uses: lmaotrigine/fetch-crate-action@mistress
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          owner: Michael-F-Bryan
+          name: mdbook-linkcheck
+      - name: setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
       - name: install dependencies
-        if: steps.should-check.outputs.status == 'yes'
         run: |
           npm install -g stylelint typescript eslint
-      - name: lint static assets
-        if: steps.should-check.outputs.status == 'yes'
+      - name: check and test
         run: |
-          just lint-static-ci
+          just ci
         shell: bash
