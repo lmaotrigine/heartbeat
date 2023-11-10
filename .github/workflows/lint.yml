@@ -17,9 +17,8 @@ jobs:
             rust: stable
           - build: beta
             rust: beta
-          # https://github.com/rust-lang/rust/issues/117598
-          #- build: nightly
-          #  rust: nightly
+          - build: nightly
+            rust: nightly
     runs-on: ubuntu-latest
     name: "Check rust ${{ matrix.rust }}"
     steps:
