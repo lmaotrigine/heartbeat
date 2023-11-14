@@ -13,7 +13,9 @@ echo "Building heartbeat..."
 # for ring
 RUSTFLAGS="-D warnings"
 if [[ "$OS" = ubuntu-latest ]]; then
-  RUSTFLAGS="$RUSTFLAGS -C linker=lld"
+  if [[ "${CARGO:-cargo}" = cargo ]]; then
+    RUSTFLAGS="$RUSTFLAGS -C linker=lld"
+  fi
   export TARGET_CC=clang
   export TARGET_AR=llvm-ar
 fi
