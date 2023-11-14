@@ -13,6 +13,9 @@ image = "lmaotrigine/cross:x86_64-unknown-netbsd"
 [target.aarch64-linux-android]
 image = "lmaotrigine/cross:aarch64-linux-android"
 
+[target.aarch64-unknown-linux-musl]
+image = "lmaotrigine/cross:aarch64-unknown-linux-musl"
+
 [target.arm-linux-androideabi]
 image = "lmaotrigine/cross:arm-linux-androideabi"
 
