@@ -16,9 +16,10 @@ ARG RUST_VERSION=alpine
 FROM rust:${RUST_VERSION} AS build
 
 # Install a few essential packages
+#  - build-base: to build jemalloc
 #  - musl-dev: C standard library
 #  - git: required by build.rs
-RUN apk add --no-cache musl-dev=~1 git=~2
+RUN apk add --no-cache build-base=~0 musl-dev=~1 git=~2
 
 # shell options
 #   -e: exit on error
