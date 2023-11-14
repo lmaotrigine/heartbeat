@@ -14,7 +14,6 @@ use std::{
     io::Error as IoError,
     net::{Ipv4Addr, SocketAddr, SocketAddrV4},
     path::{Path, PathBuf},
-    sync::OnceLock,
 };
 use toml::{self, de::Error as TomlDeError};
 use tracing::{debug, info};
@@ -126,20 +125,10 @@ impl FromArgMatches for __ConfigFile {
 }
 
 impl __ConfigFile {
-    fn default() -> &'static str {
-        // we need to specify the default in a 'static because we've painted clap
-        // into a corner. we've told it that every string we give it will be
-        // 'static, but we need to build the default path for the config file
-        // dynamically. We can fake the 'static lifetime like so:
-        static DEFAULT: OnceLock<String> = OnceLock::new();
-        let default = DEFAULT.get_or_init(|| {
-            heartbeat_home()
-                .unwrap_or_else(|_| PathBuf::from("."))
-                .join("config.toml")
-                .to_string_lossy()
-                .into_owned()
-        });
-        default
+    fn default() -> PathBuf {
+        heartbeat_home()
+            .unwrap_or_else(|_| PathBuf::from("."))
+            .join("config.toml")
     }
 }
 
@@ -152,7 +141,7 @@ impl Args for __ConfigFile {
                 .required(false)
                 .help(format!(
                     "The path to the configuration file [default: {}]",
-                    Self::default()
+                    Self::default().display()
                 ))
                 .env("HEARTBEAT_CONFIG_FILE"),
         )
@@ -166,7 +155,7 @@ impl Args for __ConfigFile {
                 .required(false)
                 .help(format!(
                     "The path to the configuration file [default: {}]",
-                    Self::default()
+                    Self::default().display()
                 ))
                 .env("HEARTBEAT_CONFIG_FILE"),
         )
@@ -431,16 +420,16 @@ impl Config {
         let config_path = cli.config_file.as_ref().map_or_else(
             || {
                 fail_on_not_exists = false;
-                Path::new(__ConfigFile::default())
+                __ConfigFile::default()
             },
-            |p| p.as_path(),
+            Clone::clone,
         );
         let toml_config = if config_path.is_file() {
             info!("Reading configuration from {}", config_path.display());
             let config_str = read_to_string(config_path).map_err(Into::<Error>::into)?;
             toml::from_str(&config_str)?
         } else if fail_on_not_exists {
-            return Err(Error::InvalidConfigPath(config_path.to_path_buf()));
+            return Err(Error::InvalidConfigPath(config_path));
         } else {
             // just an empty table
             toml::Value::Table(toml::map::Map::new())

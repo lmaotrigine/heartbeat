@@ -22,6 +22,13 @@ use std::net::SocketAddr;
 use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
 use tracing::{info, span, warn, Instrument, Level};
 
+// musl allocator seems to impact perf
+// I only notice this because I'm running this on an ancient board.
+// this does result in longer compile time, though :(
+#[cfg(all(target_env = "musl", target_pointer_width = "64"))]
+#[global_allocator]
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
 #[tokio::main]
 async fn main() -> Result<()> {
     heartbeat::init_logging();

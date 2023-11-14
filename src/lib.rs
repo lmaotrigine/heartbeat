@@ -10,6 +10,13 @@
 
 //! A server to keep a live heartbeat (ping) of your devices.
 
+// if we're using reqwest, ensure a tls backend is configured
+#[cfg(not(all(
+    feature = "reqwest",
+    any(feature = "tls-rustls", feature = "tls-native", feature = "tls-native-vendored")
+)))]
+compile_error!("reqwest requires a TLS backend to be configured in order to fire webhooks, please enable one of tls-rustls, tls-native, or tls-native-vendored. The former is recommended unless `rustls` does not run on your architecture (e.g. mips)");
+
 use axum::extract::FromRef;
 use chrono::{DateTime, Utc};
 use parking_lot::Mutex;

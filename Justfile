@@ -21,9 +21,9 @@ all: clean (build "--release") (test "--all-features")
 update *args:
   cargo update --all {{args}}
 
-refresh *features="--all-features":
+refresh *args="--all-features":
   cargo generate-lockfile
-  cargo sqlx prepare -- {{features}}
+  cargo sqlx prepare --database-url {{dsn}} -- {{args}}
 
 ci: build-book lint-static-ci (test "--all-features")
   cargo fmt --all -- --check

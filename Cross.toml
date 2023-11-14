@@ -1,0 +1,39 @@
+[build.env]
+passthrough = ["SQLX_OFFLINE", "RUSTFLAGS", "PKG_CONFIG_ALLOW_CROSS"]
+
+[target.x86_64-unknown-illumos]
+image = "lmaotrigine/cross:x86_64-unknown-illumos"
+
+[target.x86_64-unknown-freebsd]
+image = "lmaotrigine/cross:x86_64-unknown-freebsd"
+
+[target.x86_64-unknown-netbsd]
+image = "lmaotrigine/cross:x86_64-unknown-netbsd"
+
+[target.aarch64-linux-android]
+image = "lmaotrigine/cross:aarch64-linux-android"
+
+[target.arm-linux-androideabi]
+image = "lmaotrigine/cross:arm-linux-androideabi"
+
+[target.armv7-linux-androideabi]
+image = "lmaotrigine/cross:armv7-linux-androideabi"
+
+[target.i686-linux-android]
+image = "lmaotrigine/cross:i686-linux-android"
+
+[target.x86_64-linux-android]
+image = "lmaotrigine/cross:x86_64-linux-android"
+
+[target.mips-unknown-linux-musl]
+pre-build = ["apt update && apt install --no-install-recommends -y libssl-dev"]
+image = "lmaotrigine/cross:mips-unknown-linux-musl"
+
+[target.mips64-unknown-linux-muslabi64]
+image = "lmaotrigine/cross:mips64-unknown-linux-muslabi64"
+
+[target.mips64el-unknown-linux-muslabi64]
+image = "lmaotrigine/cross:mips64el-unknown-linux-muslabi64"
+
+[target.mipsel-unknown-linux-musl]
+image = "lmaotrigine/cross:mipsel-unknown-linux-musl"
