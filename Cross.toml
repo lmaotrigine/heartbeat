@@ -16,17 +16,11 @@ image = "lmaotrigine/cross:aarch64-linux-android"
 [target.aarch64-unknown-linux-musl]
 image = "lmaotrigine/cross:aarch64-unknown-linux-musl"
 
-[target.arm-linux-androideabi]
-image = "lmaotrigine/cross:arm-linux-androideabi"
-
 [target.armv7-linux-androideabi]
 image = "lmaotrigine/cross:armv7-linux-androideabi"
 
 [target.i686-linux-android]
 image = "lmaotrigine/cross:i686-linux-android"
-
-[target.x86_64-linux-android]
-image = "lmaotrigine/cross:x86_64-linux-android"
 
 [target.mips-unknown-linux-musl]
 pre-build = ["apt update && apt install --no-install-recommends -y libssl-dev"]
