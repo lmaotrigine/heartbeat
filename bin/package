@@ -42,24 +42,29 @@ if [[ "$OS" = windows-latest ]]; then
 fi
 
 echo "Copying release files..."
-mkdir "$DIST"
-cp "$EXECUTABLE" LICENSE README.md config.example.toml conf/nginx.conf conf/Caddyfile "$DIST"
+mkdir -p "$DIST/staging"
+cp "$EXECUTABLE" LICENSE README.md config.example.toml conf/nginx.conf conf/Caddyfile "$DIST/staging"
 
 cd "$DIST"
 echo "Creating release archive..."
 case "$OS" in
   ubuntu-latest | macos-latest)
     ARCHIVE=$DIST/heartbeat-$VERSION-$TARGET.tar.xz
-    tar cJf "$ARCHIVE" ./*
-    shasum -a 256 "$ARCHIVE" > "$ARCHIVE".sha256
+    tar cJf "$ARCHIVE" staging/*
+    shasum -a 256 "$ARCHIVE" | cut -d' ' -f1 > "$ARCHIVE".sha256
     echo "archive=$ARCHIVE" >> "$GITHUB_OUTPUT"
     echo "checksumfile=$ARCHIVE.sha256" >> "$GITHUB_OUTPUT"
     ;;
   windows-latest)
     ARCHIVE=$DIST/heartbeat-$VERSION-$TARGET.zip
-    7z a "$ARCHIVE" ./*
-    certutil -hashfile "$ARCHIVE" SHA256 > "$ARCHIVE".sha256
+    TAR_ARCHIVE=$DIST/heartbeat-$VERSION-$TARGET.tar.xz
+    7z a "$ARCHIVE" staging/*
+    tar cJf "$TAR_ARCHIVE" staging/*
+    certutil -hashfile "$ARCHIVE" SHA256 | grep -o "[0-9a-f]\{64\}" > "$ARCHIVE".sha256
+    certutil -hashfile "$TAR_ARCHIVE" SHA256 | grep -o "[0-9a-f]\{64\}" > "$TAR_ARCHIVE".sha256
     echo "archive=$(pwd -W)/heartbeat-$VERSION-$TARGET.zip" >> "$GITHUB_OUTPUT"
+    echo "tar_archive=$(pwd -W)/heartbeat-$VERSION-$TARGET.tar.xz" >> "$GITHUB_OUTPUT"
     echo "checksumfile=$(pwd -W)/heartbeat-$VERSION-$TARGET.zip.sha256" >> "$GITHUB_OUTPUT"
+    echo "tar_checksumfile=$(pwd -W)/heartbeat-$VERSION-$TARGET.tar.xz.sha256" >> "$GITHUB_OUTPUT"
     ;;
 esac

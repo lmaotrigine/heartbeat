@@ -163,6 +163,8 @@ jobs:
           files: | 
             ${{ steps.package.outputs.archive }}
             ${{ steps.package.outputs.checksumfile }}
+            ${{ steps.package.outputs.tar_archive }}
+            ${{ steps.package.outputs.tar_checksumfile }}
           prerelease: ${{ steps.ref-type.outputs.value != 'release' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
