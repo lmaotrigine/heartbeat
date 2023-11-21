@@ -4,10 +4,10 @@ bind = "0.0.0.0:6060"
 
 # this is used for <title> tags
 # and some headings
-server_name = "Isis's heartbeat"
+server_name = "Some person's heartbeat"
 
 # the full url to the server
-live_url = "https://hb.5ht2.me"
+live_url = "https://heartbeat.example.com"
 
 # a random URL-safe string.
 # if left blank, addition of devices is disabled.
