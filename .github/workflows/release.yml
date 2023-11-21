@@ -160,7 +160,7 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         with:
           draft: true
-          files: | 
+          files: |
             ${{ steps.package.outputs.archive }}
             ${{ steps.package.outputs.checksumfile }}
             ${{ steps.package.outputs.tar_archive }}

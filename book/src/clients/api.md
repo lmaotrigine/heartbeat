@@ -19,7 +19,7 @@ Register a new device.
   - Example: `{"name": "Laptop"}`
 - Response:
   - Content Type: `application/json`
-  - Schema: 
+  - Schema:
     ```ts
     {
       id: number,
@@ -49,7 +49,7 @@ Register a new device.
   - `id`: The ID of the device to regenerate the token for
 - Response:
   - Content Type: `application/json`
-  - Schema: 
+  - Schema:
     ```ts
     {
       id: number,
