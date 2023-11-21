@@ -9,6 +9,7 @@ on:
 jobs:
   check:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - build: pinned
