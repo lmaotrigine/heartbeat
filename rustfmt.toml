@@ -8,6 +8,7 @@ use_try_shorthand = true
 #
 # They are kept here since they are useful to run from time to time.
 #format_code_in_doc_comments = true
+#format_strings = true
 #reorder_impl_items = true
 #comment_width = 80
 #wrap_comments = true

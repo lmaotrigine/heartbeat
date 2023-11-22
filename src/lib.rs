@@ -15,7 +15,11 @@
     feature = "reqwest",
     any(feature = "tls-rustls", feature = "tls-native", feature = "tls-native-vendored")
 )))]
-compile_error!("reqwest requires a TLS backend to be configured in order to fire webhooks, please enable one of tls-rustls, tls-native, or tls-native-vendored. The former is recommended unless `rustls` does not run on your architecture (e.g. mips)");
+compile_error!(
+    "reqwest requires a TLS backend to be configured in order to fire webhooks, please enable one of tls-rustls, \
+     tls-native, or tls-native-vendored. The former is recommended unless `rustls` does not run on your architecture \
+     (e.g. mips)"
+);
 
 use axum::extract::FromRef;
 use chrono::{DateTime, Utc};
