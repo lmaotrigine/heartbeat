@@ -181,7 +181,7 @@
 <p>This document explains how Heartbeat’s configuration system works, as well as available keys or configuration.</p>
 <h2 id="hierarchical-structure"><a class="header" href="#hierarchical-structure">Hierarchical structure</a></h2>
 <p>Heartbeat allows configuration to be specified through a file, through environment variables, or in the command line
-during invocation. If a key is specified in multiple locations, the value in the location with highest priority will
+during invocation. If a key is specified in multiple locations, the value in the location with the highest priority will
 take precedence. The locations in decreasing order of priority are:</p>
 <ul>
 <li>Command line</li>
@@ -266,10 +266,10 @@ Heartbeat will print an error message and exit.</p>
 <li>Type: string</li>
 <li>Default: <code>postgresql://heartbeat@db/heartbeat</code> if running within Docker, <code>postgresql://postgres@localhost/postgres</code>
 otherwise.</li>
-<li>Enviroment: <code>HEARTBEAT_DATABASE_DSN</code></li>
+<li>Environment: <code>HEARTBEAT_DATABASE_DSN</code></li>
 <li>Command line: <code>-d</code>/<code>--database-dsn</code></li>
 </ul>
-<p>The PostgreSQL connection string for the database that Heartbeat should use. The database must exist and the user must
+<p>The PostgreSQL connection string for the database that Heartbeat should use. The database must exist, and the user must
 have at least <code>CREATE SCHEMA</code> privileges on it.</p>
 <h3 id="webhook"><a class="header" href="#webhook"><code>[webhook]</code></a></h3>
 <p>The <code>[webhook]</code> table deals with configuration related to logging events to Discord webhooks. This is only relevant if
@@ -291,8 +291,8 @@ the <code>webhooks</code> feature is enabled, which is the default.</p>
 </ul>
 <p>The maximum level of events to log to the webhook. The possible values in descending order of level are:</p>
 <ul>
-<li><code>all</code>: logs beats, along with all of the below</li>
-<li><code>new_devices</code>: logs when a new device is added, along with all of the below</li>
+<li><code>all</code>: logs beats, along with everything below</li>
+<li><code>new_devices</code>: logs when a new device is added, along with everything below</li>
 <li><code>long_absences</code>: logs when an absence longer than 1 hour has ended.</li>
 <li><code>none</code>: No events are logs.</li>
 </ul>
@@ -303,7 +303,7 @@ the <code>webhooks</code> feature is enabled, which is the default.</p>
 <li>Environment: <code>HEARTBEAT_SECRET_KEY</code></li>
 <li>Command line: <code>-s</code>/<code>--secret-key</code></li>
 </ul>
-<p>A random, header value safe string (&lt;=256 bytes) that will be the master authentication token for administrative actions
+<p>A random, header value safe string (≤256 bytes) that will be the master authentication token for administrative actions
 like adding devices or regenerating their tokens. If this value is empty, administrative actions are disabled.</p>
 <h3 id="repo"><a class="header" href="#repo"><code>repo</code></a></h3>
 <ul>

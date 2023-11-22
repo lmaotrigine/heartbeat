@@ -199,7 +199,8 @@ building the Heartbeat Docker image yourself:</p>
 <ul>
 <li><code>RUST_VERSION</code>: defaults to <code>alpine</code>, which is the latest stable. Please make sure to use an Alpine base since it
 allows the C runtime to be linked statically. <code>glibc</code>-based distros like Debian will make the final image a lot
-bigger. However, Heartbeat’s <a href="https://github.com/lmaotrigine/blob/main/LICENSE">license</a> is GPL-compatible, should you wish to statically link against <code>glibc</code>.</li>
+bigger. However, Heartbeat’s <a href="https://github.com/lmaotrigine/blob/main/LICENSE">licence</a> is GPL-compatible, should you wish to statically link against <code>glibc</code>. (Please
+don’t, though).</li>
 <li><code>FEATURES</code>: the features to enable in the resultant binary. By default, only the default feature set is enabled. The
 only relevant setting for overriding this is <code>sqlx-tls</code>, which allows you to connect to your PostgreSQL database over
 TLS.</li>

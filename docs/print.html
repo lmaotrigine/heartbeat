@@ -183,7 +183,7 @@ specifics depend on the device), usually once every minute.</p>
 <p>This book aims to be a one-stop resource to get your own instance of the heartbeat server and clients up and running.
 You can contribute to this book on <a href="https://github.com/lmaotrigine/heartbeat/tree/main/book">GitHub</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="getting-started"><a class="header" href="#getting-started">Getting Started</a></h1>
-<p>To get started with Heartbeat, you will need to install Heartbeat, setup a database, and configure the server.</p>
+<p>To get started with Heartbeat, you will need to install Heartbeat, set up a database, and configure the server.</p>
 <ul>
 <li><a href="getting-started/installation.html">Installation</a></li>
 <li><a href="getting-started/running.html">Running the Server</a></li>
@@ -210,7 +210,8 @@ building the Heartbeat Docker image yourself:</p>
 <ul>
 <li><code>RUST_VERSION</code>: defaults to <code>alpine</code>, which is the latest stable. Please make sure to use an Alpine base since it
 allows the C runtime to be linked statically. <code>glibc</code>-based distros like Debian will make the final image a lot
-bigger. However, Heartbeat’s <a href="https://github.com/lmaotrigine/blob/main/LICENSE">license</a> is GPL-compatible, should you wish to statically link against <code>glibc</code>.</li>
+bigger. However, Heartbeat’s <a href="https://github.com/lmaotrigine/blob/main/LICENSE">licence</a> is GPL-compatible, should you wish to statically link against <code>glibc</code>. (Please
+don’t, though).</li>
 <li><code>FEATURES</code>: the features to enable in the resultant binary. By default, only the default feature set is enabled. The
 only relevant setting for overriding this is <code>sqlx-tls</code>, which allows you to connect to your PostgreSQL database over
 TLS.</li>
@@ -264,7 +265,7 @@ explaining the various fields.</p>
 <p>And visit http://127.0.0.1:6060 in a browser to check if everything went well.</p>
 <h2 id="registering-your-first-device"><a class="header" href="#registering-your-first-device">Registering your first device</a></h2>
 <p>Assuming that you set a value for the <code>secret_key</code> parameter – there are several ways to generate one, one of which is to
-run <code>heartbeat gen-key</code>, which is distributed in release artifacts and can also be built from source – you can now hit
+run <code>heartbeat gen-key</code>, which is distributed in release archives and can also be built from source – you can now hit
 the <code>/api/devices</code> endpoint to register your first device.</p>
 <p>First, you’ll need a name for your device, let’s call it <code>Laptop</code> (but you can get creative!)</p>
 <p>Using the command line, with <code>curl</code> installed (it should be by default on Windows and any sane Linux distro, and on
@@ -272,8 +273,8 @@ macOS will prompt you to install Xcode command line tools), you can just run</p>
 <pre><code class="language-console">$ curl -XPOST -H 'Authorization: &lt;my_secret_key&gt;' -H 'Content-Type: application/json' -d '{&quot;name&quot;: &quot;Laptop&quot;}' http://127.0.0.1:6060/api/devices
 </code></pre>
 <p>That’s a long one! You will probably want to make a convenience wrapper for this. We don’t provide one out of the box
-because various users might have multiple very creative ways to store their secrets and we leave it to them to tailor it
-to their needs.</p>
+because various users might have multiple very creative ways to store their secrets, and we leave it to them to tailor
+it to their needs.</p>
 <p>Once you’ve registered a device, you will get a response back with a <code>token</code> field in it. Note this down because you
 cannot retrieve it from the server at any other time. You can then use this token as the <code>Authorization</code> header when you
 send your first beat.</p>
@@ -283,7 +284,7 @@ by sending your first beat. If all goes well, the homepage should refresh with n
 <p>This document explains how Heartbeat’s configuration system works, as well as available keys or configuration.</p>
 <h2 id="hierarchical-structure"><a class="header" href="#hierarchical-structure">Hierarchical structure</a></h2>
 <p>Heartbeat allows configuration to be specified through a file, through environment variables, or in the command line
-during invocation. If a key is specified in multiple locations, the value in the location with highest priority will
+during invocation. If a key is specified in multiple locations, the value in the location with the highest priority will
 take precedence. The locations in decreasing order of priority are:</p>
 <ul>
 <li>Command line</li>
@@ -368,10 +369,10 @@ Heartbeat will print an error message and exit.</p>
 <li>Type: string</li>
 <li>Default: <code>postgresql://heartbeat@db/heartbeat</code> if running within Docker, <code>postgresql://postgres@localhost/postgres</code>
 otherwise.</li>
-<li>Enviroment: <code>HEARTBEAT_DATABASE_DSN</code></li>
+<li>Environment: <code>HEARTBEAT_DATABASE_DSN</code></li>
 <li>Command line: <code>-d</code>/<code>--database-dsn</code></li>
 </ul>
-<p>The PostgreSQL connection string for the database that Heartbeat should use. The database must exist and the user must
+<p>The PostgreSQL connection string for the database that Heartbeat should use. The database must exist, and the user must
 have at least <code>CREATE SCHEMA</code> privileges on it.</p>
 <h3 id="webhook"><a class="header" href="#webhook"><code>[webhook]</code></a></h3>
 <p>The <code>[webhook]</code> table deals with configuration related to logging events to Discord webhooks. This is only relevant if
@@ -393,8 +394,8 @@ the <code>webhooks</code> feature is enabled, which is the default.</p>
 </ul>
 <p>The maximum level of events to log to the webhook. The possible values in descending order of level are:</p>
 <ul>
-<li><code>all</code>: logs beats, along with all of the below</li>
-<li><code>new_devices</code>: logs when a new device is added, along with all of the below</li>
+<li><code>all</code>: logs beats, along with everything below</li>
+<li><code>new_devices</code>: logs when a new device is added, along with everything below</li>
 <li><code>long_absences</code>: logs when an absence longer than 1 hour has ended.</li>
 <li><code>none</code>: No events are logs.</li>
 </ul>
@@ -405,7 +406,7 @@ the <code>webhooks</code> feature is enabled, which is the default.</p>
 <li>Environment: <code>HEARTBEAT_SECRET_KEY</code></li>
 <li>Command line: <code>-s</code>/<code>--secret-key</code></li>
 </ul>
-<p>A random, header value safe string (&lt;=256 bytes) that will be the master authentication token for administrative actions
+<p>A random, header value safe string (≤256 bytes) that will be the master authentication token for administrative actions
 like adding devices or regenerating their tokens. If this value is empty, administrative actions are disabled.</p>
 <h3 id="repo"><a class="header" href="#repo"><code>repo</code></a></h3>
 <ul>
@@ -454,12 +455,12 @@ the command line to override the default config file location.</p>
 new ones being added depend entirely on the bandwidth of the maintainers and the possibility of testing them, including
 access to relevant hardware and software. Currently, supported client platforms are:</p>
 <ul>
-<li>Linux: via <a href="https://github.com/lmaotrigine/heartbeat-unix"><code>heartbeat-unix</code></a>, only supports <code>X.org</code> with <code>kscreenlocker</code>. Support for other desktop environments,
-screensavers, and display servers is planned, and help in this area would be appreciated.</li>
-<li>MacOS: via <a href="https://github.com/lmaotrigine/heartbeat-unix"><code>heartbeat-unix</code></a>.</li>
+<li>Linux: via <a href="https://github.com/lmaotrigine/heartbeat-unix"><code>heartbeat-unix</code></a>, only supports <code>X.org</code>. Support for Wayland is planned, but not immediately in the
+works, and help in this area would be appreciated.</li>
+<li>macOS: via <a href="https://github.com/lmaotrigine/heartbeat-unix"><code>heartbeat-unix</code></a>.</li>
 <li>Android: A <a href="https://tasker.joaoapps.com/">Tasker</a> project bundle is available on <a href="https://taskernet.com/shares/?user=AS35m8lYWmKlKnpucO4NKAF5nrvpAAJ9k0B16Xq4oGo55MJi%2Fne5EtkyyRTuOR565VRqEmzf468J&amp;id=Project%3AHeartbeat">TaskerNet</a>. An Android app is currently under development, but
 there is no ETA.</li>
-<li>Windows: via <a href="https://github.com/lmaotrigine/heartbeat-windows"><code>heartbeat-windows</code></a>, tested on the latest stable build of Windows 10 and latest insiders build of
+<li>Windows: via <a href="https://github.com/5HT2B/heartbeat-windows"><code>heartbeat-windows</code></a>, tested on the latest stable build of Windows 10 and latest insiders build of
 Windows 11.</li>
 </ul>
 <p>Implementing your own client to support other platforms is a straightforward process. You must implement the
@@ -560,7 +561,7 @@ old values of the token are no longer considered valid.</li>
 <li>Response:
 <ul>
 <li>Content Type: <code>text/plain</code></li>
-<li>Schema: A Unix timestamp corresponding the the time the beat was acknowledged.</li>
+<li>Schema: A Unix timestamp corresponding to the time the beat was acknowledged.</li>
 <li>Example: <code>1698915036</code></li>
 </ul>
 </li>
@@ -637,30 +638,34 @@ the rate of 1/second.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h1>
 <p>The first step to debugging issues with your installation is to look at the logs. To make it less of a privacy law
 hassle, all logs exist ephemerally only in the console I/O. i.e. they are streamed to stdout/stderr depending on their
-origin and severity. Fortunately, inspecting them is easy enough. If you are simply running the server in the background
-using screen/tmux you can switch to the appropriate windows to see them. If you are using Docker, you can view them
-using <code>docker logs</code>, or <code>docker compose logs</code> if you are using <code>docker-compose</code>. If you are using a process manager like
-systemd or pm2, you can check your journal, or whatever logging facility it provides. The pertinent error messages will
-most likely be helpful enough to find out and fix your problem.</p>
+origin and severity. Fortunately, inspecting them is easy enough:</p>
+<ul>
+<li>If you are simply running the server in the background using screen/tmux you can switch to the appropriate windows to
+see them.</li>
+<li>With Docker, you can view them using <code>docker logs</code>, or <code>docker compose logs</code> if you are using
+<code>docker-compose</code>.</li>
+<li>If you are using a process manager like <code>systemd</code> or <code>pm2</code>, you can check your journal, or whatever logging facility
+it provides. The pertinent error messages will most likely be helpful enough to find out and fix your problem.</li>
+</ul>
 <p>By default, the maximum log level is <code>INFO</code> for release builds and <code>DEBBUG</code> for debug builds. You should be using
 release builds in production. To control the log level, set the <code>RUST_LOG</code> environment variable to an acceptable value.
 Consult <a href="https://docs.rs/tracing-subscriber/latest/tracing_subscriber/fmt/index.html#filtering-events-with-environment-variables">this documentation</a> for more information.</p>
-<p>Some common pitfalls are documented here, with suggested debugging solutions. If your issue is not listed here and you
+<p>Some common pitfalls are documented here, with suggested debugging solutions. If your issue is not listed here, and you
 cannot figure it out, we’re happy to help. Open an issue or discussion on GitHub, provide us with the relevant logs and
-reproduction steps and we will do our best to help you out</p>
+reproduction steps, and we will do our best to help you out</p>
 <h2 id="frequent-problems"><a class="header" href="#frequent-problems">Frequent Problems</a></h2>
 <h3 id="cant-connect-using-docker"><a class="header" href="#cant-connect-using-docker">Can’t connect using Docker</a></h3>
 <p>The default port is <code>6060</code>. You should map this port to a host port (preferably the same one). If you still cannot
 access it from <code>localhost</code>, check <code>docker logs</code> or <code>docker compose logs</code> to verify that the server is listening where
-you expect it to, and that the configuration is laoded correctly.</p>
+you expect it to, and that the configuration is loaded correctly.</p>
 <h3 id="cant-connect-while-not-using-docker"><a class="header" href="#cant-connect-while-not-using-docker">Can’t connect while not using Docker</a></h3>
 <p>Without Docker’s networking shenanigans, you should be able to access the server on <code>localhost</code> always. Ensure that the
 server hasn’t prematurely exited due to an error or signal. If not, please check that the bind address is the same one
 that you are trying to access.</p>
-<h3 id="401-errors-on-apibeat"><a class="header" href="#401-errors-on-apibeat">401 errors on /api/beat</a></h3>
-<p>When you believe you have the right token but the server is rejecting it, it is likely that the token was regenerated at
-some point. Regenerate it once more to ensure that you note it down this time.</p>
-<h3 id="401-errors-on-apidevice-routes"><a class="header" href="#401-errors-on-apidevice-routes">401 errors on /api/device routes</a></h3>
+<h3 id="401-errors-on-apibeat"><a class="header" href="#401-errors-on-apibeat">401 errors on <code>/api/beat</code></a></h3>
+<p>When you believe you have the right token, but the server is rejecting it, it is likely that the token was regenerated
+at some point. Regenerate it once more to ensure that you note it down this time.</p>
+<h3 id="401-errors-on-apidevice-routes"><a class="header" href="#401-errors-on-apidevice-routes">401 errors on <code>/api/device</code> routes</a></h3>
 <p>If the secret key isn’t being recognized as valid by the server, try temporarily overriding it using environment
 variables or command line flags, and see if the issue persists. This will likely help identify the cause of the issue if
 it isn’t just a typo.</p>
@@ -673,7 +678,7 @@ from the network Heartbeat is running on. If there is another message indicating
 the <code>sqlx-tls</code> feature is enabled in your binary. In release archives, this is always the case, but in Docker, it
 requires passing it to the <code>FEATURES</code> build argument.</p>
 <h3 id="pool-timed-out-while-waiting-for-an-open-connection"><a class="header" href="#pool-timed-out-while-waiting-for-an-open-connection"><code>pool timed out while waiting for an open connection</code></a></h3>
-<p>Your PostgreSQL server is possibly at capacilty for maximum connections. Check the server logs or try again after some
+<p>Your PostgreSQL server is possibly at capacity for maximum connections. Check the server logs or try again after some
 time. Failing that, enable debug logging</p>
 
                     </main>
