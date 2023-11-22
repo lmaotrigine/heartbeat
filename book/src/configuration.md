@@ -5,7 +5,7 @@ This document explains how Heartbeat's configuration system works, as well as av
 ## Hierarchical structure
 
 Heartbeat allows configuration to be specified through a file, through environment variables, or in the command line
-during invocation. If a key is specified in multiple locations, the value in the location with highest priority will
+during invocation. If a key is specified in multiple locations, the value in the location with the highest priority will
 take precedence. The locations in decreasing order of priority are:
 
 - Command line
@@ -105,10 +105,10 @@ the `[database]` table contains configuration related to the PostgreSQL database
 - Type: string
 - Default: `postgresql://heartbeat@db/heartbeat` if running within Docker, `postgresql://postgres@localhost/postgres`
   otherwise.
-- Enviroment: `HEARTBEAT_DATABASE_DSN`
+- Environment: `HEARTBEAT_DATABASE_DSN`
 - Command line: `-d`/`--database-dsn`
 
-The PostgreSQL connection string for the database that Heartbeat should use. The database must exist and the user must
+The PostgreSQL connection string for the database that Heartbeat should use. The database must exist, and the user must
 have at least `CREATE SCHEMA` privileges on it.
 
 ### `[webhook]`
@@ -134,8 +134,8 @@ The URL to the Discord webhook to log events to. If empty, logging is disabled.
 
 The maximum level of events to log to the webhook. The possible values in descending order of level are:
 
-- `all`: logs beats, along with all of the below
-- `new_devices`: logs when a new device is added, along with all of the below
+- `all`: logs beats, along with everything below
+- `new_devices`: logs when a new device is added, along with everything below
 - `long_absences`: logs when an absence longer than 1 hour has ended.
 - `none`: No events are logs.
 
@@ -146,7 +146,7 @@ The maximum level of events to log to the webhook. The possible values in descen
 - Environment: `HEARTBEAT_SECRET_KEY`
 - Command line: `-s`/`--secret-key`
 
-A random, header value safe string (<=256 bytes) that will be the master authentication token for administrative actions
+A random, header value safe string (≤256 bytes) that will be the master authentication token for administrative actions
 like adding devices or regenerating their tokens. If this value is empty, administrative actions are disabled.
 
 ### `repo`

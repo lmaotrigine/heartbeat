@@ -28,7 +28,8 @@ building the Heartbeat Docker image yourself:
 
 - `RUST_VERSION`: defaults to `alpine`, which is the latest stable. Please make sure to use an Alpine base since it
   allows the C runtime to be linked statically. `glibc`-based distros like Debian will make the final image a lot
-  bigger. However, Heartbeat's [license] is GPL-compatible, should you wish to statically link against `glibc`.
+  bigger. However, Heartbeat's [licence] is GPL-compatible, should you wish to statically link against `glibc`. (Please
+  don't, though).
 - `FEATURES`: the features to enable in the resultant binary. By default, only the default feature set is enabled. The
   only relevant setting for overriding this is `sqlx-tls`, which allows you to connect to your PostgreSQL database over
   TLS.
@@ -87,4 +88,4 @@ for the same.
 [feature flags]: https://doc.rust-lang.org/stable/cargo/reference/features.html
 [shields.io]: https://shields.io
 [build arguments]: https://docs.docker.com/build/guide/build-args/
-[license]: https://github.com/lmaotrigine/blob/main/LICENSE
+[licence]: https://github.com/lmaotrigine/blob/main/LICENSE

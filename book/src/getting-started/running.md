@@ -21,7 +21,7 @@ And visit http://127.0.0.1:6060 in a browser to check if everything went well.
 ## Registering your first device
 
 Assuming that you set a value for the `secret_key` parameter – there are several ways to generate one, one of which is to
-run `heartbeat gen-key`, which is distributed in release artifacts and can also be built from source – you can now hit
+run `heartbeat gen-key`, which is distributed in release archives and can also be built from source – you can now hit
 the `/api/devices` endpoint to register your first device.
 
 First, you'll need a name for your device, let's call it `Laptop` (but you can get creative!)
@@ -34,8 +34,8 @@ $ curl -XPOST -H 'Authorization: <my_secret_key>' -H 'Content-Type: application/
 ```
 
 That's a long one! You will probably want to make a convenience wrapper for this. We don't provide one out of the box
-because various users might have multiple very creative ways to store their secrets and we leave it to them to tailor it
-to their needs.
+because various users might have multiple very creative ways to store their secrets, and we leave it to them to tailor
+it to their needs.
 
 Once you've registered a device, you will get a response back with a `token` field in it. Note this down because you
 cannot retrieve it from the server at any other time. You can then use this token as the `Authorization` header when you

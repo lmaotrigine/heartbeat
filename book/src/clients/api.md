@@ -80,7 +80,7 @@ Actions that a [client](./index.md) will have to implement.
   old values of the token are no longer considered valid.
 - Response:
   - Content Type: `text/plain`
-  - Schema: A Unix timestamp corresponding the the time the beat was acknowledged.
+  - Schema: A Unix timestamp corresponding to the time the beat was acknowledged.
   - Example: `1698915036`
 - Errors:
   - `401`: Invalid or missing Authorization header

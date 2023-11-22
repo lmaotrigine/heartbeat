@@ -4,16 +4,16 @@ First-party clients are available for a variety of platforms. The future of thes
 new ones being added depend entirely on the bandwidth of the maintainers and the possibility of testing them, including
 access to relevant hardware and software. Currently, supported client platforms are:
 
-- Linux: via [`heartbeat-unix`][unix], only supports `X.org` with `kscreenlocker`. Support for other desktop environments,
-  screensavers, and display servers is planned, and help in this area would be appreciated.
-- MacOS: via [`heartbeat-unix`][unix].
+- Linux: via [`heartbeat-unix`][unix], only supports `X.org`. Support for Wayland is planned, but not immediately in the
+  works, and help in this area would be appreciated.
+- macOS: via [`heartbeat-unix`][unix].
 - Android: A [Tasker] project bundle is available on [TaskerNet]. An Android app is currently under development, but
   there is no ETA.
 - Windows: via [`heartbeat-windows`][windows], tested on the latest stable build of Windows 10 and latest insiders build of
   Windows 11.
 
 [unix]: https://github.com/lmaotrigine/heartbeat-unix
-[windows]: https://github.com/lmaotrigine/heartbeat-windows
+[windows]: https://github.com/5HT2B/heartbeat-windows
 [Tasker]: https://tasker.joaoapps.com/
 [TaskerNet]: https://taskernet.com/shares/?user=AS35m8lYWmKlKnpucO4NKAF5nrvpAAJ9k0B16Xq4oGo55MJi%2Fne5EtkyyRTuOR565VRqEmzf468J&id=Project%3AHeartbeat
 
