@@ -730,7 +730,7 @@ dependencies = [
 
 [[package]]
 name = "heartbeat"
-version = "0.0.2-a"
+version = "0.0.2"
 dependencies = [
  "axum",
  "axum-realip",
