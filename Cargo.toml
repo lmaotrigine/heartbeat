@@ -43,6 +43,9 @@ unsafe_formatting = { git = "https://git.5ht2.me/lmaotrigine/unsafe_formatting",
 [target.'cfg(all(target_env = "musl", target_pointer_width = "64"))'.dependencies]
 jemallocator = "0.5"
 
+[build-dependencies]
+heartbeat-sys = { git = "https://git.5ht2.me/lmaotrigine/heartbeat-sys", version = "0.1.0" }
+
 [features]
 default = ["badges", "webhook", "tls-rustls"]
 tls-rustls = ["reqwest/rustls-tls-webpki-roots"]
