@@ -27,7 +27,7 @@ rustfmt.toml
 tsconfig.json
 migrations
 .github
-/docs/
+/book/
 docker-entrypoint-initdb.d
 /man/
 /bin/
