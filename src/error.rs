@@ -52,12 +52,13 @@ impl IntoResponse for Error {
 }
 
 /// An Axum middleware that serves error pages for unhandled client errors.
-/// This also logs the client IP and the attempted request for debugging purposes.
+/// This also logs the client IP and the attempted request for debugging
+/// purposes.
 ///
 /// # Errors
 ///
-/// This function returns an error if there was an unhandled client error status code,
-/// or if the client IP could not be determined.
+/// This function returns an error if there was an unhandled client error status
+/// code, or if the client IP could not be determined.
 pub async fn handle_errors<B: Send + std::fmt::Debug + 'static>(
     State(state): State<AppState>,
     mut req: Request<B>,

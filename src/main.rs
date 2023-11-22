@@ -22,9 +22,22 @@ use std::net::SocketAddr;
 use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
 use tracing::{info, span, warn, Instrument, Level};
 
-// musl allocator seems to impact perf
-// I only notice this because I'm running this on an ancient board.
-// this does result in longer compile time, though :(
+// Rust uses the system allocator by default. On Linux, this would normally be
+// glibc's allocator, which is pretty good.
+//
+// However, when built with musl (as we do for release artifacts and the Docker
+// image), this means we will use musl's allocator, which appears to be
+// substantially worse. (musl's goal is not to have the fastest version of
+// everything. It's goal is to be small and amenable to static compilation,
+// which is *why* we're using it in our builds.) musl's allocator appears to
+// slow us down quite a bit, with request latencies reaching the low tens of
+// seconds in some cases. Therefore, when building with musl, we use jemalloc.
+//
+// We don't unconditionally use jemalloc because it can be nice to use the
+// system's default allocator by default. Moreover, jemalloc seems to increase
+// compilation times by a bit.
+//
+// We only do this on 64-bit systems since jemalloc doesn't support i686.
 #[cfg(all(target_env = "musl", target_pointer_width = "64"))]
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;

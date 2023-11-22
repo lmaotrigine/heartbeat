@@ -57,7 +57,9 @@ pub struct MigrateCli {
     /// The path to the configuration file.
     #[command(flatten)]
     pub config_file: __ConfigFile,
-    /// The PostgreSQL connection string. [default: postgres://heartbeat@db/heartbeat if running in Docker, postgres://postgres@localhost/postgres otherwise]
+    /// The PostgreSQL connection string. [default:
+    /// postgres://heartbeat@db/heartbeat if running in Docker,
+    /// postgres://postgres@localhost/postgres otherwise]
     #[clap(long, short, env = "HEARTBEAT_DATABASE_DSN")]
     pub database_dsn: Option<String>,
 }
@@ -65,7 +67,9 @@ pub struct MigrateCli {
 /// Run the web server.
 #[derive(Debug, Parser)]
 pub struct WebCli {
-    /// A PostgreSQL connection string. [default: postgres://heartbeat@db/heartbeat if running in Docker, postgres://postgres@localhost/postgres otherwise]
+    /// A PostgreSQL connection string. [default:
+    /// postgres://heartbeat@db/heartbeat if running in Docker,
+    /// postgres://postgres@localhost/postgres otherwise]
     #[clap(long, short, env = "HEARTBEAT_DATABASE_DSN")]
     pub database_dsn: Option<String>,
     #[cfg(feature = "webhook")]
@@ -261,7 +265,8 @@ impl From<TomlDeError> for Error {
 }
 
 // this handles all the lookup bits in the right order
-// so it goes CLI -> env vars -> profile-specific overrides -> bare values in TOML -> hardcoded fallback
+// so it goes CLI -> env vars -> profile-specific overrides -> bare values in
+// TOML -> hardcoded fallback
 macro_rules! config_field {
     ($first:ident.$second:ident, $field:ident, $type:ty$(, $default:expr)?) => {
         fn $field(&self) -> Result<$type, Error> {
@@ -404,17 +409,19 @@ impl<'a> Merge<'a> {
 }
 
 impl Config {
-    /// Tries to parse a [`Config`] from the command line arguments, environment variables,
-    /// and a TOML configuration file.
+    /// Tries to parse a [`Config`] from the command line arguments, environment
+    /// variables, and a TOML configuration file.
     ///
-    /// The TOML configuration file is located at `$HEARTBEAT_HOME/config.toml` by default, but can be
-    /// changed with the `--config-file` command line argument. `$HEARTBEAT_HOME` is ~/.heartbeat by default.
+    /// The TOML configuration file is located at `$HEARTBEAT_HOME/config.toml`
+    /// by default, but can be changed with the `--config-file` command line
+    /// argument. `$HEARTBEAT_HOME` is ~/.heartbeat by default.
     ///
     /// # Errors
     ///
-    /// This function will return an error if a path was explicitly specified and doesn't point to a regular file, the
-    /// file could not be read from (if it exists), is not valid TOML, or the required fields are not provided by
-    /// any of the sources.
+    /// This function will return an error if a path was explicitly specified
+    /// and doesn't point to a regular file, the file could not be read from
+    /// (if it exists), is not valid TOML, or the required fields are not
+    /// provided by any of the sources.
     pub fn try_new(cli: WebCli) -> Result<Self, Error> {
         let mut fail_on_not_exists = true;
         let config_path = cli.config_file.as_ref().map_or_else(

@@ -77,13 +77,15 @@ pub struct AppState {
 impl AppState {
     /// Returns a new [`AppState`] from a [`Config`].
     ///
-    /// This consumes the [`Config`] and should thus only be called after constructing
-    /// all other components that take a reference to the [`Config`].
+    /// This consumes the [`Config`] and should thus only be called after
+    /// constructing all other components that take a reference to the
+    /// [`Config`].
     ///
     /// # Errors
     ///
-    /// This function will return an error if the database pool could not be created, or
-    /// (for some reason), fetching the stats using the pool fails.
+    /// This function will return an error if the database pool could not be
+    /// created, or (for some reason), fetching the stats using the pool
+    /// fails.
     pub async fn from_config(config: Config) -> sqlx::Result<Self> {
         #[cfg(feature = "webhook")]
         let webhook = util::Webhook::new(config.webhook.clone());

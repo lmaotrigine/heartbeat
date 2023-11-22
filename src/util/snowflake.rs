@@ -5,7 +5,8 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 // Very rudimentary ID system
-// This uses 42 bits for timestamp, 10 bits for node ID (soon:tm:, for now always 1), and 12 bits for sequence number
+// This uses 42 bits for timestamp, 10 bits for node ID (soon:tm:, for now
+// always 1), and 12 bits for sequence number
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use chrono::TimeZone;
