@@ -287,6 +287,7 @@ checksum = "07cdf1b148b25c1e1f7a42225e30a0d99a615cd4637eae7365548dd4529b95bc"
 dependencies = [
  "anstyle",
  "clap_lex",
+ "terminal_size",
 ]
 
 [[package]]
@@ -763,7 +764,7 @@ dependencies = [
 [[package]]
 name = "heartbeat-sys"
 version = "0.1.0"
-source = "git+https://git.5ht2.me/lmaotrigine/heartbeat-sys#209a472c3dd96e26066fb7439dce4d6d15c1d0e3"
+source = "git+https://git.5ht2.me/lmaotrigine/heartbeat-sys#d767efe32861fb1f354dc5d8b009a9c4727d092a"
 dependencies = [
  "libc",
  "windows-sys 0.52.0",
@@ -2205,6 +2206,16 @@ dependencies = [
  "cfg-if",
  "fastrand",
  "redox_syscall",
+ "rustix",
+ "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "terminal_size"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "21bebf2b7c9e0a515f6e0f8c51dc0f8e4696391e6f1ff30379559f8365fb0df7"
+dependencies = [
  "rustix",
  "windows-sys 0.48.0",
 ]
