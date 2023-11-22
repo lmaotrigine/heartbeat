@@ -7,6 +7,8 @@ alias t := test
 alias c := check
 
 log := "info"
+toolchain := env_var_or_default("RUST_TOOLCHAIN", "stable")
+rustfmt_toml := if toolchain == "nightly" { "nightly-rustfmt.toml" } else { "rustfmt.toml" }
 
 export RUST_LOG := log
 export SQLX_OFFLINE := "1"
@@ -19,26 +21,24 @@ release := `git describe --tags --exact-match 2>/dev/null || echo`
 all: clean (build "--release") (test "--all-features")
 
 update *args:
-  cargo update --all {{args}}
+  cargo +{{toolchain}} update --all {{args}}
 
 refresh *args="--all-features":
-  cargo generate-lockfile
-  cargo sqlx prepare --database-url {{dsn}} -- {{args}}
+  cargo +{{toolchain}} generate-lockfile
+  cargo +{{toolchain}} sqlx prepare --database-url {{dsn}} -- {{args}}
 
-ci: build-book lint-static-ci (test "--all-features")
-  cargo fmt --all -- --check
-  cargo clippy --all-targets --all-features -- -D warnings
+ci: build-book lint-static-ci (test "--all-features") (fmt "--check") (clippy "-D" "warnings")
   ./bin/forbid
-  cargo update --locked --package heartbeat
+  cargo +{{toolchain}} update --locked --package heartbeat
 
 build *args:
-  cargo build {{args}}
+  cargo +{{toolchain}} build {{args}}
 
-fmt:
-  cargo fmt --all
+fmt *args:
+  cargo +{{toolchain}} fmt --all -- {{args}} --config-path {{rustfmt_toml}}
 
 check: fmt clippy (test "--all-features") forbid lint-static
-  cargo sqlx --check -- --all-features
+  cargo +{{toolchain}} sqlx --check -- --all-features
   git diff --no-ext-diff --quiet --exit-code
 
 publish:
@@ -68,8 +68,8 @@ done branch=`git rev-parse --abbrev-ref HEAD`:
   git diff --no-ext-diff --quiet --exit-code {{branch}}
   git branch -D {{branch}}
 
-clippy:
-  cargo clippy --all-targets --all-features
+clippy *args:
+  cargo +{{toolchain}} clippy --all-targets --all-features -- {{args}}
 
 forbid:
   ./bin/forbid
@@ -77,11 +77,14 @@ forbid:
 sloc:
   @cat src/*.rs | sed '/^\s*$/d' | wc -l
 
+ws:
+  ! rg '\s+$' . .github
+
 clean:
-  cargo clean
+  cargo +{{toolchain}} clean
 
 test *args:
-  RUST_BACKTRACE=1 cargo nextest run {{args}}
+  RUST_BACKTRACE=1 cargo +{{toolchain}} nextest run {{args}}
 
 bake *args:
   TAG={{tag}} IMAGE_NAME={{image}} RELEASE={{release}} docker buildx bake {{args}}
@@ -96,14 +99,15 @@ docker-pull:
   docker pull {{image}}:latest
 
 migrate dsn=dsn:
-  cargo run --features migrate -- migrate --database-dsn {{dsn}}
+  cargo +{{toolchain}} run --features migrate -- migrate --database-dsn {{dsn}}
 
 new-migration name:
-  cargo sqlx migrate add {{name}}
+  cargo +{{toolchain}} sqlx migrate add {{name}}
 
 install-dev-deps:
   rustup install nightly
   rustup update nightly
+  cargo install ripgrep
   cargo install cargo-sqlx
   cargo install cargo-nextest
   cargo install mdbook mdbook-linkcheck

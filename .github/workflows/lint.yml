@@ -84,3 +84,5 @@ jobs:
         run: |
           just ci
         shell: bash
+        env:
+          RUST_TOOLCHAIN: ${{ matrix.rust }}

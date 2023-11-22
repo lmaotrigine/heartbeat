@@ -1,0 +1,17 @@
+# this file duplicates `rustfmt.toml` with unstable options enabled.
+# this is checked against in CI using the nightly toolchain.
+
+max_width = 120
+newline_style = "Unix"
+use_field_init_shorthand = true
+use_try_shorthand = true
+
+# Unstable options that help catching mistakes in formatting and that we want to enable
+# when they become stable.
+#
+# They are kept here since they are useful to run from time to time.
+format_code_in_doc_comments = true
+reorder_impl_items = true
+comment_width = 80
+wrap_comments = true
+normalize_comments = true
