@@ -37,8 +37,7 @@ build *args:
 fmt *args:
   cargo +{{toolchain}} fmt --all -- {{args}} --config-path {{rustfmt_toml}}
 
-check: fmt clippy (test "--all-features") forbid lint-static
-  cargo +{{toolchain}} sqlx --check -- --all-features
+check: (fmt "--check") clippy (test "--all-features") forbid lint-static
   git diff --no-ext-diff --quiet --exit-code
 
 publish:

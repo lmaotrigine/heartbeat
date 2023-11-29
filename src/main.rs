@@ -13,14 +13,18 @@
     clippy::unwrap_used
 )]
 
-use axum::{middleware, Server};
+use axum::middleware;
 use base64ct::{Base64Url, Encoding};
 use clap::Parser;
 use color_eyre::eyre::Result;
 use heartbeat::{handle_errors, routes::router, AppState, Cli, Config, Subcmd, WebCli};
-use std::net::SocketAddr;
-use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
-use tracing::{info, span, warn, Instrument, Level};
+use std::{net::SocketAddr, time::Duration};
+use tokio::net::TcpListener;
+use tower_http::{
+    timeout::TimeoutLayer,
+    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
+};
+use tracing::{info, span, Instrument, Level};
 
 // Rust uses the system allocator by default. On Linux, this would normally be
 // glibc's allocator, which is pretty good.
@@ -67,17 +71,13 @@ async fn web(cli: WebCli) -> Result<()> {
     let router = router
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(app_state, handle_errors))
-        .layer(trace_service);
-    let graceful_shutdown = async {
-        let _ = tokio::signal::ctrl_c().await;
-        warn!("Initiating graceful shutdown");
-    };
-    let server = Server::bind(&bind).serve(router.into_make_service_with_connect_info::<SocketAddr>());
-    info!("Listening on {}", server.local_addr());
-    Ok(server
-        .with_graceful_shutdown(graceful_shutdown)
-        .instrument(span!(Level::INFO, "server"))
-        .await?)
+        .layer(trace_service)
+        .layer(TimeoutLayer::new(Duration::from_secs(10)))
+        .into_make_service_with_connect_info::<SocketAddr>();
+    let bind = TcpListener::bind(&bind).await?;
+    info!("Listening on {}", bind.local_addr()?);
+    let server = heartbeat::serve(bind, router);
+    Ok(server.instrument(span!(Level::INFO, "server")).await?)
 }
 
 #[cfg(feature = "migrate")]

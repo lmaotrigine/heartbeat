@@ -750,6 +750,8 @@ dependencies = [
  "erased-debug",
  "heartbeat-sys",
  "html",
+ "hyper 1.0.1",
+ "hyper-util",
  "itoa",
  "jemallocator",
  "mime_guess",
@@ -764,6 +766,7 @@ dependencies = [
  "tokio",
  "toml",
  "tower-http",
+ "tower-service",
  "tracing",
  "tracing-subscriber",
  "unsafe_formatting",
@@ -829,18 +832,18 @@ dependencies = [
 [[package]]
 name = "html"
 version = "0.1.0"
-source = "git+https://git.5ht2.me/lmaotrigine/html-rs#6bf660d9d18dceb89ebf7a838c25241acaa129b3"
+source = "git+https://git.5ht2.me/lmaotrigine/html-rs#8e2b4930a5d47ca76c816ef7f0bab48ae3fcced9"
 dependencies = [
  "axum-core",
  "html_macros",
- "http 0.2.11",
+ "http 1.0.0",
  "itoa",
 ]
 
 [[package]]
 name = "html_macros"
 version = "0.1.0"
-source = "git+https://git.5ht2.me/lmaotrigine/html-rs#6bf660d9d18dceb89ebf7a838c25241acaa129b3"
+source = "git+https://git.5ht2.me/lmaotrigine/html-rs#8e2b4930a5d47ca76c816ef7f0bab48ae3fcced9"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -2502,6 +2505,7 @@ dependencies = [
  "http-body 1.0.0",
  "http-body-util",
  "pin-project-lite",
+ "tokio",
  "tower-layer",
  "tower-service",
  "tracing",

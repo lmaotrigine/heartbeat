@@ -35,6 +35,7 @@ mod auth;
 mod config;
 mod devices;
 mod error;
+mod server;
 mod stats;
 mod templates;
 mod traits;
@@ -46,6 +47,7 @@ pub mod routes;
 pub use config::MigrateCli;
 pub use config::{Cli, Config, Subcmd, WebCli};
 pub use error::handle_errors;
+pub use server::serve;
 
 /// Crate version and git commit hash.
 pub const VERSION: &str = env!("HB_VERSION");
