@@ -22,7 +22,7 @@ clap = { version = "4", default-features = false, features = ["derive", "env", "
 color-eyre = "0.6"
 erased-debug = { git = "https://git.5ht2.me/lmaotrigine/erased-debug", version = "0.1.0", features = ["serde"] }
 heartbeat-sys = { git = "https://git.5ht2.me/lmaotrigine/heartbeat-sys", version = "0.1.0" }
-html = { git = "https://git.5ht2.me/lmaotrigine/html-rs", version = "0.1.0", features = ["axum"] }
+html = { git = "https://git.5ht2.me/lmaotrigine/html-rs", version = "0.1.0", features = ["axum"], branch = "bug/actix-broke" }
 hyper = "1"
 hyper-util = { version = "0.1", features = ["tokio", "server-auto"] }
 itoa = "1"

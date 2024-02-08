@@ -52,7 +52,7 @@ async fn main() -> Result<()> {
     color_eyre::install()?;
     let cli = Cli::parse();
     match cli.subcommand.unwrap_or_default() {
-        Subcmd::Run(cli) => web(cli).await,
+        Subcmd::Run(cli) => web(*cli).await,
         #[cfg(feature = "migrate")]
         Subcmd::Migrate(cli) => migrate(cli).await,
         Subcmd::GenKey => gen_key(),

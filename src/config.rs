@@ -36,7 +36,7 @@ pub struct Cli {
 #[derive(Debug, Subcommand)]
 pub enum Subcmd {
     /// Run the web server.
-    Run(WebCli),
+    Run(Box<WebCli>),
     /// Generate a new secret key.
     GenKey,
     /// Migrate the database.
@@ -46,7 +46,7 @@ pub enum Subcmd {
 
 impl Default for Subcmd {
     fn default() -> Self {
-        Self::Run(WebCli::parse())
+        Self::Run(Box::new(WebCli::parse()))
     }
 }
 

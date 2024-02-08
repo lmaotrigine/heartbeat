@@ -24,10 +24,6 @@ macro_rules! rough_plural {
     };
 }
 
-pub trait HumanFriendly {
-    fn human_friendly(&self) -> String;
-}
-
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd)]
 pub enum Tense {
     Past,
@@ -272,17 +268,5 @@ impl From<Duration> for HumanTime {
 impl<TZ: TimeZone> From<DateTime<TZ>> for HumanTime {
     fn from(value: DateTime<TZ>) -> Self {
         value.signed_duration_since(Utc::now()).into()
-    }
-}
-
-impl HumanFriendly for Duration {
-    fn human_friendly(&self) -> String {
-        format!("{}", HumanTime::from(*self))
-    }
-}
-
-impl<TZ: TimeZone> HumanFriendly for DateTime<TZ> {
-    fn human_friendly(&self) -> String {
-        format!("{}", HumanTime::from(self.clone()))
     }
 }

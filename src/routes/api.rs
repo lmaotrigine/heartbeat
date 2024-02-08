@@ -179,18 +179,19 @@ async fn stream_stats(app_state: AppState, mut ws: WebSocket) {
     }
 }
 
+#[derive(Serialize)]
+pub struct DeviceAddResp {
+    id: i64,
+    name: Option<String>,
+    token: String,
+}
+
 #[axum::debug_handler]
 pub async fn post_device(
-    _auth: MasterAuth,
+    _: MasterAuth,
     State(state): State<AppState>,
     Json(device): Json<PostDevice>,
-) -> (StatusCode, Json<impl Serialize>) {
-    #[derive(Serialize)]
-    struct DeviceAddResp {
-        id: i64,
-        name: Option<String>,
-        token: String,
-    }
+) -> (StatusCode, Json<DeviceAddResp>) {
     let id = SnowflakeGenerator::default().generate();
     let res = match sqlx::query!(
         r"INSERT INTO heartbeat.devices (id, name, token) VALUES ($1, $2, $3) RETURNING *;",
@@ -248,7 +249,7 @@ pub async fn post_device(
 
 #[axum::debug_handler]
 pub async fn regenerate_device_token(
-    _auth: MasterAuth,
+    _: MasterAuth,
     State(state): State<AppState>,
     Path(device_id): Path<i64>,
     method: axum::http::Method,
