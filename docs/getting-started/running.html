@@ -198,7 +198,7 @@ the <code>/api/devices</code> endpoint to register your first device.</p>
 <p>First, you’ll need a name for your device, let’s call it <code>Laptop</code> (but you can get creative!)</p>
 <p>Using the command line, with <code>curl</code> installed (it should be by default on Windows and any sane Linux distro, and on
 macOS will prompt you to install Xcode command line tools), you can just run</p>
-<pre><code class="language-console">$ curl -XPOST -H 'Authorization: &lt;my_secret_key&gt;' -H 'Content-Type: application/json' -d '{&quot;name&quot;: &quot;Laptop&quot;}' http://127.0.0.1:6060/api/devices
+<pre><code class="language-console">$ curl -XPOST -H 'Authorization: &lt;my_secret_key&gt;' -H 'Content-Type: application/json' -d '{"name": "Laptop"}' http://127.0.0.1:6060/api/devices
 </code></pre>
 <p>That’s a long one! You will probably want to make a convenience wrapper for this. We don’t provide one out of the box
 because various users might have multiple very creative ways to store their secrets, and we leave it to them to tailor

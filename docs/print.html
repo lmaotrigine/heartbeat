@@ -272,7 +272,7 @@ the <code>/api/devices</code> endpoint to register your first device.</p>
 <p>First, you’ll need a name for your device, let’s call it <code>Laptop</code> (but you can get creative!)</p>
 <p>Using the command line, with <code>curl</code> installed (it should be by default on Windows and any sane Linux distro, and on
 macOS will prompt you to install Xcode command line tools), you can just run</p>
-<pre><code class="language-console">$ curl -XPOST -H 'Authorization: &lt;my_secret_key&gt;' -H 'Content-Type: application/json' -d '{&quot;name&quot;: &quot;Laptop&quot;}' http://127.0.0.1:6060/api/devices
+<pre><code class="language-console">$ curl -XPOST -H 'Authorization: &lt;my_secret_key&gt;' -H 'Content-Type: application/json' -d '{"name": "Laptop"}' http://127.0.0.1:6060/api/devices
 </code></pre>
 <p>That’s a long one! You will probably want to make a convenience wrapper for this. We don’t provide one out of the box
 because various users might have multiple very creative ways to store their secrets, and we leave it to them to tailor
@@ -305,48 +305,48 @@ can be specified based on <a href="https://doc.rust-lang.org/stable/cargo/refere
 or <code>release</code> tables, both of which are optional. An example config file with all fields filled out is given below:</p>
 <pre><code class="language-toml"># the address to bind to
 # this will be parsed as a `std::net::SocketAddr`
-bind = &quot;0.0.0.0:6060&quot;
+bind = "0.0.0.0:6060"
 
 # this is used for &lt;title&gt; tags
 # and some headings
-server_name = &quot;Some person's heartbeat&quot;
+server_name = "Some person's heartbeat"
 
 # the full url to the server
-live_url = &quot;http://127.0.0.1:6060&quot;
+live_url = "http://127.0.0.1:6060"
 
 # a random URL-safe string.
 # if left blank, addition of devices is disabled.
 # this may be generated using `openssl rand -base64 45`
-secret_key = &quot;&quot;
+secret_key = ""
 
 # don't change this unless you're using a fork
-repo = &quot;https://github.com/lmaotrigine/heartbeat&quot;
+repo = "https://github.com/lmaotrigine/heartbeat"
 
 [database]
 # this is the default if you're using the docker-compose file
 # otherwise, the format is postgresql://username:password@host/database
-dsn = &quot;postgresql://heartbeat@db/heartbeat&quot;
+dsn = "postgresql://heartbeat@db/heartbeat"
 
 [webhook]
 # leave this blank to disable webhooks
-url = &quot;&quot;
+url = ""
 
 # one of:
-# - &quot;all&quot;             log each beat + the below
-# - &quot;new_devices&quot;     log new devices + the below
-# - &quot;long_absences&quot;   log absences longer than 1 hour
-# - &quot;none&quot;            don't log anything
-level = &quot;none&quot;
+# - "all"             log each beat + the below
+# - "new_devices"     log new devices + the below
+# - "long_absences"   log absences longer than 1 hour
+# - "none"            don't log anything
+level = "none"
 
 # override some values for debug builds for easier testing.
 
 [debug]
-bind = &quot;127.0.0.1:6061&quot;
-live_url = &quot;http://localhost:6061&quot;
+bind = "127.0.0.1:6061"
+live_url = "http://localhost:6061"
 
 # nested keys work as expected
 [debug.database]
-dsn = &quot;postgresql://heartbeat@localhost/heartbeat&quot;
+dsn = "postgresql://heartbeat@localhost/heartbeat"
 </code></pre>
 <h2 id="environment-variables"><a class="header" href="#environment-variables">Environment variables</a></h2>
 <p>Heartbeat can be configured through environment variables in addition to the TOML configuration file. Environment
@@ -484,7 +484,7 @@ routes removed.</p>
 <ul>
 <li>Content Type: <code>application/json</code></li>
 <li>Schema: <code>{name: string}</code></li>
-<li>Example: <code>{&quot;name&quot;: &quot;Laptop&quot;}</code></li>
+<li>Example: <code>{"name": "Laptop"}</code></li>
 </ul>
 </li>
 <li>Response:
@@ -500,9 +500,9 @@ routes removed.</p>
 </li>
 <li>Example:
 <pre><code class="language-json">{
-  &quot;id&quot;: 0,
-  &quot;name&quot;: &quot;Laptop&quot;,
-  &quot;token&quot;: &quot;barfooed&quot;
+  "id": 0,
+  "name": "Laptop",
+  "token": "barfooed"
 }
 </code></pre>
 </li>
@@ -538,9 +538,9 @@ routes removed.</p>
 </li>
 <li>Example:
 <pre><code class="language-json">{
-  &quot;id&quot;: 0,
-  &quot;name&quot;: &quot;Laptop&quot;,
-  &quot;token&quot;: &quot;barfooed&quot;
+  "id": 0,
+  "name": "Laptop",
+  "token": "barfooed"
 }
 </code></pre>
 </li>
@@ -602,32 +602,32 @@ type Device = {
 </li>
 <li>Example:
 <pre><code class="language-json">{
-  &quot;last_seen&quot;: 1698915320,
-  &quot;last_seen_relative&quot;: 41,
-  &quot;longest_absence&quot;: 84898,
-  &quot;num_visits&quot;: 1628,
-  &quot;total_beats&quot;: 120062,
-  &quot;devices&quot;: [
+  "last_seen": 1698915320,
+  "last_seen_relative": 41,
+  "longest_absence": 84898,
+  "num_visits": 1628,
+  "total_beats": 120062,
+  "devices": [
     {
-      &quot;id&quot;: 0,
-      &quot;name&quot;: &quot;Laptop&quot;,
-      &quot;last_beat&quot;: 1698825626,
-      &quot;num_beats&quot;: 36308
+      "id": 0,
+      "name": "Laptop",
+      "last_beat": 1698825626,
+      "num_beats": 36308
     },
     {
-      &quot;id&quot;: 1,
-      &quot;name&quot;: &quot;Phone&quot;,
-      &quot;last_beat&quot;: 1698825626,
-      &quot;num_beats&quot;: 639
+      "id": 1,
+      "name": "Phone",
+      "last_beat": 1698825626,
+      "num_beats": 639
     },
     {
-      &quot;id&quot;: 2,
-      &quot;name&quot;: &quot;Workstation&quot;,
-      &quot;last_beat&quot;: 1698915320,
-      &quot;num_beats&quot;: 83115
+      "id": 2,
+      "name": "Workstation",
+      "last_beat": 1698915320,
+      "num_beats": 83115
     }
   ],
-  &quot;uptime&quot;: 8082297
+  "uptime": 8082297
 }
 </code></pre>
 </li>

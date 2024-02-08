@@ -202,48 +202,48 @@ can be specified based on <a href="https://doc.rust-lang.org/stable/cargo/refere
 or <code>release</code> tables, both of which are optional. An example config file with all fields filled out is given below:</p>
 <pre><code class="language-toml"># the address to bind to
 # this will be parsed as a `std::net::SocketAddr`
-bind = &quot;0.0.0.0:6060&quot;
+bind = "0.0.0.0:6060"
 
 # this is used for &lt;title&gt; tags
 # and some headings
-server_name = &quot;Some person's heartbeat&quot;
+server_name = "Some person's heartbeat"
 
 # the full url to the server
-live_url = &quot;http://127.0.0.1:6060&quot;
+live_url = "http://127.0.0.1:6060"
 
 # a random URL-safe string.
 # if left blank, addition of devices is disabled.
 # this may be generated using `openssl rand -base64 45`
-secret_key = &quot;&quot;
+secret_key = ""
 
 # don't change this unless you're using a fork
-repo = &quot;https://github.com/lmaotrigine/heartbeat&quot;
+repo = "https://github.com/lmaotrigine/heartbeat"
 
 [database]
 # this is the default if you're using the docker-compose file
 # otherwise, the format is postgresql://username:password@host/database
-dsn = &quot;postgresql://heartbeat@db/heartbeat&quot;
+dsn = "postgresql://heartbeat@db/heartbeat"
 
 [webhook]
 # leave this blank to disable webhooks
-url = &quot;&quot;
+url = ""
 
 # one of:
-# - &quot;all&quot;             log each beat + the below
-# - &quot;new_devices&quot;     log new devices + the below
-# - &quot;long_absences&quot;   log absences longer than 1 hour
-# - &quot;none&quot;            don't log anything
-level = &quot;none&quot;
+# - "all"             log each beat + the below
+# - "new_devices"     log new devices + the below
+# - "long_absences"   log absences longer than 1 hour
+# - "none"            don't log anything
+level = "none"
 
 # override some values for debug builds for easier testing.
 
 [debug]
-bind = &quot;127.0.0.1:6061&quot;
-live_url = &quot;http://localhost:6061&quot;
+bind = "127.0.0.1:6061"
+live_url = "http://localhost:6061"
 
 # nested keys work as expected
 [debug.database]
-dsn = &quot;postgresql://heartbeat@localhost/heartbeat&quot;
+dsn = "postgresql://heartbeat@localhost/heartbeat"
 </code></pre>
 <h2 id="environment-variables"><a class="header" href="#environment-variables">Environment variables</a></h2>
 <p>Heartbeat can be configured through environment variables in addition to the TOML configuration file. Environment
