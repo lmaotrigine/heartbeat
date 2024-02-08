@@ -101,7 +101,7 @@ jobs:
       - uses: actions/checkout@master
         with:
           fetch-depth: 1  # we don't build pre-releases anyway
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin
