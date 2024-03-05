@@ -13,7 +13,7 @@ jobs:
       matrix:
         include:
           - build: pinned
-            rust: 1.70.0
+            rust: 1.74.0
           - build: stable
             rust: stable
           - build: beta

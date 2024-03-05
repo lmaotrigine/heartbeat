@@ -15,7 +15,7 @@ use std::{
     net::{Ipv4Addr, SocketAddr, SocketAddrV4},
     path::{Path, PathBuf},
 };
-use toml::{self, de::Error as TomlDeError};
+use toml::de::Error as TomlDeError;
 use tracing::{debug, info};
 
 #[doc = env!("CARGO_PKG_DESCRIPTION")]
@@ -57,9 +57,9 @@ pub struct MigrateCli {
     /// The path to the configuration file.
     #[command(flatten)]
     pub config_file: __ConfigFile,
-    /// The PostgreSQL connection string. [default:
-    /// postgres://heartbeat@db/heartbeat if running in Docker,
-    /// postgres://postgres@localhost/postgres otherwise]
+    /// The `PostgreSQL` connection string. [default:
+    /// `postgres://heartbeat@db/heartbeat` if running in Docker,
+    /// `postgres://postgres@localhost/postgres` otherwise]
     #[clap(long, short, env = "HEARTBEAT_DATABASE_DSN")]
     pub database_dsn: Option<String>,
 }
@@ -67,9 +67,9 @@ pub struct MigrateCli {
 /// Run the web server.
 #[derive(Debug, Parser)]
 pub struct WebCli {
-    /// A PostgreSQL connection string. [default:
-    /// postgres://heartbeat@db/heartbeat if running in Docker,
-    /// postgres://postgres@localhost/postgres otherwise]
+    /// A `PostgreSQL` connection string. [default:
+    /// `postgres://heartbeat@db/heartbeat` if running in Docker,
+    /// `postgres://postgres@localhost/postgres` otherwise]
     #[clap(long, short, env = "HEARTBEAT_DATABASE_DSN")]
     pub database_dsn: Option<String>,
     #[cfg(feature = "webhook")]
@@ -84,17 +84,17 @@ pub struct WebCli {
     /// for adding new devices.
     #[clap(long, short = 's', env = "HEARTBEAT_SECRET_KEY")]
     pub secret_key: Option<String>,
-    /// The GitHub repository URL of the project. [default: https://github.com/lmaotrigine/heartbeat]
+    /// The GitHub repository URL of the project. [default: <https://github.com/lmaotrigine/heartbeat>]
     #[clap(long, short = 'r', env = "HEARTBEAT_REPO")]
     pub repo: Option<String>,
     /// A human-readable name for the server used in <title> tags
     /// and other metadata. [default: Some person's heartbeat]
     #[clap(long, env = "HEARTBEAT_SERVER_NAME")]
     pub server_name: Option<String>,
-    /// The publicly accessible URL of the server. [default: http://127.0.0.1:6060]
+    /// The publicly accessible URL of the server. [default: `http://127.0.0.1:6060`]
     #[clap(long, short = 'u', env = "HEARTBEAT_LIVE_URL")]
     pub live_url: Option<String>,
-    /// The bind address for the server. [default: 127.0.0.1:6060]
+    /// The bind address for the server. [default: `127.0.0.1:6060`]
     #[clap(long, short, env = "HEARTBEAT_BIND")]
     pub bind: Option<SocketAddr>,
     /// The path to the configuration file.
@@ -190,7 +190,7 @@ pub struct Config {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Database {
-    /// A PostgreSQL connection string.
+    /// A `PostgreSQL` connection string.
     pub dsn: String,
 }
 
