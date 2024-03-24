@@ -116,20 +116,11 @@ Due to caching, you will have to check the website if the embed generation time 
                 div.grid-cell {}
                 div {
                     p.centre {
-                        "Welcome to " (config.server_name)"." br;
-                        "This page displays the last timestamp that they have unlocked and used any of their devices." br;
-                        "If they have been absent for more than 48 hours, something is probably wrong." br;
-                        "This website is running on version "
-                        a href=(href) {
-                            code {
-                                (VERSION)
-                            }
-                        }
-                        " of "
-                        a href=(config.repo) {
-                            "Heartbeat"
-                        }
-                        "."
+                        "Welcome to ";
+                        span.text-love{(config.server_name)};
+                        "." br;
+                        "This page displays the last timestamp that she unlocked and used any of her devices." br;
+                        "If she has been absent for more than 48 hours, something is probably wrong." br;
                     }
                 }
                 div.grid-cell {}
@@ -138,7 +129,7 @@ Due to caching, you will have to check the website if the embed generation time 
                 div.grid-cell {}
                 div.grid-cell {
                     p.centre {
-                        "Last response time:" br;
+                        span.text-pine{"Last response time:"} br;
                         span #last-seen {
                             (last_seen_fmt)
                         }
@@ -146,7 +137,7 @@ Due to caching, you will have to check the website if the embed generation time 
                 }
                 div.grid-cell {
                     p.centre {
-                        "Time since last response:" br;
+                        span.text-pine{"Time since last response:"} br;
                         span #time-difference {
                             (last_seen_relative)
                         }
@@ -154,7 +145,7 @@ Due to caching, you will have to check the website if the embed generation time 
                 }
                 div.grid-cell {
                     p.centre {
-                        "Longest absence:" br;
+                        span.text-pine{"Longest absence:"} br;
                         span #longest-absence {
                             (longest_absence)
                         }
@@ -162,7 +153,7 @@ Due to caching, you will have to check the website if the embed generation time 
                 }
                 div.grid-cell {
                     p.centre {
-                        "Total beats received:" br;
+                        span.text-pine{"Total beats received:"} br;
                         span #total-beats {
                             (total_beats)
                         }
@@ -181,6 +172,16 @@ Due to caching, you will have to check the website if the embed generation time 
                         " - "
                         a href="/privacy" {
                             "Privacy Policy"
+                        }
+                        " - "
+                        a href=(config.repo) {
+                            "Heartbeat"
+                        }
+                        " - version: "
+                        a href=(href) {
+                            code {
+                                (VERSION)
+                            }
                         }
                     }
                 }

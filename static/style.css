@@ -22,19 +22,30 @@
  *   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/**
+ * Theme inspired by Rosepine
+ */
+
 body {
   font-family: sans-serif;
   padding: 2.5em;
-  background-color: #060606;
-  color: #f6f6f6;
+  background-color: #191724;
+  color: #e0def4;
   max-height: 100vh;
   max-width: 100vw;
 }
-
-
+ span.text-love {
+  color: #eb6f92;
+}
+span.text-rose {
+  color: #ebbcba
+}
+span.text-pine {
+  color: #286983;
+}
 
 a {
-  color: #23e5ff;
+  color: #56949f;
   text-decoration: none;
   position: relative;
 }
@@ -45,7 +56,7 @@ a::after {
   bottom: 0;
   left: 0;
   width: 0;
-  border-bottom: 2px solid #23e5ff;
+  border-bottom: 2px solid #56949f;
   transition: 0.4s;
 }
 
@@ -99,15 +110,24 @@ a:hover::after {
 
 @media screen and (prefers-color-scheme: light) {
   body {
-    color: #000;
-    background-color: #f6f6f6;
+    color: #575279;
+    background-color: #e0def4;
+  }
+  span.text-love {
+    color: #b4637a
+  }
+  span.text-rose {
+    color: #d7827e
+  }
+  span.text-pine {
+    color: #286983;
   }
 
   a {
-    color: #00e;
+    color: #56949f;
   }
 
   a::after {
-    border-bottom: 2px solid #00e;
+    border-bottom: 2px solid #56949f;
   }
 }

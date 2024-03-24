@@ -32,7 +32,8 @@ const B64_IMG: &str = concat!(
     "QmCC",
 );
 
-const BLUE_MAGENTA: Colour = Colour::from_colour_code(0x88_7e_e0);
+const PINE_COLOR: Colour = Colour::from_colour_code(0x31_74_8f);
+const GOLD_COLOR: Colour = Colour::from_colour_code(0xf6_c1_77);
 
 pub struct BadgeResponse {
     badge: String,
@@ -92,7 +93,7 @@ pub async fn last_seen(State(AppState { stats, pool, .. }): State<AppState>) -> 
         stats.lock().num_visits += 1;
         let _ = pool.incr_visits().await;
     });
-    BadgeResponse::new("Last Online", &message, BLUE_MAGENTA)
+    BadgeResponse::new("Last Beat", &message, PINE_COLOR)
 }
 
 #[axum::debug_handler]
@@ -107,7 +108,7 @@ pub async fn total_beats(State(AppState { stats, pool, .. }): State<AppState>) -
         stats.lock().num_visits += 1;
         let _ = pool.incr_visits().await;
     });
-    BadgeResponse::new("Total Beats", total_beats.format().as_str(), Colour::CORNFLOWER_BLUE)
+    BadgeResponse::new("Total Beats", total_beats.format().as_str(), GOLD_COLOR)
 }
 
 #[cfg(test)]
