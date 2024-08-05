@@ -80,6 +80,7 @@ jobs:
       - name: install dependencies
         run: |
           npm install -g stylelint typescript eslint
+          npm install
       - name: check and test
         run: |
           just ci

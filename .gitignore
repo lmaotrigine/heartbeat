@@ -20,3 +20,6 @@ contrib/
 
 # packages
 dist/
+
+# ESLint nonsense
+node_modules/
