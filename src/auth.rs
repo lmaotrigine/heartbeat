@@ -61,8 +61,8 @@ impl FromRequestParts<AppState> for Device {
     }
 }
 
-#[derive(Debug)]
-pub struct Master(pub String);
+#[derive(Debug, Clone, Copy)]
+pub struct Master;
 
 #[axum::async_trait]
 impl FromRequestParts<AppState> for Master {
@@ -93,7 +93,7 @@ impl FromRequestParts<AppState> for Master {
             |t| Ok(t.to_str().unwrap_or_default()),
         )?;
         if token == *expected {
-            Ok(Self(token.to_string()))
+            Ok(Self)
         } else {
             Err(Error::new(
                 req.uri.path(),
