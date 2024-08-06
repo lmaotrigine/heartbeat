@@ -9,7 +9,7 @@ title = "Heartbeat"
 build-dir = "build"
 
 [output.html]
-curly-quotes = true
+smart-punctuation = true
 git-repository-url = "https://github.com/lmaotrigine/heartbeat/tree/main/book/src"
 edit-url-template = "https://github.com/lmaotrigine/heartbeat/edit/main/book/{path}"
 search.use-boolean-and = true
