@@ -126,7 +126,12 @@ lint-static:
   just _lint-static bunx
 
 lint-static-ci:
-  just _lint-static npx
+  #!/usr/bin/env bash
+  if git diff --no-ext-diff --quiet --exit-code -- static/ www/; then
+    echo "Skipping static asset linting because no changes were made"
+  else
+    just _lint-static npx
+  fi
 
 build-book:
   mdbook build book
