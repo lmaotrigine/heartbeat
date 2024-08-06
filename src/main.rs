@@ -18,7 +18,7 @@ use base64ct::{Base64Url, Encoding};
 use clap::Parser;
 use color_eyre::eyre::Result;
 use heartbeat::{handle_errors, routes::router, AppState, Cli, Config, Subcmd, WebCli};
-use std::{net::SocketAddr, time::Duration};
+use std::{net::SocketAddr, sync::OnceLock, time::Duration};
 use tokio::net::TcpListener;
 use tower_http::{
     timeout::TimeoutLayer,
@@ -60,10 +60,13 @@ async fn main() -> Result<()> {
 }
 
 async fn web(cli: WebCli) -> Result<()> {
+    static CONFIG: OnceLock<Config> = OnceLock::new();
     let config = Config::try_new(cli)?;
+    CONFIG.set(config).expect("config to not be set");
+    let config = CONFIG.get().expect("config to be set");
     info!(config = ?config, "Loaded config");
     let bind = config.bind;
-    let router = router(&config);
+    let router = router(config);
     let app_state = AppState::from_config(config).await?;
     let trace_service = TraceLayer::new_for_http()
         .make_span_with(DefaultMakeSpan::new().level(Level::INFO))

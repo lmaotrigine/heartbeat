@@ -41,11 +41,7 @@ async fn fire_webhook(state: AppState, title: &str, message: &str, level: Webhoo
             WebhookLevel::LongAbsences => WebhookColour::Orange,
             WebhookLevel::None => return,
         };
-        match state
-            .webhook
-            .execute(title, message, level, colour, &state.config)
-            .await
-        {
+        match state.webhook.execute(title, message, level, colour, state.config).await {
             Ok(()) => (),
             Err(e) => error!("{e}"),
         }

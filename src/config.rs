@@ -102,7 +102,7 @@ pub struct WebCli {
     pub config_file: __ConfigFile,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct __ConfigFile {
     path: Option<PathBuf>,
 }
@@ -167,7 +167,7 @@ impl Args for __ConfigFile {
 }
 
 /// The configuration for the server.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Config {
     /// Database configuration.
     pub database: Database,
@@ -188,14 +188,14 @@ pub struct Config {
     pub bind: SocketAddr,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize)]
 pub struct Database {
     /// A `PostgreSQL` connection string.
     pub dsn: String,
 }
 
 #[cfg(feature = "webhook")]
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize)]
 pub struct Webhook {
     /// The URL of the Discord webhook.
     pub url: String,

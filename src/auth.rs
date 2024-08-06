@@ -69,8 +69,8 @@ impl FromRequestParts<AppState> for Master {
     type Rejection = Error;
 
     async fn from_request_parts(req: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
-        let config = Config::from_ref(state);
-        let expected = config.secret_key;
+        let config: &'static Config = FromRef::from_ref(state);
+        let expected = &config.secret_key;
         if expected.is_empty() {
             return Err(Error::new(
                 req.uri.path(),
@@ -92,7 +92,7 @@ impl FromRequestParts<AppState> for Master {
             },
             |t| Ok(t.to_str().unwrap_or_default()),
         )?;
-        if token == *expected {
+        if token == **expected {
             Ok(Self)
         } else {
             Err(Error::new(

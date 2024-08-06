@@ -29,7 +29,7 @@ pub async fn index_page(
     tokio::spawn(async move {
         let _ = pool.incr_visits().await;
     });
-    (StatusCode::OK, index(&stats, git_revision, &config))
+    (StatusCode::OK, index(&stats, git_revision, config))
 }
 
 #[axum::debug_handler]
@@ -50,10 +50,10 @@ pub async fn stats_page(
     tokio::spawn(async move {
         let _ = pool.incr_visits().await;
     });
-    (StatusCode::OK, stats_template(&stats, &config, server_start_time))
+    (StatusCode::OK, stats_template(&stats, config, server_start_time))
 }
 
 #[axum::debug_handler]
 pub async fn privacy_page(State(AppState { config, .. }): State<AppState>) -> Markup {
-    privacy(&config)
+    privacy(config)
 }
