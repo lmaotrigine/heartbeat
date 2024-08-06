@@ -1,6 +1,6 @@
 [package]
 name = "heartbeat"
-version = "0.0.4-a"
+version = "0.0.4"
 description = "A service to keep a live heartbeat on multiple devices"
 edition = "2021"
 license = "MPL-2.0"
