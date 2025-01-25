@@ -7,6 +7,7 @@
 pub mod ts {
     use chrono::serde::ts_seconds;
 
+    #[allow(clippy::ref_option)] // serde compat
     pub fn serialize<S: serde::Serializer>(
         ts: &Option<chrono::DateTime<chrono::Utc>>,
         serializer: S,

@@ -359,7 +359,7 @@ impl<'a> Merge<'a> {
                 }
                 value
             })
-            .ok_or_else(|| Error::MissingField(field))
+            .ok_or(Error::MissingField(field))
     }
 
     fn profile_value_nested<T: Debug + Deserialize<'a>>(&self, outer: &'a str, inner: &'a str) -> Option<T> {

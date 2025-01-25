@@ -127,7 +127,7 @@ pub async fn handle_beat_req(State(state): State<AppState>, info: DeviceAuth) ->
     (StatusCode::OK, format!("{}", now.timestamp()))
 }
 
-fn _get_stats(state: &AppState) -> impl Serialize {
+fn get_stats(state: &AppState) -> impl Serialize {
     #[derive(Serialize)]
     struct StatsResp {
         last_seen: Option<i64>,
@@ -156,8 +156,8 @@ fn _get_stats(state: &AppState) -> impl Serialize {
 }
 
 #[axum::debug_handler]
-pub async fn get_stats(State(stats): State<AppState>) -> Json<impl Serialize> {
-    Json(_get_stats(&stats))
+pub async fn get_stats_(State(stats): State<AppState>) -> Json<impl Serialize> {
+    Json(get_stats(&stats))
 }
 
 #[axum::debug_handler]
@@ -167,7 +167,7 @@ pub async fn realtime_stats(ws: WebSocketUpgrade, State(state): State<AppState>)
 
 async fn stream_stats(app_state: AppState, mut ws: WebSocket) {
     loop {
-        let stats = _get_stats(&app_state);
+        let stats = get_stats(&app_state);
         let _ = ws
             .send(Message::Text(serde_json::to_string(&stats).unwrap_or_default()))
             .await;

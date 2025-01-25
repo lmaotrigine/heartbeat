@@ -6,6 +6,7 @@
 
 use crate::{templates::error, AppState};
 use axum::{
+    body::Body,
     extract::State,
     http::{Method, Request, StatusCode},
     middleware::Next,
@@ -57,11 +58,11 @@ impl IntoResponse for Error {
 ///
 /// # Errors
 ///
-/// This function returns an error if there was an unhandled client error status
-/// code, or if the client IP could not be determined.
+/// This function returns an error if there was an unhandled client error status code,
+/// or if the client IP could not be determined.
 pub async fn handle_errors(
     State(state): State<AppState>,
-    mut req: Request<axum::body::Body>,
+    mut req: Request<Body>,
     next: Next,
 ) -> Result<Response, Error> {
     let path = req.uri().path().to_owned();

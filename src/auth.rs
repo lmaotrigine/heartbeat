@@ -82,13 +82,13 @@ impl FromRequestParts<AppState> for Master {
         }
         let token = req.headers.get("Authorization").map_or_else(
             || {
-                return Err(Error::new(
+                Err(Error::new(
                     req.uri.path(),
                     &req.method,
                     StatusCode::UNAUTHORIZED,
                     &state.config.server_name,
                 )
-                .with_reason("No token provided."));
+                .with_reason("No token provided."))
             },
             |t| Ok(t.to_str().unwrap_or_default()),
         )?;

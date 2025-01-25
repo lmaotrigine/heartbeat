@@ -1,0 +1,17 @@
+error: void elements must use `;`, not `/`
+ --> $DIR/void-element-slash.rs:5:12
+  |
+5 |         br /
+  |            ^
+  |
+  = help: change this to `;`
+  = help: this is to prevent ambiguity, as a slash is not appended in the output
+
+error: void elements must use `;`, not `/`
+ --> $DIR/void-element-slash.rs:7:27
+  |
+7 |         input type="text" /
+  |                           ^
+  |
+  = help: change this to `;`
+  = help: this is to prevent ambiguity, as a slash is not appended in the output
