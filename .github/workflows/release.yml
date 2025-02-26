@@ -2,6 +2,7 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
 
 defaults:
   run:
@@ -17,13 +18,13 @@ jobs:
           # fortunately I have enough Actions minutes
           # to do shit like this
           - aarch64-apple-darwin
-          - aarch64-linux-android
+          #- aarch64-linux-android
           - aarch64-pc-windows-msvc
           - aarch64-unknown-linux-musl
           - arm-unknown-linux-musleabihf
           - armv7-linux-androideabi
           - armv7-unknown-linux-musleabihf
-          - i686-linux-android
+          #- i686-linux-android
           - i686-pc-windows-msvc
           - i686-unknown-linux-musl
           - x86_64-apple-darwin
@@ -31,7 +32,7 @@ jobs:
           - x86_64-unknown-freebsd
           - x86_64-unknown-illumos
           - x86_64-unknown-linux-musl
-          - x86_64-unknown-netbsd
+          #- x86_64-unknown-netbsd
 
           # these build, but does anyone need them?
           # also, can't be +crt-static'd
@@ -114,19 +115,18 @@ jobs:
           echo $PATH
           clang --version
       - name: setup ripgrep
-        uses: lmaotrigine/fetch-crate-action@mistress
+        uses: taiki-e/install-action@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          owner: BurntSushi
-          name: ripgrep
-          bin: rg
+          tool: ripgrep
+      - name: setup binstall
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-binstall
       - name: setup cross
         if: ${{ matrix.cargo == 'cross' }}
-        uses: lmaotrigine/fetch-crate-action@mistress
+        uses: taiki-e/install-action@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          owner: cross-rs
-          name: cross
+          tool: cross
       - name: ref type
         id: ref-type
         run: ./bin/ref-type $REF >> "$GITHUB_OUTPUT"

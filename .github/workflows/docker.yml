@@ -36,7 +36,7 @@ jobs:
         env:
           REPO: ${{ github.repository }}
       - name: build and push
-        uses: docker/bake-action@v4
+        uses: docker/bake-action@v5
         with:
           files: docker-bake.hcl
           push: true

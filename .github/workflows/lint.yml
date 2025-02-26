@@ -41,38 +41,29 @@ jobs:
           toolchain: ${{ matrix.rust }}
           components: clippy, rustfmt
       - name: setup nextest
-        uses: lmaotrigine/fetch-crate-action@mistress
+        uses: taiki-e/install-action@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          owner: nextest-rs
-          name: nextest
-          bin: cargo-nextest
+          tool: cargo-nextest
       - name: setup just
-        uses: lmaotrigine/fetch-crate-action@mistress
+        uses: taiki-e/install-action@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          owner: casey
-          name: just
+          tool: just
       - name: setup ripgrep
-        uses: lmaotrigine/fetch-crate-action@mistress
+        uses: taiki-e/install-action@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          owner: BurntSushi
-          name: ripgrep
-          bin: rg
+          tool: ripgrep
+      - name: setup binstall
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-binstall
       - name: setup mdbook
-        uses: lmaotrigine/fetch-crate-action@mistress
+        uses: taiki-e/install-action@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          owner: rust-lang
-          name: mdBook
-          bin: mdbook
+          tool: mdbook
       - name: setup mdbook-linkcheck
-        uses: lmaotrigine/fetch-crate-action@mistress
+        uses: taiki-e/install-action@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          owner: Michael-F-Bryan
-          name: mdbook-linkcheck
+          tool: mdbook-linkcheck
       - name: setup node
         uses: actions/setup-node@v4
         with:

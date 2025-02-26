@@ -30,6 +30,7 @@ SHELL [ "/bin/sh", "-eux", "-c" ]
 WORKDIR /usr/src/app
 
 COPY Cargo.toml Cargo.lock ./
+COPY lib ./lib
 
 # Feature flags to enable
 ARG FEATURES=default
@@ -48,11 +49,11 @@ FROM scratch
 
 # Labels
 # Reference: https://github.com/opencontainers/image-spec/blob/main/annotations.md
-LABEL org.opencontainers.image.source "https://github.com/lmaotrigine/heartbeat"
-LABEL org.opencontainers.image.authors "root@5ht2.me"
-LABEL org.opencontainers.image.title "heartbeat"
-LABEL org.opencontainers.image.description "A service to show a live digital heartbeat (ping) on multiple devices."
-LABEL org.opencontainers.image.licenses "MPL-2.0"
+LABEL org.opencontainers.image.source="https://github.com/lmaotrigine/heartbeat"
+LABEL org.opencontainers.image.authors="root@5ht2.me"
+LABEL org.opencontainers.image.title="heartbeat"
+LABEL org.opencontainers.image.description="A service to show a live digital heartbeat (ping) on multiple devices."
+LABEL org.opencontainers.image.licenses="MPL-2.0"
 
 COPY --from=build /usr/src/app/target/release/heartbeat /.heartbeat/bin/heartbeat
 ENV HEARTBEAT_HOME=/.heartbeat
