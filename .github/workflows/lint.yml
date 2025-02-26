@@ -17,7 +17,7 @@ jobs:
       matrix:
         include:
           - build: pinned
-            rust: 1.81.0
+            rust: 1.83.0
           - build: stable
             rust: stable
           - build: beta
