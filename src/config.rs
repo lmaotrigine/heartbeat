@@ -301,7 +301,7 @@ struct Merge<'a> {
 fn is_docker() -> bool {
     let path = Path::new("/proc/self/cgroup");
     let dockerenv = Path::new("/.dockerenv");
-    dockerenv.exists() || (read_to_string(path).map_or(false, |s| s.lines().any(|l| l.contains("docker"))))
+    dockerenv.exists() || (read_to_string(path).is_ok_and(|s| s.lines().any(|l| l.contains("docker"))))
 }
 
 impl<'a> Merge<'a> {

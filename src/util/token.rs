@@ -50,7 +50,7 @@ fn random_string(timestamp: u64) -> String {
         (timestamp & 0xFFFF_0000_0000_0000) == 0,
         "currently cannot generate tokens from August 10,889 onwards."
     );
-    let high = timestamp << 16 | u64::from(rng.gen::<u16>());
+    let high = (timestamp << 16) | u64::from(rng.gen::<u16>());
     let low = rng.gen::<u64>();
     encode(high, low, &mut buf);
     buf
