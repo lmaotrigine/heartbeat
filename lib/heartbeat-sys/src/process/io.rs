@@ -66,9 +66,7 @@ pub(super) struct TestStdin(pub(super) TestStdinInner);
 
 impl Stdin for TestStdin {
     fn lock(&self) -> Box<dyn StdinLock + '_> {
-        Box::new(TestStdinLock {
-            inner: self.0.lock(),
-        })
+        Box::new(TestStdinLock { inner: self.0.lock() })
     }
 
     fn read_line(&self, buf: &mut String) -> Result<usize> {
@@ -165,9 +163,7 @@ pub(super) struct TestWriter(pub(super) TestWriterInner);
 #[cfg(feature = "test")]
 impl TestWriter {
     pub(super) fn lock(&self) -> TestWriterLock<'_> {
-        TestWriterLock {
-            inner: self.0.lock(),
-        }
+        TestWriterLock { inner: self.0.lock() }
     }
 }
 

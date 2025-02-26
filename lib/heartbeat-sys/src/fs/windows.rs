@@ -16,8 +16,7 @@ use windows_sys::{
     Wdk::{
         Foundation::OBJECT_ATTRIBUTES,
         Storage::FileSystem::{
-            NtCreateFile, RtlInitUnicodeStringEx, FILE_OPEN, FILE_OPEN_REPARSE_POINT,
-            FILE_SYNCHRONOUS_IO_NONALERT,
+            NtCreateFile, RtlInitUnicodeStringEx, FILE_OPEN, FILE_OPEN_REPARSE_POINT, FILE_SYNCHRONOUS_IO_NONALERT,
         },
     },
     Win32::{
@@ -28,14 +27,13 @@ use windows_sys::{
         },
         Storage::FileSystem::{
             FileBasicInfo, FileDispositionInfo, FileDispositionInfoEx, FileIdBothDirectoryInfo,
-            FileIdBothDirectoryRestartInfo, GetFileInformationByHandleEx, GetFullPathNameW,
-            LockFileEx, SetFileInformationByHandle, DELETE, FILE_ATTRIBUTE_NORMAL,
-            FILE_ATTRIBUTE_READONLY, FILE_BASIC_INFO, FILE_DISPOSITION_FLAG_DELETE,
-            FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE, FILE_DISPOSITION_FLAG_POSIX_SEMANTICS,
-            FILE_DISPOSITION_INFO, FILE_DISPOSITION_INFO_EX, FILE_FLAG_BACKUP_SEMANTICS,
-            FILE_FLAG_OPEN_REPARSE_POINT, FILE_ID_BOTH_DIR_INFO, FILE_INFO_BY_HANDLE_CLASS,
-            FILE_LIST_DIRECTORY, FILE_READ_ATTRIBUTES, FILE_SHARE_DELETE, FILE_SHARE_READ,
-            FILE_SHARE_WRITE, LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY, SYNCHRONIZE,
+            FileIdBothDirectoryRestartInfo, GetFileInformationByHandleEx, GetFullPathNameW, LockFileEx,
+            SetFileInformationByHandle, DELETE, FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_READONLY, FILE_BASIC_INFO,
+            FILE_DISPOSITION_FLAG_DELETE, FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE,
+            FILE_DISPOSITION_FLAG_POSIX_SEMANTICS, FILE_DISPOSITION_INFO, FILE_DISPOSITION_INFO_EX,
+            FILE_FLAG_BACKUP_SEMANTICS, FILE_FLAG_OPEN_REPARSE_POINT, FILE_ID_BOTH_DIR_INFO, FILE_INFO_BY_HANDLE_CLASS,
+            FILE_LIST_DIRECTORY, FILE_READ_ATTRIBUTES, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE,
+            LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY, SYNCHRONIZE,
         },
         System::{
             SystemServices::UNICODE_STRING_MAX_CHARS,
@@ -104,26 +102,16 @@ fn normalize_virtually(initial_path: &Path) -> io::Result<PathBuf> {
     let mut buf = Vec::new();
     let mut capacity = 0;
     loop {
-        capacity = unsafe {
-            GetFullPathNameW(
-                wide_path.as_ptr(),
-                capacity,
-                buf.as_mut_ptr(),
-                ptr::null_mut(),
-            )
-        };
+        capacity = unsafe { GetFullPathNameW(wide_path.as_ptr(), capacity, buf.as_mut_ptr(), ptr::null_mut()) };
         if capacity == 0 {
             break Err(io::Error::last_os_error());
         }
         let length = capacity as usize;
         if let Some(mut additional) = length.checked_sub(buf.capacity()) {
             assert_ne!(additional, 0);
-            capacity = capacity.checked_add(2).ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::Other,
-                    "required path length is too large for WinAPI",
-                )
-            })?;
+            capacity = capacity
+                .checked_add(2)
+                .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "required path length is too large for WinAPI"))?;
             additional += 2;
             buf.reserve(additional);
             continue;
@@ -203,8 +191,7 @@ pub(super) fn open_path_at(f: &File, p: &Path) -> io::Result<File> {
         }
         status_block.assume_init()
     };
-    let information = u32::try_from(status_block.Information)
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+    let information = u32::try_from(status_block.Information).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
     match information {
         FILE_CREATED | FILE_OPENED | FILE_OVERWRITTEN => {
             let handle = unsafe { handle.assume_init() };
@@ -272,12 +259,10 @@ impl<'a> ReadDir<'a> {
 
     #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
     fn fill_buffer(&mut self, class: FILE_INFO_BY_HANDLE_CLASS) -> io::Result<bool> {
-        let buffer = self.buffer.as_mut().ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::Other,
-                "attempt to fill buffer after end of dir",
-            )
-        })?;
+        let buffer = self
+            .buffer
+            .as_mut()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "attempt to fill buffer after end of dir"))?;
         match unsafe {
             GetFileInformationByHandleEx(
                 self.d.as_raw_handle() as HANDLE,
@@ -425,9 +410,7 @@ fn delete_with_win7_readonly(f: File, e: io::Error) -> Result<File, (File, io::E
 pub(super) fn delete_by_handle(f: File) -> Result<(), (File, io::Error)> {
     match delete_with_posix(f)
         .or_else(|(f, e)| match e.raw_os_error().map(|i| i as u32) {
-            Some(ERROR_NOT_SUPPORTED | ERROR_INVALID_PARAMETER | ERROR_INVALID_FUNCTION) => {
-                delete_with_win7(f)
-            }
+            Some(ERROR_NOT_SUPPORTED | ERROR_INVALID_PARAMETER | ERROR_INVALID_FUNCTION) => delete_with_win7(f),
             _ => Err((f, e)),
         })
         .or_else(|(f, e)| match e.kind() {

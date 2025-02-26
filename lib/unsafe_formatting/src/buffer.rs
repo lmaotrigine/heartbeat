@@ -13,7 +13,8 @@ pub struct Buffer {
 impl Buffer {
     /// Creates a new buffer.
     ///
-    /// However, I'm lazy so this allocates enough on the stack to format `u128::MAX`.
+    /// However, I'm lazy so this allocates enough on the stack to format
+    /// `u128::MAX`.
     #[inline(always)]
     #[must_use]
     pub const fn new() -> Self {

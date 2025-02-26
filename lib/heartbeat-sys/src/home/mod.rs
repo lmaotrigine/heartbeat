@@ -62,25 +62,21 @@ pub fn heartbeat_home_with_env(env: &dyn Env) -> io::Result<PathBuf> {
 ///
 /// This function returns an error if the home directory cannot be determined.
 pub fn heartbeat_home_with_cwd_env(env: &dyn Env, cwd: &Path) -> io::Result<PathBuf> {
-    env::var_os("HEARTBEAT_HOME")
-        .filter(|h| !h.is_empty())
-        .map_or_else(
-            || {
-                home_dir_with_env(env)
-                    .map(|p| p.join(".heartbeat"))
-                    .ok_or_else(|| {
-                        io::Error::new(io::ErrorKind::Other, "could not find heartbeat home dir")
-                    })
-            },
-            |home| {
-                let home = PathBuf::from(home);
-                if home.is_absolute() {
-                    Ok(home)
-                } else {
-                    Ok(cwd.join(home))
-                }
-            },
-        )
+    env::var_os("HEARTBEAT_HOME").filter(|h| !h.is_empty()).map_or_else(
+        || {
+            home_dir_with_env(env)
+                .map(|p| p.join(".heartbeat"))
+                .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "could not find heartbeat home dir"))
+        },
+        |home| {
+            let home = PathBuf::from(home);
+            if home.is_absolute() {
+                Ok(home)
+            } else {
+                Ok(cwd.join(home))
+            }
+        },
+    )
 }
 
 #[must_use]

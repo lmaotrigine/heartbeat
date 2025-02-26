@@ -23,12 +23,15 @@
 
 //! This crate is essentially itoa but with commas.
 //!
-//! It's very hacky, I don't think it would be very useful outside of my specific use cases, and there are probably
-//! better crates out there that do this and much more. However, I just want something really fast, with no allocation,
-//! and only the standard thousands separator (a comma, groups of 3); and this works.
+//! It's very hacky, I don't think it would be very useful outside of my
+//! specific use cases, and there are probably better crates out there that do
+//! this and much more. However, I just want something really fast, with no
+//! allocation, and only the standard thousands separator (a comma, groups of
+//! 3); and this works.
 //!
-//! There's a lot of `unsafe`s strewn about here, I don't know that there's a better way to do this, but it works, and
-//! it runs well on my network of tiny embedded devices, so that's all I care about.
+//! There's a lot of `unsafe`s strewn about here, I don't know that there's a
+//! better way to do this, but it works, and it runs well on my network of tiny
+//! embedded devices, so that's all I care about.
 
 use core::num::{
     NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize, NonZeroU128, NonZeroU16, NonZeroU32,
@@ -68,11 +71,14 @@ mod sealed {
 macros::impl_sealed!(NonZeroU8, NonZeroU16, NonZeroU32, NonZeroUsize, NonZeroU64, NonZeroU128);
 macros::impl_sealed!(NonZeroI8, NonZeroI16, NonZeroI32, NonZeroIsize, NonZeroI64, NonZeroI128);
 
-/// Analogous to [`itoa::Integer`]. A marker trait for an integer that can be written into a [`Buffer`].
+/// Analogous to [`itoa::Integer`]. A marker trait for an integer that can be
+/// written into a [`Buffer`].
 ///
-/// This trait is sealed and cannot be implemented for types outside of this crate.
+/// This trait is sealed and cannot be implemented for types outside of this
+/// crate.
 pub trait Integer: sealed::Sealed + Sized {
-    /// Writes the integer into the buffer, returning the number of bytes written.
+    /// Writes the integer into the buffer, returning the number of bytes
+    /// written.
     fn to_buffer(&self, buf: &mut Buffer) -> usize;
 }
 

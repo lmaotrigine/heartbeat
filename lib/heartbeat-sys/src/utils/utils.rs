@@ -1,7 +1,8 @@
 use super::raw;
 use std::{io, path::Path};
 
-/// creates a directory if it doesn't exist, and invokes a callback while creating it.
+/// creates a directory if it doesn't exist, and invokes a callback while
+/// creating it.
 ///
 /// # Errors
 ///

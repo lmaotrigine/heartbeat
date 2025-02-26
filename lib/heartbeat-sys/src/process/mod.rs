@@ -251,12 +251,7 @@ pub struct TestProcess {
 
 #[cfg(feature = "test")]
 impl TestProcess {
-    pub fn new<P: AsRef<Path>, A: AsRef<str>>(
-        cwd: P,
-        args: &[A],
-        vars: HashMap<String, String>,
-        stdin: &str,
-    ) -> Self {
+    pub fn new<P: AsRef<Path>, A: AsRef<str>>(cwd: P, args: &[A], vars: HashMap<String, String>, stdin: &str) -> Self {
         Self {
             cwd: cwd.as_ref().to_path_buf(),
             args: args.iter().map(|s| s.as_ref().to_string()).collect(),

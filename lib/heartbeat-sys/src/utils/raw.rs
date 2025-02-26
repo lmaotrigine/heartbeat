@@ -2,10 +2,7 @@
 
 use std::{fs, io, path::Path};
 
-pub(crate) fn ensure_dir_exists<P: AsRef<Path>, F: FnOnce(&Path)>(
-    path: P,
-    callback: F,
-) -> io::Result<bool> {
+pub(crate) fn ensure_dir_exists<P: AsRef<Path>, F: FnOnce(&Path)>(path: P, callback: F) -> io::Result<bool> {
     if is_directory(&path) {
         Ok(false)
     } else {

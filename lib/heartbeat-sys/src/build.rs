@@ -30,8 +30,7 @@ pub fn long_version(pkg_ver: &'static str) -> String {
 /// Requires `git` in PATH, doesn't link to `libgit2`.
 #[must_use]
 pub fn git_revision() -> Option<String> {
-    run_git(&["describe", "--tags", "--exact-match"])
-        .or_else(|| run_git(&["rev-parse", "--short", "HEAD"]))
+    run_git(&["describe", "--tags", "--exact-match"]).or_else(|| run_git(&["rev-parse", "--short", "HEAD"]))
 }
 
 /// Retrieves the count of commits on the current branch.
@@ -44,7 +43,8 @@ pub fn git_commit_count() -> Option<String> {
 
 /// Retrieves the current git branch, if possible.
 ///
-/// Returns [`None`] in cases where it can't be determined, e.g. a detached HEAD.
+/// Returns [`None`] in cases where it can't be determined, e.g. a detached
+/// HEAD.
 ///
 /// Requires `git` in PATH, doesn't link to `libgit2`.
 #[must_use]
@@ -63,25 +63,20 @@ pub fn git_branch() -> Option<String> {
             static RE: OnceLock<Regex> = OnceLock::new();
 
             let lock = &RE;
-            let re =
-                lock.get_or_init(|| Regex::new(r"[^a-zA-Z0-9.]").expect("regex should be valid."));
+            let re = lock.get_or_init(|| Regex::new(r"[^a-zA-Z0-9.]").expect("regex should be valid."));
             re.replace_all(&res, ".").into_owned()
         })
     }
 }
 
 fn run_git(cmd: &[&str]) -> Option<String> {
-    Command::new("git")
-        .args(cmd)
-        .output()
-        .ok()
-        .and_then(|output| {
-            let v = String::from_utf8_lossy(&output.stdout);
-            let v = v.trim();
-            if v.is_empty() {
-                None
-            } else {
-                Some(v.to_string())
-            }
-        })
+    Command::new("git").args(cmd).output().ok().and_then(|output| {
+        let v = String::from_utf8_lossy(&output.stdout);
+        let v = v.trim();
+        if v.is_empty() {
+            None
+        } else {
+            Some(v.to_string())
+        }
+    })
 }

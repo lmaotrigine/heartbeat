@@ -82,9 +82,7 @@ impl ColourableTerminal {
     /// commands are discarded.
     #[cfg_attr(not(feature = "test"), allow(clippy::needless_pass_by_value))]
     pub(super) fn new(stream: StreamSelector) -> Self {
-        let env_override = process()
-            .var("HEARTBEAT_TERM_COLOUR")
-            .map(|it| it.to_lowercase());
+        let env_override = process().var("HEARTBEAT_TERM_COLOUR").map(|it| it.to_lowercase());
         let choice = match env_override.as_deref() {
             Ok("always") => ColorChoice::Always,
             Ok("never") => ColorChoice::Never,
@@ -92,12 +90,8 @@ impl ColourableTerminal {
             _ => ColorChoice::Never,
         };
         let inner = match stream {
-            StreamSelector::Stdout => {
-                TerminalInner::StandardStream(StandardStream::stdout(choice), ColorSpec::new())
-            }
-            StreamSelector::Stderr => {
-                TerminalInner::StandardStream(StandardStream::stderr(choice), ColorSpec::new())
-            }
+            StreamSelector::Stdout => TerminalInner::StandardStream(StandardStream::stdout(choice), ColorSpec::new()),
+            StreamSelector::Stderr => TerminalInner::StandardStream(StandardStream::stderr(choice), ColorSpec::new()),
             #[cfg(feature = "test")]
             StreamSelector::TestWriter(w) => TerminalInner::TestWriter(w, choice),
             #[cfg(all(test, feature = "test"))]

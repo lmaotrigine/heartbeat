@@ -112,8 +112,7 @@ pub(super) fn open_dir(p: &Path) -> io::Result<File> {
 
 pub(super) fn open_dir_at(d: &File, p: &Path) -> io::Result<File> {
     let flags = libc::O_RDONLY | libc::O_NOFOLLOW | libc::O_CLOEXEC | libc::O_NOCTTY;
-    let path = CString::new(p.as_os_str().as_bytes())
-        .map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
+    let path = CString::new(p.as_os_str().as_bytes()).map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
     let fd = loop {
         match unsafe { openat64(d.as_raw_fd(), path.as_ptr(), flags, 0o777) } {
             -1 => {
@@ -137,8 +136,7 @@ pub(super) fn unlink_at<P: AsRef<Path>>(d: &File, p: P) -> io::Result<()> {
 }
 
 fn _unlinkat(d: &File, p: &Path, flags: libc::c_int) -> io::Result<()> {
-    let path = CString::new(p.as_os_str().as_bytes())
-        .map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
+    let path = CString::new(p.as_os_str().as_bytes()).map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
     loop {
         match unsafe { libc::unlinkat(d.as_raw_fd(), path.as_ptr(), flags) } {
             -1 => {
@@ -173,12 +171,10 @@ impl<'a> ReadDir<'a> {
                 n => break n,
             }
         };
-        let mut dir = Some(
-            ptr::NonNull::new(unsafe { libc::fdopendir(new_fd) }).ok_or_else(|| {
-                let _ = unsafe { File::from_raw_fd(new_fd) };
-                io::Error::last_os_error()
-            })?,
-        );
+        let mut dir = Some(ptr::NonNull::new(unsafe { libc::fdopendir(new_fd) }).ok_or_else(|| {
+            let _ = unsafe { File::from_raw_fd(new_fd) };
+            io::Error::last_os_error()
+        })?);
         if let Some(d) = dir.as_mut() {
             unsafe { libc::rewinddir(d.as_mut()) };
         }
