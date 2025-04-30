@@ -1,0 +1,56 @@
+[package]
+name = "heartbeat-sys"
+description = "low-level tooling to help develop things for Heartbeat"
+license = "MPL-2.0"
+repository = "https://git.5ht2.me/lmaotrigine/heartbeat-sys"
+readme = "README.md"
+keywords = ["ffi"]
+categories = ["development-tools"]
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = { version = "1", optional = true }
+parking_lot = { version = "0.12", optional = true }
+rand = { version = "0.8", optional = true }
+rayon = { version = "1", optional = true }
+regex = { version = "1", optional = true }
+termcolor = { version = "1", optional = true }
+thiserror = { version = "1", optional = true }
+
+[target.'cfg(windows)'.dependencies.windows-sys]
+version = "0.52"
+features = [
+  "Win32_Foundation",
+  "Win32_System_Console",
+  "Win32_UI_Shell"
+]
+
+[target.'cfg(not(windows))'.dependencies]
+libc = "0.2"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 'z'
+panic = 'abort'
+
+[features]
+fs = [
+  "dep:thiserror",
+  "windows-sys/Wdk_Foundation",
+  "windows-sys/Wdk_Storage_FileSystem",
+  "windows-sys/Win32_Storage_FileSystem",
+  "windows-sys/Win32_System_IO",
+  "windows-sys/Win32_System_SystemServices",
+  "windows-sys/Win32_System_Threading",
+  "windows-sys/Win32_System_WindowsProgramming",
+  "rayon"
+]
+parking_lot = ["dep:parking_lot"]
+process = ["termcolor", "parking_lot"]
+rand = ["dep:rand"]
+test = ["fs", "process", "rand", "cli"]
+cli = ["process", "dep:anyhow"]

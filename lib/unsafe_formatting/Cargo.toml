@@ -1,0 +1,15 @@
+[package]
+name = "unsafe_formatting"
+description = "An extension of David Tolnay's itoa, but with thousands separators. Not for general use."
+license = "MIT/Apache-2.0"
+version = "0.1.0"
+repository = "https://git.5ht2.me/lmaotrigine/unsafe_formatting"
+edition = "2021"
+readme = "README.md"
+keywords = ["integer"]
+categories = ["no-std"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+itoa = "1.0.9"

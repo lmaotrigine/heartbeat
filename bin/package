@@ -19,7 +19,7 @@ if [[ "$OS" = ubuntu-latest ]]; then
   export TARGET_CC=clang
   export TARGET_AR=llvm-ar
 fi
-if [[ "$OS" != ubuntu-latest ]] || [[ "${TARGET##*-}" != gnu ]]; then
+if [[ "$OS" != ubuntu-latest ]] || [[ "${TARGET##*-}" != gnu ]] && [[ "${TARGET##*-}" != freebsd ]]; then
   RUSTFLAGS="$RUSTFLAGS -C target-feature=+crt-static"
 fi
 

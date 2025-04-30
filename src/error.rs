@@ -6,6 +6,7 @@
 
 use crate::{templates::error, AppState};
 use axum::{
+    body::Body,
     extract::State,
     http::{Method, Request, StatusCode},
     middleware::Next,
@@ -61,12 +62,12 @@ impl IntoResponse for Error {
 /// code, or if the client IP could not be determined.
 pub async fn handle_errors(
     State(state): State<AppState>,
-    mut req: Request<axum::body::Body>,
+    mut req: Request<Body>,
     next: Next,
 ) -> Result<Response, Error> {
     let path = req.uri().path().to_owned();
     let method = req.method().clone();
-    let server_name = state.config.server_name;
+    let server_name = &state.config.server_name;
     let ip = match req.extract_parts::<RealIp>().await {
         Ok(RealIp(ip)) => ip,
         Err(e) => {
@@ -75,7 +76,7 @@ pub async fn handle_errors(
                 &path,
                 &method,
                 StatusCode::INTERNAL_SERVER_ERROR,
-                &server_name,
+                server_name,
             ));
         }
     };
@@ -89,7 +90,7 @@ pub async fn handle_errors(
         StatusCode::METHOD_NOT_ALLOWED | StatusCode::NOT_FOUND | StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => {
             let code = status.as_u16();
             warn!("returned {code} to {ip} - tried to {method} {path} with Authorization {auth}");
-            Err(Error::new(&path, &method, status, &server_name))
+            Err(Error::new(&path, &method, status, server_name))
         }
         _ => Ok(resp),
     }

@@ -14,7 +14,7 @@
 //! Router utilities
 
 use crate::{config::Config, AppState};
-use api::{get_stats, handle_beat_req, post_device, realtime_stats, regenerate_device_token};
+use api::{get_stats_, handle_beat_req, post_device, realtime_stats, regenerate_device_token};
 use axum::{
     routing::{get, post},
     Router,
@@ -45,7 +45,7 @@ fn __router(config: &Config) -> Router<AppState> {
         .route("/", get(index_page))
         .route("/.well-known/health", get(health_check))
         .route("/api/beat", post(handle_beat_req))
-        .route("/api/stats", get(get_stats))
+        .route("/api/stats", get(get_stats_))
         .route("/api/stats/ws", get(realtime_stats))
         .route("/privacy", get(privacy_page))
         .route("/stats", get(stats_page));

@@ -23,3 +23,5 @@ dist/
 
 *.bk
 *arm64
+# ESLint nonsense
+node_modules/

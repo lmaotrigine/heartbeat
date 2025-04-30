@@ -3,8 +3,8 @@
 ## Installing Heartbeat
 
 The easiest way to install heartbeat is by obtaining the latest release archive from the [releases]. These release
-binaries are statically linked and require no runtime dependencies. You may simply download the archive corresponding to
-your platform and extract it.
+binaries are (mostly) statically linked and require no runtime dependencies. You may simply download the archive
+corresponding to your platform and extract it.
 
 ### Docker
 

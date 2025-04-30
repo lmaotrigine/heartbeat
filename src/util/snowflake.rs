@@ -42,7 +42,7 @@ impl Snowflake {
     }
 
     pub fn created_at(self) -> chrono::DateTime<chrono::Utc> {
-        let ts = self.0 >> 22 & max(42);
+        let ts = (self.0 >> 22) & max(42);
         chrono::Utc
             .timestamp_opt(
                 i64::try_from(ts + EPOCH).expect("it is now the year 292,278,994") / 1000,

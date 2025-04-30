@@ -9,9 +9,9 @@ use serde::Serialize;
 
 use crate::config::{Config, Webhook as WebhookConfig, WebhookLevel};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Webhook {
-    config: WebhookConfig,
+    config: &'static WebhookConfig,
     client: Client,
 }
 
@@ -44,7 +44,7 @@ struct Author<'a> {
 }
 
 impl Webhook {
-    pub fn new(config: WebhookConfig) -> Self {
+    pub fn new(config: &'static WebhookConfig) -> Self {
         Self {
             config,
             client: Client::new(),

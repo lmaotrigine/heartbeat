@@ -102,7 +102,7 @@ pub struct WebCli {
     pub config_file: __ConfigFile,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct __ConfigFile {
     path: Option<PathBuf>,
 }
@@ -167,7 +167,7 @@ impl Args for __ConfigFile {
 }
 
 /// The configuration for the server.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Config {
     /// Database configuration.
     pub database: Database,
@@ -188,14 +188,14 @@ pub struct Config {
     pub bind: SocketAddr,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize)]
 pub struct Database {
     /// A `PostgreSQL` connection string.
     pub dsn: String,
 }
 
 #[cfg(feature = "webhook")]
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize)]
 pub struct Webhook {
     /// The URL of the Discord webhook.
     pub url: String,
@@ -301,7 +301,7 @@ struct Merge<'a> {
 fn is_docker() -> bool {
     let path = Path::new("/proc/self/cgroup");
     let dockerenv = Path::new("/.dockerenv");
-    dockerenv.exists() || (read_to_string(path).map_or(false, |s| s.lines().any(|l| l.contains("docker"))))
+    dockerenv.exists() || (read_to_string(path).is_ok_and(|s| s.lines().any(|l| l.contains("docker"))))
 }
 
 impl<'a> Merge<'a> {
@@ -359,7 +359,7 @@ impl<'a> Merge<'a> {
                 }
                 value
             })
-            .ok_or_else(|| Error::MissingField(field))
+            .ok_or(Error::MissingField(field))
     }
 
     fn profile_value_nested<T: Debug + Deserialize<'a>>(&self, outer: &'a str, inner: &'a str) -> Option<T> {

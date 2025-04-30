@@ -21,7 +21,7 @@ impl<'a> Plural<'a> {
 
     #[allow(dead_code)] // we don't deal with non-standard plurals for now
     pub fn plural(mut self, plural: &str) -> Self {
-        self.plural = plural.to_owned();
+        plural.clone_into(&mut self.plural);
         self
     }
 

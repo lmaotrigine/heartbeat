@@ -1,0 +1,13 @@
+[package]
+name = "axum-realip"
+version = "0.1.1"
+authors = ["Isis <root@5ht2.me>"]
+license = "MPL-2.0"
+edition = "2021"
+publish = ["alphamethyl"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = { version = "0.7", default-features = false, features = ["tokio"] }
+thiserror = "1"

@@ -1,0 +1,16 @@
+[package]
+name = "erased-debug"
+description = "A wrapper type that prevents printing the containing type in Debug representations"
+authors = ["Isis <root@5ht2.me>"]
+repository = "https://git.5ht2.me/lmaotrigine/erased-debug"
+license = "MPL-2.0"
+version = "0.1.0"
+edition = "2021"
+keywords = ["no-std"]
+categories = ["no-std::no-alloc"]
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1", features = ["derive"], optional = true, default-features = false }

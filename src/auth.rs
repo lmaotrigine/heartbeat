@@ -61,16 +61,16 @@ impl FromRequestParts<AppState> for Device {
     }
 }
 
-#[derive(Debug)]
-pub struct Master(pub String);
+#[derive(Debug, Clone, Copy)]
+pub struct Master;
 
 #[axum::async_trait]
 impl FromRequestParts<AppState> for Master {
     type Rejection = Error;
 
     async fn from_request_parts(req: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
-        let config = Config::from_ref(state);
-        let expected = config.secret_key;
+        let config: &'static Config = FromRef::from_ref(state);
+        let expected = &config.secret_key;
         if expected.is_empty() {
             return Err(Error::new(
                 req.uri.path(),
@@ -82,18 +82,18 @@ impl FromRequestParts<AppState> for Master {
         }
         let token = req.headers.get("Authorization").map_or_else(
             || {
-                return Err(Error::new(
+                Err(Error::new(
                     req.uri.path(),
                     &req.method,
                     StatusCode::UNAUTHORIZED,
                     &state.config.server_name,
                 )
-                .with_reason("No token provided."));
+                .with_reason("No token provided."))
             },
             |t| Ok(t.to_str().unwrap_or_default()),
         )?;
-        if token == *expected {
-            Ok(Self(token.to_string()))
+        if token == **expected {
+            Ok(Self)
         } else {
             Err(Error::new(
                 req.uri.path(),

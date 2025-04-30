@@ -1,0 +1,22 @@
+alias b := build
+
+build:
+  cargo build --workspace --all-targets --release
+
+check:
+  cargo check --workspace --all-targets
+
+lint:
+  cargo clippy --workspace --all-targets -- -D warnings
+
+test:
+  cargo test --workspace --all-targets
+
+alias fmt := format
+alias t := test
+
+format:
+  cargo fmt --all -- --check
+  rustfmt --check html/tests/warnings/*.rs
+
+ci: check lint test format
