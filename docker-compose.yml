@@ -1,7 +1,8 @@
 version: "3.9"
 services:
-  server:
-    image: ghcr.io/lmaotrigine/heartbeat:latest
+  server-heartbeat:
+    platform: linux/arm64
+    build: .
     volumes:
       - ./config.toml:/.heartbeat/config.toml
     networks:
@@ -9,11 +10,11 @@ services:
     ports:
       - 127.0.0.1:6060:6060
     depends_on:
-      - db
+      - db-heartbeat
     restart: unless-stopped
-    pull_policy: always
 
-  db:
+  db-heartbeat:
+    platform: linux/arm64
     image: postgres:16
     volumes:
       - ./db_data/postgres:/var/lib/postgresql/data

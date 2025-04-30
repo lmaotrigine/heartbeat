@@ -11,8 +11,7 @@
 # at runtime so you essentially end up with two libc's
 # in memory, which.. yeah no.
 # I refuse to bow down to the morons at FSF.
-ARG RUST_VERSION=alpine
-
+ARG RUST_VERSION=alpine3.19
 FROM rust:${RUST_VERSION} AS build
 
 # Install a few essential packages
