@@ -335,7 +335,7 @@ impl<'a> Merge<'a> {
     config_field!(
         bind,
         SocketAddr,
-        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6060))
+        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 6060))
     );
 
     fn profile_value<T: Debug + Deserialize<'a>>(&self, field: &'a str) -> Option<T> {

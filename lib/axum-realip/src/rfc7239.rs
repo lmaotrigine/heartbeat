@@ -142,7 +142,7 @@ impl ForwardedHeaderValue {
         }
     }
 
-    pub fn iter(&self) -> ForwardedHeaderValueIter {
+    pub fn iter(&self) -> ForwardedHeaderValueIter<'_> {
         ForwardedHeaderValueIter {
             head: self.values.first(),
             tail: &self.values[1..],
