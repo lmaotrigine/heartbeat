@@ -100,7 +100,7 @@ async fn migrate(cli: heartbeat::MigrateCli) -> Result<()> {
                 .as_ref()
                 .cloned()
                 .or_else(default)
-                .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "could not determine heartbeat home dir"))?,
+                .ok_or_else(|| io::Error::other("could not determine heartbeat home dir"))?,
         )?)?;
         let maybe_dsn = config
             .get("database")

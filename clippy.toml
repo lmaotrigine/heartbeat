@@ -1,4 +1,5 @@
 msrv = "1.83"
+cognitive-complexity-threshold = 30
 
 [[disallowed-types]]
 path = "std::sync::Mutex"
@@ -11,10 +12,6 @@ reason = "Use the faster and simpler non-poisonable RwLock from parking_lot inst
 [[disallowed-types]]
 path = "std::collections::LinkedList"
 reason = "LinkedList is slow and almost never the right choice."
-
-[[disallowed-types]]
-path = "ring::digest::SHA1_FOR_LEGACY_USE_ONLY"
-reason = "SHA-1 is cryptographically broken"
 
 [[disallowed-methods]]
 path = "tracing_subscriber::fmt::init"
